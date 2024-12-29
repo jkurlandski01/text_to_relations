@@ -1,0 +1,18 @@
+[project]
+name = "text_to_relations"
+version = "0.0.1"
+authors = [
+  { name="Jerry Kurlandski", email="jkurlandski@gmail.com" },
+]
+description = "Initial Version"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/jkurlandski01/text_to_relations"
+Issues = "https://github.com/jkurlandski01/text_to_relations/issues"

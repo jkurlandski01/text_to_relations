@@ -1,0 +1,24 @@
+#Don't track these files.
+#########################
+# Exceeds GitHub size limit.
+# NLP/models/allen_nlp/bert-base-srl-2020.11.19.tar.gz
+# NLP/models/allen_nlp/coref-spanbert-large-2021.03.10.tar.gz
+# data/glove
+
+# # Points to data locations.
+# NLP/JupyterNotebooks/Classification/resources/
+
+#Don't track content of these folders
+#####################################
+__pycache__/
+# venv
+.venv
+.history
+.vscode
+# .idea
+**/.ipynb_checkpoints
+
+#Don't track content of these file types
+########################################
+
+
