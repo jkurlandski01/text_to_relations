@@ -8,9 +8,17 @@ import re
 """
 Load the spaCy English language model one time for the entire application.
 """
-spacyEnglishModel = spacy.load('en_core_web_lg')
-lightSpacyEnglishModel = spacy.load('en_core_web_lg', 
+# Either of these models is acceptable:
+try:
+    spacyEnglishModel = spacy.load('en_core_web_lg')
+    lightSpacyEnglishModel = spacy.load('en_core_web_lg', 
                                     disable=["tagger", "parser", "ner", "textcat", "lemmatizer"])
+except IOError:
+    spacyEnglishModel = spacy.load('en_core_web_trf')
+    # Does not work under Python 3.9:
+    lightSpacyEnglishModel = spacy.load('en_core_web_trf', 
+                                    disable=["tagger", "parser", "ner", "textcat", "lemmatizer"])
+
 
 def tokenize(inputStr):
     """

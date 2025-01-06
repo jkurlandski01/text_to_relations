@@ -1,12 +1,12 @@
 [project]
 name = "text_to_relations"
-version = "0.0.2"
+version = "0.0.3"
 authors = [
   { name="Jerry Kurlandski", email="jkurlandski@gmail.com" },
 ]
 description = "Initial Version"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",

@@ -33,9 +33,14 @@ Text-To-Relations also requires Spacy.  Install the Spacy dependencies with thes
 
 ```
 pip install -U spacy
+```
 
+Text-to-Relations has been tested with the `en_core_web_lg` Spacy English language model. Install it in this way:
+```
 python -m spacy download en_core_web_lg
 ```
+
+If you already have the `en_core_web_trf` English language model installed, you may be able to use that instead of `en_core_web_lg` under Python 3.10 and 3.11. However, it will not work under Python 3.9.
 
 
 ## A Tutorial
