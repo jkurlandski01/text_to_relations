@@ -1,7 +1,9 @@
 from text_to_relations.relation_extraction import StringUtils
 from text_to_relations.relation_extraction import SpacyUtils
 from text_to_relations.relation_extraction.Annotation import Annotation
-from typing import Tuple, List, Self
+from typing import Tuple, List
+from typing_extensions import Self
+
 
 class TokenAnn(Annotation):
     # A class of objects representing word tokens which "know" their 

@@ -1,5 +1,6 @@
 import re
-from typing import Dict, Self, Collection, List
+from typing import Dict, Collection, List
+from typing_extensions import Self
 
 from text_to_relations.relation_extraction import StringUtils
 

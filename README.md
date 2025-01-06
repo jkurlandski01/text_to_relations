@@ -8,10 +8,10 @@ First, Text-To-Relations lets you perform **entity recognition** by providing a 
 Then you can combine these entities to form **relations** with Text-To-Relations's abstract base class and the working example provided.
 
 Text-To-Relations has been tested on:
-- Python 3.11.6
-- MacOS Sequoia 15.2; Ubuntu 22
+- Python 3.9.18 and Python 3.11.6 on MacOS Sequoia 15.2
+- Python 3.10.12 on Ubuntu 22
 
-We expect it to work without issue in most other environments as well.
+We expect it to work without issue in many other environments as well.
 
 Source code at [GitHub text_to_relations](https://github.com/jkurlandski01/text_to_relations).
 
@@ -22,7 +22,14 @@ After setting up your virtual environment, install Text-To-Relations with this P
 pip install text_to_relations
 ```
 
-Text-To-Relations requires Spacy.  Install the Spacy dependencies with these commands. As far as we know, Text-To-Relations is agnostic with regard to the specific Spacy version.
+If your Python version is less than 3.11, upgrade pip and install typing_extensions:
+```
+pip install --upgrade pip
+
+pip install typing_extensions
+```
+
+Text-To-Relations also requires Spacy.  Install the Spacy dependencies with these commands. As far as we know, Text-To-Relations is agnostic with regard to the specific Spacy version.
 
 ```
 pip install -U spacy

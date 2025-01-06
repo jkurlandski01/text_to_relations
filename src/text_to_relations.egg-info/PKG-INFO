@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: text_to_relations
-Version: 0.0.1
+Version: 0.0.2
 Summary: Initial Version
 Author-email: Jerry Kurlandski <jkurlandski@gmail.com>
 Project-URL: Homepage, https://github.com/jkurlandski01/text_to_relations
@@ -14,20 +14,20 @@ License-File: LICENSE
 
 # Text-To-Relations 
 
-Text-To-Relations: a tool for Information and Relation Extraction
+**Text-To-Relations: a tool for Information and Relation Extraction**
 
-First, Text-To-Relations lets you perform **entity recognition** by providing a simple interface for created complex regular expressions.
+First, Text-To-Relations lets you perform **entity recognition** by providing a simple interface for creating complex regular expressions.
 - If you regularly find yourself writing complex regular expressions, the project can be used as a utility for quickly writing a first draft and easily testing it out.
 
-Then you can combine these entities to form **relations** with Text-To-Relations's abstract base class and a working example provided.
+Then you can combine these entities to form **relations** with Text-To-Relations's abstract base class and the working example provided.
 
 Text-To-Relations has been tested on:
-- Python 3.11.6
+- Python 3.9.18, Python 3.11.6
 - MacOS Sequoia 15.2; Ubuntu 22
 
-We expect it to work without issue in most other environments as well.
+We expect it to work without issue in many other environments as well.
 
-[github](https://github.com/jkurlandski01/text_to_relations)
+Source code at [GitHub text_to_relations](https://github.com/jkurlandski01/text_to_relations).
 
 ## Installation Instructions
 
@@ -51,7 +51,7 @@ python -m spacy download en_core_web_lg
 
 For this example we're going to write rules to extract postage stamp descriptions as found at https://www.mysticstamp.com/.
 
-Here are the descriptions for several 19th Century U.S. postage stamps.
+Here is Python code to create an input string containing the descriptions for several 19th Century U.S. postage stamps.
 
 ```python
 import inspect
@@ -86,7 +86,7 @@ We'll break the first description up into its constituent parts:
 - type: *II*
 - perforation_info: *imperforate*
 
-Our goal is to write rules to successfully process all the data at the Mystic Stamp website. We hope that writing rules for these examples will give us a good start.
+Let's pretend that our goal is to write rules to successfully process all the data at the Mystic Stamp website. We hope that writing rules for these examples will give us a good start.
 
 ### RegexString
 
@@ -123,7 +123,7 @@ Both regular expressions begin and end with '\b,' which is regex-speak for "whol
 
 The meat of the regex for `roman_nums_rs` consists of the five Roman numerals separated by "|" (meaning OR), which will match on any one of the five if found in a piece of text. Some other things to note here:
 - The regular expression sorts the OR'd numerals by length so that, for example, if "II" occurs in the text you will get a single match on the entire string rather than two matches on "I." (Note that this is only an issue when `whole_word` is set to False.)
-- The scary looking "?:" at the start of the block tells the regular expression matcher not to perform grouping on the match. If you don't know what this means--don't worry, you don't need to know. For most *natural language* processing tasks, you don't need grouping. Text-To-Relations employs non-capturing by default so that some of the other functionality can assume it. (If you must have capturing, create the RegeString with `non_capturing=False` to allow capturing.)
+- The scary looking "?:" at the start of the block tells the regular expression matcher not to perform grouping on the match. If you don't know what this means--don't worry, you don't need to know. For most *natural language* processing tasks (as opposed to some text processing tasks), you don't need grouping. Text-To-Relations employs non-capturing by default so that some of the other functionality that builds on RegexString objects can assume the associated regular expression is non-capturing. (If you must have capturing, create the RegeString with `non_capturing=False` to allow capturing.)
 
 Finally we're ready to run our RegexString objects against the stamp descriptions at top.
 
@@ -175,7 +175,7 @@ As a side note, Text-to-Relations offers at least one other way of accomplishing
 
 #### Example 3
 
-Here's one more "Introduction-to-RegexString" example, used to extract the perforation information in our postage stamp descriptions. The specific perforation examples we're targeting are: imperf, imperforate, perf 15.
+Here's one more "Introduction-to-RegexString" example, this time used to extract the perforation information in our postage stamp descriptions. The specific perforation examples we're targeting are: imperf, imperforate, perf 15.
 
 ```python
 perforation_markers = ['perf', 'imperforate', 'imperf']
@@ -216,9 +216,9 @@ Perforated sizes:
 [('perf 15', 203, 210)]
 ```
 
-### RegexString: build_regex_string & another concat_with_word_distances()
+### RegexString: build_regex_string( )
 
-Now for some new RegexString functionality. First we'll use the function build_regex_string() to create a regular expression that matches on one set of list items on one word, then on another set for the next word--this seems right for colors that are preceded by qualifiers like *bright* and *dark*.
+Now for some new RegexString functionality. First we'll use the function build_regex_string( ) to create a regular expression that matches on one set of list items on one word, then on another set for the next word in the text--this seems right for colors that are preceded by qualifiers like *bright* and *dark*.
 
 Before going further let's have a look at the use of colors in the stamp descriptions--one description doesn't mention a color, one has just "black," and five have a *qualifier + color* description. The specific strings we're targeting are: dull red, black, red brown, bright blue, orange brown, dark green.
 
@@ -252,9 +252,9 @@ Color qualifiers + colors:
 [('dull red', 38, 46), ('red brown', 138, 147), ('bright blue', 237, 248), ('orange brown', 276, 288), ('dark green', 319, 329)]
 ```
 
-Oops! We're not getting the colors which aren't preceded by a qualifier. The build_regex_string( ) function may be useful in other circumstances, but it's not the right tool for this particular job. (In truth, I knew this function wouldn't work here before I tried it out, but I wanted to introduce you to it and I had no other use case for this set of postage stamp descriptions.)
+Oops! We're not getting the colors which aren't preceded by a qualifier. The build_regex_string( ) function may be useful in other circumstances, but it's not the right tool for this particular job. (In truth, I knew this function wouldn't work here before I tried it out, but I wanted to introduce you to the function and I had no other use case for this set of postage stamp descriptions.)
 
-Instead, let's try concat_with_word_distances(), which we've already used successfully to identify *type + roman numeral*, a context where the first word was not optional.
+Instead, let's try concat_with_word_distances( ), which we've already used successfully to identify *type + roman numeral*, a context where the first word was not optional.
 
 ```python
 color_qualifiers_rs = RegexString(color_qualifiers, 
@@ -298,9 +298,9 @@ Stamp IDs:
 [('# 11', 0, 4), ('# 17', 65, 69), ('# 12', 112, 116), ('# 18', 170, 174), ('# 40', 212, 216), ('# 42', 250, 254), ('# 62', 290, 294)]
 ```
 
-No problem. With our limited understanding of regular expressions, we know that we can add *(\w)?* to the end of the regular expression in order to match on an optional word character (not digits, not punctuation).
-- If we use *\w+* instead of just *\w*, we could match on additional word characters, in case that some of the IDs have these extra characters. 
-- And from the talk above regarding non-grouping expressions, we have learned that we should insert *?:* at the start of the optional word character parentheses.
+No problem. With our limited understanding of regular expressions, we know that we can add *(\w)?* to the end of the regular expression in order to match on an optional word character. (A word character excludes digits and punctuation.)
+- If we use *\w+* instead of just *\w*, we could match on additional word characters, in case some of the IDs which we haven't seen have these extra characters. 
+- And from the talk above regarding non-grouping expressions, we have learned that, generally speaking, we should insert *?:* at the start of the optional word character parentheses.
 
 ```bash
 id_rs = RegexString(id_symbols, append='\s\d+(?:\w+)?')
@@ -318,7 +318,9 @@ Stamp IDs with letters found in the input:
 
 By *relation extraction* we mean the identification of relationships between multiple entities. So, to use our postage stamp exercise as an example, creating a StampDescription class with properties such as *type*, *value* and *perforation_info* would qualify as relation extraction.
 
-I have not done that, however. What I have done--and what I can offer as an example of relation extraction--is `relation_extraction/extract_min_max_relation.py`. The Python code there takes you all the way from using RegexString to extract entities to subclassing the ExtractionPhaseABC abstract base class in order to combine them into a MinMax object based on text snippets like:
+I have not done that, however. What I have done--and what I can offer as an example of relation extraction--is `relation_extraction/extract_min_max_relation.py`. You can find it in the source code at [the GitHub Text-to-Relations project](https://github.com/jkurlandski01/text_to_relations).
+
+The Python code there takes you all the way from using RegexString to extract entities to subclassing the ExtractionPhaseABC abstract base class in order to combine those entities into a MinMax object based on text snippets like:
 - *within the range of 60 to 90 points*
 - *between 170 and 220 pounds*.
 - *30 to 40 drinks*
@@ -327,10 +329,10 @@ The process begins by using RegexString to identify these entities:
 - Number (for integers)
 - Unit_of_Measure on the words *points*, *pounds* and *drinks*.
 
-The process then passes these entities (as objects of the Annotation class) to two phases.
+The process then passes these entities (as objects of the Text-to-Relations *Annotation* class) to two phases.
 - Phase 1 creates a new temporary annotation called RangeMarker on phrases like *within the range of* and *between*. Then it looks for a **RangeMarker + Number + Number + Unit_of_Measure** in close proximity. If any are found, it creates a new MinMax annotation.
 - Phase 2 creates a new temporary annotation called ToMarker on *to* and *-* (the hyphen character). Then it looks for a **Number + ToMarker + Number + Unit_of_Measure** in close proximity. If any are found, it creates a new MinMax annotation.
 
 There is a critical snippet of code which is executed after Phase 1 and before Phase 2. You can find this in the run_extraction_phases( ) function of `extract_min_max_relation.py`. It is designed to prevent Phase 2 from matching on any of the Number and Unit_of_Measure entities which were used to create MinMax relations in Phase 1, and it accomplishes this by removing from the annotation list all Number and Unit_of_Measure annotations which are enclosed by the MinMax relations extracted in that phase.
 
-**SentenceAnn**: There is a class called SentenceAnn which subclasses Annotation. Not used in the MinMax extraction discussed here, it could be useful (in combination with Annotation.encloses( )) if you wanted to require that relations occur within a single sentence.
+**SentenceAnn**: There is a class called SentenceAnn which subclasses Annotation. Not used in the MinMax extraction discussed here, it could be useful (in combination with Annotation.encloses( )) if you wanted to require that relations occur within a single sentence. Naturally, to succeed here the Spacy sentence-splitting, which is used here, must be correct.

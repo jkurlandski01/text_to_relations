@@ -1,4 +1,6 @@
-from typing import List, Self
+from typing import List
+from typing_extensions import Self
+
 
 from text_to_relations.relation_extraction.Annotation import Annotation
 import spacy

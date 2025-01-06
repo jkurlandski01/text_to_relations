@@ -1,6 +1,7 @@
 import re
 
-from typing import List, Tuple, Self
+from typing import List, Tuple
+from typing_extensions import Self
 
 class RegexString(object):
     """
