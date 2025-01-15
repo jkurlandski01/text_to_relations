@@ -147,7 +147,7 @@ class MinMaxPhase_1(ExtractionPhaseABC):
                     # Get the ending position of the last annotation in the third match.
                     text_matched = m3_trip[0]   # Ignore [1] and [2], the offsets.
                     m3_anns = ExtractionPhaseABC.merged_representation_to_Annotations(text_matched)
-                    end = m3_anns[1].end_offset
+                    end = m3_anns[-1].end_offset
 
                     substr = self.doc_contents[start:end]
 
