@@ -54,6 +54,8 @@ Here is Python code to create an input string containing the descriptions for se
 ```python
 import inspect
 
+from text_to_relations.relation_extraction.RegexString import RegexString
+
 input = \
 """
 # 11A - 1853-55 3¢ George Washington, dull red, type II, imperf
