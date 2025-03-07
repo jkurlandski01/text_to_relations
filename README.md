@@ -335,4 +335,12 @@ The process then passes these entities (as objects of the Text-to-Relations *Ann
 
 There is a critical snippet of code which is executed after Phase 1 and before Phase 2. You can find this in the run_extraction_phases( ) function of `extract_min_max_relation.py`. It is designed to prevent Phase 2 from matching on any of the Number and Unit_of_Measure entities which were used to create MinMax relations in Phase 1, and it accomplishes this by removing from the annotation list all Number and Unit_of_Measure annotations which are enclosed by the MinMax relations extracted in that phase.
 
-**SentenceAnn**: There is a class called SentenceAnn which subclasses Annotation. Not used in the MinMax extraction discussed here, it could be useful (in combination with Annotation.encloses( )) if you wanted to require that relations occur within a single sentence. Naturally, to succeed here the Spacy sentence-splitting, which is used here, must be correct.
+**Latest Update**: The two MinMax phases mentioned above are implemented with two separate nested for-loops which contain highly duplicative lines of code. The latest `min_max_phase_3.py` file implements this same kind of logic in a set of functions defined in `extraction_loop.py`: it avoids the duplicated code with a recursive function. Both of the other min-max-phase files could also be implemented this way.
+
+**SentenceAnn**: There is a class called SentenceAnn which subclasses Annotation. Not used in the MinMax extraction discussed here, it could be useful (in combination with Annotation.encloses( )) if you wanted to require that relations occur within a single sentence. Naturally, to succeed the Spacy sentence-splitting, which is used here, must be correct.
+
+
+## Development
+
+To run the unit tests create a virtual environment with reqs.txt.
+

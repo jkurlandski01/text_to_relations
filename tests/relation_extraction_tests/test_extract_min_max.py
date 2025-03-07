@@ -98,3 +98,50 @@ class TestMinMax(unittest.TestCase):
                     {'type': 'MinMax', 'start': 202, 'end': 237, 'text': 'within the range of 60 to 90 points'}]
         relations = entities_to_relations(input_dict, verbose=False)
         self.assertEqual(relations, expected)
+
+
+
+    def test_MinMax_lower_upper_nps(self):
+        # Test ranges expressed as two noun phrases following this pattern:
+        # <at least> Cardinal + UoM and <at most> Cardinal + Uom
+
+        # lower limit, upper limit
+        text = "When he began, it would take him a minimum of 15 minutes and a "
+        text += "maximum of 20 minutes to run a mile."
+
+        entities = []
+
+        # Write rules for two types of entities--Number and Unit_of_Measurement.
+        number_rs = RegexString.regex_to_RegexString('(\d+)')
+        matches = number_rs.get_match_triples(text)
+        for match in matches:
+            entity_dict = {
+                'text': match[0],
+                'start': match[1],
+                'end': match[2],
+                'type': 'Number'
+            }
+            entities.append(entity_dict)
+
+        uom_rs = RegexString(['minutes'])
+        matches = uom_rs.get_match_triples(text)
+        for match in matches:
+            entity_dict = {
+                'text': match[0],
+                'start': match[1],
+                'end': match[2],
+                'type': 'Unit_of_Measure'
+            }
+            entities.append(entity_dict)
+
+        input_dict = {
+            "text": text,
+            "entities": entities
+            }
+
+        expected = [{'type': 'MinMax', 
+                     'start': 35, 'end': 84, 
+                     'text': 'minimum of 15 minutes and a maximum of 20 minutes'}]
+        relations = entities_to_relations(input_dict, verbose=False)
+
+        self.assertEqual(relations, expected)
