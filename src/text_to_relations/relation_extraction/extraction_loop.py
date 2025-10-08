@@ -69,91 +69,120 @@ def run_loop(annotation_view_text: str,
              match_triples_list: List[Tuple],
              new_annotations: List[Tuple],
              verbose: bool=False) -> Union[List[Annotation], Annotation, None]:
-        if verbose:
-            print("Entering run_loop()")
-            print(f"  annotation_view_text: {annotation_view_text}")
-            print(f"  curr_loop.regex_str: {curr_loop.regex_str}")
-            print(f"  curr_loop.last_ann_str: {curr_loop.last_ann_str}")
-        
-        # Check loop_list to verify that only the last item has a 
-        # determine_new_annotation_properties function.
-        last_idx = len(loop_list) - 1
-        for idx, loop in enumerate(loop_list):
-            if loop.determine_new_annotation_properties:
-                if idx < last_idx:
-                    msg = "Only last element of loop_list parameter can have "
-                    msg += "a non-None determine_new_annotation_properties "
-                    msg += f"attribute. Loop at index {idx} has "
-                    msg += f"{loop.determine_new_annotation_properties}() function."
-                    raise ValueError(msg)
-            else:
-                if idx == last_idx:
-                    msg = "The last element of loop_list parameter must have "
-                    msg += "a non-None determine_new_annotation_properties "
-                    msg += f"attribute. Loop at index {idx} has "
-                    msg += f"{loop.determine_new_annotation_properties}() function."
-                    raise ValueError(msg)
-                
-        if verbose:
+    """
+    Args:
+        annotation_view_text (str): A token- and annotation-view of the input where
+            tokens we are not interested in appear as Tokens and annotations we
+            are interested in appear as themselves. For example, 
+                <'Token'(normalizedContents='for', start='99', end='101', kind='word')>
+                <'CARDINAL'(normalizedContents='92', start='102', end='104')>
+                <'UNIT_OF_MEASUREMENT'(normalizedContents='feet', start='111', end='115')>
+            would represent "for 92 feet" if we have created annotations for Cardinal
+            numbers and Units of Measurement.
+        doc (str): the text as an ordinary string
+        curr_loop (ExtractionLoop): loop being processed
+        loop_idx (int): which loopin loops_in_process we are processing
+        loops_in_process (List[ExtractionLoop]): the loops which have been processed 
+            successfully to get this far in the recursion
+        loop_list (List[ExtractionLoop]): all the loops which have been set up
+        match_triples_list (List[Tuple]): matches found thus far for the loops processed
+            thus far
+        new_annotations (List[Tuple]): matches successfully found thus far
+        verbose (bool, optional): Defaults to False.
+
+    Raises:
+        ValueError: For invalid input or unexpected results.
+    Returns:
+        Union[List[Annotation], Annotation, None]: A new match found or [] or None.
+    """
+    if verbose:
+        print("Entering run_loop()")
+        print(f"  annotation_view_text: {annotation_view_text}")
+        print(f"  curr_loop.regex_str: {curr_loop.regex_str}")
+        print(f"  curr_loop.last_ann_str: {curr_loop.last_ann_str}")
+        print(f"  new_annotations: {new_annotations}")
+    
+    # Check loop_list to verify that only the last item has a non-None
+    # determine_new_annotation_properties function.
+    last_idx = len(loop_list) - 1
+    for idx, loop in enumerate(loop_list):
+        if loop.determine_new_annotation_properties:
+            if idx < last_idx:
+                msg = "Only last element of loop_list parameter can have "
+                msg += "a non-None determine_new_annotation_properties "
+                msg += f"attribute. Loop at index {idx} has "
+                msg += f"{loop.determine_new_annotation_properties}() function."
+                raise ValueError(msg)
+        else:
+            if idx == last_idx:
+                msg = "The last element of loop_list parameter must have "
+                msg += "a non-None determine_new_annotation_properties "
+                msg += f"attribute. Loop at index {idx} has "
+                msg += f"{loop.determine_new_annotation_properties}() function."
+                raise ValueError(msg)
+            
+    if verbose:
+        print("  Printing the match_triples list:")
+        for trip in match_triples_list:
+            print(f"    trip: {trip}")
+
+    # Recursive functionality begins here.
+
+    # Create a list of (substring, start_offset, end_offset) triples for the current loop's regex string.
+    match_triples = [(m.group(), m.start(), m.end()) for m in re.finditer(curr_loop.regex_str, annotation_view_text)]
+
+    for triple in match_triples:
+        match_triples_list.append(triple)
+        if verbose: 
+            print(f"\nFound match. triple: {triple}")
             print("  Printing the match_triples list:")
             for trip in match_triples_list:
                 print(f"    trip: {trip}")
 
-        # Recursive function.
-        match_triples = [(m.group(), m.start(), m.end()) for m in re.finditer(curr_loop.regex_str, annotation_view_text)]
+        if curr_loop.determine_new_annotation_properties:
 
-        for triple in match_triples:
-            match_triples_list.append(triple)
-            if verbose: 
-                print(f"\nFound match. triple: {triple}")
-                print("  Printing the match_triples list:")
-                for trip in match_triples_list:
-                    print(f"    trip: {trip}")
+            args_dict = {'loop': curr_loop, 'doc': doc, 'triple': triple, 
+                            'match_triples_list': match_triples_list}
+            result = curr_loop.when_final_match_found(args_dict)
+            return result
 
-            if curr_loop.determine_new_annotation_properties:
+        match_end_offset = triple[2]
+        ptrn = f"<'{curr_loop.last_ann_str}"
+        last_ann_st_offset = annotation_view_text[0 : match_end_offset].rfind(ptrn)
+        text_substring = annotation_view_text[last_ann_st_offset : ]
 
-                args_dict = {'loop': curr_loop, 'doc': doc, 'triple': triple, 
-                             'match_triples_list': match_triples_list}
-                result = curr_loop.when_final_match_found(args_dict)
-                return result
+        loops_in_process.append(curr_loop)
+        new_idx = loop_idx + 1
+        next_loop = loop_list[new_idx]
 
-            match_end_offset = triple[2]
-            ptrn = f"<'{curr_loop.last_ann_str}"
-            last_ann_st_offset = annotation_view_text[0 : match_end_offset].rfind(ptrn)
-            text_substring = annotation_view_text[last_ann_st_offset : ]
-
-            loops_in_process.append(curr_loop)
-            new_idx = loop_idx + 1
-            next_loop = loop_list[new_idx]
-
-            result = run_loop(annotation_view_text=text_substring, 
-                              doc=doc,
-                              curr_loop=next_loop, loop_idx=new_idx, 
-                              loops_in_process=loops_in_process, 
-                              loop_list=loop_list,
-                              match_triples_list=match_triples_list,
-                              new_annotations=new_annotations,
-                              verbose=verbose)
-            if verbose: print(f"\nrun_loop result: {result}\n")
-            if result is None:
-                del match_triples_list[-1]
+        result = run_loop(annotation_view_text=text_substring, 
+                            doc=doc,
+                            curr_loop=next_loop, loop_idx=new_idx, 
+                            loops_in_process=loops_in_process, 
+                            loop_list=loop_list,
+                            match_triples_list=match_triples_list,
+                            new_annotations=new_annotations,
+                            verbose=verbose)
+        if verbose: print(f"\nrun_loop result: {result}\n")
+        if result is None or result == []:
+            del match_triples_list[-1]
+            continue
+        elif type(result) == Annotation:
+            if loop_idx == 0:
+                new_annotations.append(result)
+                # This next step results in non-overlapping annotations, and allows 
+                # the program to continue through the input, attempting additonal
+                # matches. 
+                match_triples_list = []
                 continue
-            elif type(result) == Annotation:
-                if loop_idx == 0:
-                    new_annotations.append(result)
-                    # This next step results in non-overlapping annotations, and allows 
-                    # the program to continue through the input, attempting additonal
-                    # matches. 
-                    match_triples_list = []
-                    continue
-                return result
-            else:
-                raise ValueError(f"Unexpected result: {result}")
-            
-            # Unreachable:
-            # del match_triples_list[-1]
+            return result
+        else:
+            raise ValueError(f"Unexpected result: {result}")
+        
+        # Unreachable:
+        # del match_triples_list[-1]
 
-        return new_annotations
+    return new_annotations
 
 def get_sorted_annotations_for_matching(text: str, 
                                         regex_strs: Dict[str, RegexString],
@@ -212,6 +241,11 @@ def determine_new_annotation_properties(match_triples: List[Tuple], doc:str) -> 
     return properties
 
 if __name__ == '__main__':
+    # You will probably have to `cd src` before you can run this script with
+    #   python -m text_to_relations.relation_extraction.extraction_loo
+
+    # Demo
+    # Find the pattern "1...2...3" in text where no more than two tokens separate each digit.
     one_rs = RegexString(['1'])
     two_rs = RegexString(['2'])
     three_rs = RegexString(['3'])
@@ -235,7 +269,7 @@ if __name__ == '__main__':
     for text in texts:
         print("\n-----------------------\nStarting a new input text:\n")
         print(f"   {text}")
-        anns = get_sorted_annotations_for_matching(text=text, regex_strs=regex_strs)
+        anns = get_sorted_annotations_for_matching(text=text, regex_strs=regex_strs, given_anns=[])
 
         print(f"\nsorted anns: {anns}\n")
 

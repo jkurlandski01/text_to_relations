@@ -1,3 +1,6 @@
+"""
+Module avoids repetitive lines of code with new recursive functionality offered in extraction_loop.py.
+"""
 import re
 
 from typing import List, Tuple, Dict
