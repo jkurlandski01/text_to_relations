@@ -1,3 +1,15 @@
+- [Text-To-Relations](#text-to-relations)
+  - [Installation Instructions](#installation-instructions)
+  - [A Tutorial](#a-tutorial)
+    - [Entity Recognition](#entity-recognition)
+    - [RegexString](#regexstring)
+      - [Example 1](#example-1)
+      - [Example 2](#example-2)
+      - [Example 3](#example-3)
+    - [RegexString: build\_regex\_string( )](#regexstring-build_regex_string-)
+    - [RegexString: appending more complicated regular expressions](#regexstring-appending-more-complicated-regular-expressions)
+    - [Relation Extraction](#relation-extraction)
+  - [Development](#development)
 # Text-To-Relations 
 
 **Text-To-Relations: a tool for Information and Relation Extraction**
