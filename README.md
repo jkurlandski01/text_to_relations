@@ -66,7 +66,7 @@ Here is Python code to create an input string containing the descriptions for se
 ```python
 import inspect
 
-from text_to_relations.relation_extraction.RegexString import RegexString
+from text_to_relations import RegexString
 
 input = \
 """
