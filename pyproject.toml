@@ -1,6 +1,6 @@
 [project]
 name = "text_to_relations"
-version = "0.0.3"
+version = "0.0.4"
 authors = [
   { name="Jerry Kurlandski", email="jkurlandski@gmail.com" },
 ]
@@ -16,3 +16,7 @@ classifiers = [
 [project.urls]
 Homepage = "https://github.com/jkurlandski01/text_to_relations"
 Issues = "https://github.com/jkurlandski01/text_to_relations/issues"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
