@@ -25,6 +25,9 @@ Homepage = "https://github.com/jkurlandski01/text_to_relations"
 Issues = "https://github.com/jkurlandski01/text_to_relations/issues"
 Changelog = "https://github.com/jkurlandski01/text_to_relations/blob/main/CHANGELOG.md"
 
+[project.optional-dependencies]
+dev = ["build", "twine"]
+
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
