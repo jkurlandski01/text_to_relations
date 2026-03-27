@@ -20,7 +20,7 @@ except IOError:
                                     disable=["tagger", "parser", "ner", "textcat", "lemmatizer"])
 
 
-def tokenize(inputStr):
+def tokenize(inputStr: str) -> list[str]:
     """
     Use the lightweight English model to tokenize a piece of text.
     Fixes a couple of bugs in the default Spacy tokenizer.

@@ -4,12 +4,12 @@ import unicodedata
 
 regexMultipleSpaces = re.compile(r' +', re.IGNORECASE)
 
-def removeMultipleSpaces(inStr):
+def removeMultipleSpaces(inStr: str) -> str:
     """ Remove multiple consecutive spaces from a string. """
     return regexMultipleSpaces.sub(' ', inStr)
 
 
-def isAllPunc(inputString):
+def isAllPunc(inputString: str) -> bool:
     """
     Is the given string all punctuation?
     :param inputString:
@@ -26,7 +26,7 @@ def isAllPunc(inputString):
     return bAllPunc
 
 
-def isAllWordChars(inputStr):
+def isAllWordChars(inputStr: str) -> bool:
     """
     Does the given string consist only of word characters?
     :return:
