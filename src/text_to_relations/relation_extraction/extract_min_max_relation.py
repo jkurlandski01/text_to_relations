@@ -12,7 +12,6 @@ import inspect
 # All project imports must occur after we have updated the path.
 path = Path(__file__).absolute()
 path = path.parent.parent.parent
-print(f"Appending to system path: {str(path)}")
 sys.path.append(str(path))
 
 from text_to_relations.relation_extraction.RegexString import RegexString

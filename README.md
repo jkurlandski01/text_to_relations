@@ -9,7 +9,6 @@
     - [RegexString: build\_regex\_string( )](#regexstring-build_regex_string-)
     - [RegexString: appending more complicated regular expressions](#regexstring-appending-more-complicated-regular-expressions)
     - [Relation Extraction](#relation-extraction)
-  - [Development](#development)
 # Text-To-Relations 
 
 **Text-To-Relations: a tool for Information and Relation Extraction**
@@ -351,8 +350,4 @@ There is a critical snippet of code which is executed after Phase 1 and before P
 
 **SentenceAnn**: There is a class called SentenceAnn which subclasses Annotation. Not used in the MinMax extraction discussed here, it could be useful (in combination with Annotation.encloses( )) if you wanted to require that relations occur within a single sentence. Naturally, to succeed the Spacy sentence-splitting, which is used here, must be correct.
 
-
-## Development
-
-To run the unit tests create a virtual environment with reqs.txt.
 
