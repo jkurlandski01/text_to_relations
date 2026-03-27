@@ -14,7 +14,6 @@ class TokenAnn(Annotation):
     kindExceptions = ["'s", "'ve", "'d", "'ll", "n't"]
 
     def __init__(self, start_offset, end_offset, contents):
-        """"""
         if contents in TokenAnn.kindExceptions:
             kind = 'word'
         elif StringUtils.isAllPunc(contents):

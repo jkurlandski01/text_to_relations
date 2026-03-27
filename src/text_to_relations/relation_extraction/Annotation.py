@@ -5,7 +5,7 @@ from typing_extensions import Self
 from text_to_relations.relation_extraction import StringUtils
 
 class Annotation(object):
-    """"""
+    """Represents a typed, offset-based annotation (entity mention) in a document."""
     regexQuote = r"['\"].*?['\"]"
 
     def __init__(self, type: str, contents: str, 
