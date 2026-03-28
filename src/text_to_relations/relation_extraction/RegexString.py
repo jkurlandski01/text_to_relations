@@ -252,9 +252,8 @@ class RegexString(object):
                             ')?'
                 joinStrRegex = ''
             else:
-                # Not sure about this
                 firstPart = rs1.get_regex_str()[0:leftParenIdx] + \
-                            '(?:' + rs1.get_regex_str()[leftParenIdx:-1] + \
+                            '(?:' + rs1.get_regex_str()[leftParenIdx:ending_paren_pos] + \
                             interveningPunc + ')?'
                 joinStrRegex = readyForDistanceRangeWordRegex + wordDistanceRegex + '\s'
         else:

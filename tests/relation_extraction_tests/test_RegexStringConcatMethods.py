@@ -460,6 +460,31 @@ class TestRegexString(unittest.TestCase):
         self.assertEqual([('dull red', 1, 9)], matchStrs)
 
 
+    def test_concat_with_word_distances_optional_whole_word_nonzero_distance(self):
+        # Regression test: when rs1 has both optional=True and whole_word=True,
+        # concat_with_word_distances() with non-zero word distances previously
+        # produced a malformed regex (trailing backslash from incorrect string
+        # slicing), causing re.error: bad escape (end of pattern) in
+        # get_match_triples().
+        color_qualifiers_rs = RegexString(['dull'], whole_word=True, optional=True)
+        colors_rs = RegexString(['red'], whole_word=True)
+
+        color_phrase_rs = RegexString.concat_with_word_distances(
+            color_qualifiers_rs,
+            colors_rs,
+            min_nbr_words=1,
+            max_nbr_words=2)
+
+        # Previously raised re.error: bad escape (end of pattern).
+        matchStrs = color_phrase_rs.get_match_triples('dull bright red')
+        self.assertEqual([('dull bright red', 0, 15)], matchStrs)
+
+        # Verify whole_word requirement: 'dull' embedded in 'udull' does not match
+        # as the qualifier, but since the qualifier is optional, the pattern still
+        # matches from the word boundary after 'udull'.
+        matchStrs = color_phrase_rs.get_match_triples('udull bright red')
+        self.assertEqual([(' bright red', 5, 16)], matchStrs)
+
 
     def testConcatNoCollection(self):
         # Test concat() with two RegexString objects, the first one Non-OR'd and 
