@@ -78,7 +78,16 @@ class RegexString(object):
 
 
     def set_regex(self):
-        # FIXME: document
+        """
+        Build and return the regex string from this object's properties.
+
+        Combines match_strs (escaped), optional, non_capturing, whole_word,
+        prepend, and append into a single regex pattern string. Called once
+        during __init__; result is stored in self.regex_str.
+
+        Returns:
+            str: the compiled regex pattern string.
+        """
         result = ''
 
         if self.prepend != '':
@@ -204,8 +213,8 @@ class RegexString(object):
         'dog', no match will occur because of the double spaces.
 
         Args:
-            rs1 (RegexString): _description_
-            rs2 (RegexString): _description_
+            rs1 (RegexString): the left-hand RegexString to concatenate.
+            rs2 (RegexString): the right-hand RegexString to concatenate.
             min_nbr_words (int, optional): the minimum number of words 
                 allowed between the 
             two regex expressions. Defaults to 0.
