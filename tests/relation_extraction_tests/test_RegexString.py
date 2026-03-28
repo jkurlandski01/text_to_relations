@@ -25,8 +25,9 @@ class TestRegexString(unittest.TestCase):
         matchStrings = ['a monkey']
         regexString = RegexString(matchStrings, append='\.')
 
-        # Test the regex.
-        expected = r'a monkey\.'
+        # Test the regex. Note: re.escape() escapes spaces, so 'a monkey' becomes
+        # 'a\ monkey' in the pattern. In normal (non-verbose) mode, '\ ' and ' ' match identically.
+        expected = r'a\ monkey\.'
         self.assertEqual(expected, str(regexString))
 
         # Test matching.
@@ -43,8 +44,9 @@ class TestRegexString(unittest.TestCase):
         matchStrings = ['a monkey']
         regexString = RegexString(matchStrings, optional=True, append='\.')
 
-        # Test the regex.
-        expected = r'(?:a monkey)?\.'
+        # Test the regex. Note: re.escape() escapes spaces ('a\ monkey'); '\ ' matches
+        # identically to ' ' in normal (non-verbose) mode.
+        expected = r'(?:a\ monkey)?\.'
         self.assertEqual(expected, str(regexString))
 
         # Test matching.
@@ -62,8 +64,9 @@ class TestRegexString(unittest.TestCase):
 
         regexString = RegexString(matchStrings)
 
-        # Test the regex.
-        expected = r'(?:a sad monkey|the monkey|a monkey)'
+        # Test the regex. Note: re.escape() escapes spaces ('a\ sad\ monkey'); '\ ' matches
+        # identically to ' ' in normal (non-verbose) mode.
+        expected = r'(?:a\ sad\ monkey|the\ monkey|a\ monkey)'
         self.assertEqual(expected, str(regexString))
 
         # Test matching.
@@ -126,8 +129,9 @@ class TestRegexString(unittest.TestCase):
 
         regexString = RegexString(matchStrings)
 
-        # Test the regex.
-        expected = r'(?:a sad monkey|the monkey|a monkey)'
+        # Test the regex. Note: re.escape() escapes spaces ('a\ sad\ monkey'); '\ ' matches
+        # identically to ' ' in normal (non-verbose) mode.
+        expected = r'(?:a\ sad\ monkey|the\ monkey|a\ monkey)'
         self.assertEqual(expected, str(regexString))
 
         # Test matching.
@@ -136,78 +140,47 @@ class TestRegexString(unittest.TestCase):
         self.assertEqual(expected, triples)
 
 
-    def testNestedRegexStringWithCollection(self):
-        """ Test on nested RegexStrings. """
+    def testMatchStringsWithCollection(self):
+        """ Test that match_strs items are treated as plain strings.
+        Previously, regex syntax could be embedded in match_strs items; this is
+        no longer supported as items are now escaped via re.escape(). Use
+        prepend/append or concat() for regex syntax in patterns. """
         inputStr = 'I saw a monkey. The monkey was sad.'
         inputStr += 'It made me sad to see a sad monkey. It made me weep to see a weeping monkey.'
         inputStr = inputStr.lower()
 
-        unhappyMatchStrings = [' sad', ' weeping']
-        unhappyRegexString = RegexString(unhappyMatchStrings)
-        self.assertEqual('(?: weeping| sad)', str(unhappyRegexString))
-        
-        wholeMatchStrings = ['a monkey', 'the monkey', 'a' + unhappyRegexString.get_regex_str() + ' monkey']
-
+        # List all variants explicitly instead of embedding regex syntax.
+        wholeMatchStrings = ['a sad monkey', 'a weeping monkey', 'the monkey', 'a monkey']
         wholeRegexString = RegexString(wholeMatchStrings, non_capturing=True)
 
         # Test the regex.
-        expected = r'(?:a(?: weeping| sad) monkey|the monkey|a monkey)'
+        expected = r'(?:a\ weeping\ monkey|a\ sad\ monkey|the\ monkey|a\ monkey)'
         self.assertEqual(expected, str(wholeRegexString))
 
         # Test matching.
         match_strs = re.findall(str(wholeRegexString), inputStr)
-        expected = ['a monkey',
-                    'the monkey',
-                    'a sad monkey',
-                    'a weeping monkey']
-        self.assertEqual(expected, match_strs)
-        
-        
-        # Try an optional nested match.
-        unhappyMatchStrings = [' sad', ' weeping']
-        unhappyRegexString = RegexString(unhappyMatchStrings, optional=True)
-        self.assertEqual('(?: weeping| sad)?', str(unhappyRegexString))
-
-        wholeMatchStrings = ['a' + unhappyRegexString.get_regex_str() + ' monkey']
-
-        wholeRegexString = RegexString(wholeMatchStrings, non_capturing=True)
-
-        # Test the regex.
-        expected = r'a(?: weeping| sad)? monkey'
-        self.assertEqual(expected, str(wholeRegexString))
-
-        # Test matching.
-        match_strs = re.findall(str(wholeRegexString), inputStr)
-        expected = ['a monkey',
-                    'a sad monkey',
-                    'a weeping monkey']
+        expected = ['a monkey', 'the monkey', 'a sad monkey', 'a weeping monkey']
         self.assertEqual(expected, match_strs)
 
 
     def testNestedGroupingTrueWithCollection(self):
-        """ Test on nested RegexStrings with grouping turned on. """
+        """ Test RegexStrings with capturing groups (non_capturing=False). """
         inputStr = 'I saw a monkey. The monkey was sad.'
         inputStr += 'It made me sad to see a sad monkey. It made me weep to see a weeping monkey.'
         inputStr = inputStr.lower()
 
-        unhappyMatchStrings = [' sad', ' weeping']
-        unhappyRegexString = RegexString(unhappyMatchStrings, non_capturing=False)
-        self.assertEqual('( weeping| sad)', str(unhappyRegexString))
+        matchStrings = ['a monkey', 'the monkey', 'a sad monkey', 'a weeping monkey']
+        regexString = RegexString(matchStrings, non_capturing=False)
 
-        wholeMatchStrings = ['a monkey', 'the monkey', 'a' + unhappyRegexString.get_regex_str() + ' monkey']
+        # With non_capturing=False the group uses a capturing group, not '(?:...)'.
+        # Note: re.escape() escapes spaces ('a\ weeping\ monkey'); '\ ' matches
+        # identically to ' ' in normal (non-verbose) mode.
+        expected = r'(a\ weeping\ monkey|a\ sad\ monkey|the\ monkey|a\ monkey)'
+        self.assertEqual(expected, str(regexString))
 
-        wholeRegexString = RegexString(wholeMatchStrings, non_capturing=False)
-
-        # Test the regex.
-        expected = r'(a( weeping| sad) monkey|the monkey|a monkey)'
-        self.assertEqual(expected, str(wholeRegexString))
-
-        # Test matching.
-        match_strs = re.findall(str(wholeRegexString), inputStr)
-        expected = [('a monkey', ''),
-                    ('the monkey', ''),
-                    ('a sad monkey', ' sad'),
-                    ('a weeping monkey', ' weeping')]
+        # re.findall returns the captured group text.
+        match_strs = re.findall(str(regexString), inputStr)
+        expected = ['a monkey', 'the monkey', 'a sad monkey', 'a weeping monkey']
         self.assertEqual(expected, match_strs)
 
     def test_wholeword(self):
@@ -243,3 +216,21 @@ class TestRegexString(unittest.TestCase):
             RegexString(['IV'], whole_word=True, prepend=backslash_b)
         with self.assertRaises(ValueError):
             RegexString(['IV'], whole_word=True, append=backslash_b)
+
+    def test_special_chars_in_match_strs(self):
+        """ Test that regex metacharacters in match_strs are treated as literals
+        via re.escape(). Previously these would cause re.error at match time. """
+        inputStr = 'price is (10) dollars or [20] euros'
+
+        # Parentheses
+        rs = RegexString(['(10)'])
+        self.assertEqual(r'\(10\)', rs.get_regex_str())
+        triples = rs.get_match_triples(inputStr)
+        self.assertEqual([('(10)', 9, 13)], triples)
+
+        # Square brackets
+        rs = RegexString(['[20]'])
+        self.assertEqual(r'\[20\]', rs.get_regex_str())
+        triples = rs.get_match_triples(inputStr)
+        self.assertEqual([('[20]', 25, 29)], triples)
+

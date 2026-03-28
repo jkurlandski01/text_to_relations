@@ -18,9 +18,11 @@ class RegexString(object):
         """
 
         Args:
-            match_strs (List[str]): a collection of strings; if there 
-                is more than one element, each element is to be OR'd together 
-                for a match; if only one element, then there is no OR'd group
+            match_strs (List[str]): a collection of plain strings to match
+                literally; if there is more than one element, each element is
+                OR'd together. Items are automatically escaped via re.escape(),
+                so regex metacharacters (e.g. '(', '[', '.') are treated as
+                literals. Use prepend/append or concat() for regex syntax.
             whole_word (bool, optional): whether or not to require a match on
                 whole words only. Defaults to True.
             optional (bool, optional): whether or not the OR'd items in the 
@@ -76,6 +78,7 @@ class RegexString(object):
 
 
     def set_regex(self):
+        # FIXME: document
         result = ''
 
         if self.prepend != '':
@@ -88,7 +91,7 @@ class RegexString(object):
                 result += '?:'
 
             for item in self.match_strs:
-                result += item + '|'
+                result += re.escape(item) + '|'
             # Remove last pipe.
             result = result[0:-1]
 
@@ -103,11 +106,11 @@ class RegexString(object):
                 result += '('
                 if self.non_capturing:
                     result += '?:'
-                result += self.match_strs[0]
+                result += re.escape(self.match_strs[0])
                 result += ')?'
             else:
                 # The item is required.
-                result += self.match_strs[0]
+                result += re.escape(self.match_strs[0])
                 if not self.non_capturing:
                     result = '(' + result + ')'
 

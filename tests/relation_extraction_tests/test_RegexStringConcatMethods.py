@@ -495,11 +495,12 @@ class TestRegexString(unittest.TestCase):
         inputStr = inputStr.lower()
 
         rs1 = RegexString(['a monkey'], optional=True)
-        rs2 = RegexString(['\.'])
+        rs2 = RegexString(['.'])
         regexString3 = RegexString.concat(rs1, rs2)
 
-        # Test the regex.
-        expected = r'(?:a monkey)?\.'
+        # Test the regex. Note: re.escape() escapes spaces ('a\ monkey'); '\ ' matches
+        # identically to ' ' in normal (non-verbose) mode.
+        expected = r'(?:a\ monkey)?\.'
         self.assertEqual(expected, str(regexString3))
 
         # Test matching.
@@ -518,11 +519,12 @@ class TestRegexString(unittest.TestCase):
         monkeyStrings = ['a monkey', 'the monkey', 'a sad monkey']
         rs1 = RegexString(monkeyStrings, optional=True)
 
-        rs2 = RegexString(['\.'])
+        rs2 = RegexString(['.'])
         regexString3 = RegexString.concat(rs1, rs2)
 
-        # Test the regex.
-        expected = r'(?:a sad monkey|the monkey|a monkey)?\.'
+        # Test the regex. Note: re.escape() escapes spaces ('a\ sad\ monkey'); '\ ' matches
+        # identically to ' ' in normal (non-verbose) mode.
+        expected = r'(?:a\ sad\ monkey|the\ monkey|a\ monkey)?\.'
         self.assertEqual(expected, str(regexString3))
 
         # Test matching.
@@ -545,13 +547,14 @@ class TestRegexString(unittest.TestCase):
         monkeyStrings = ['a monkey', 'the monkey', 'a sad monkey']
         rs1 = RegexString(monkeyStrings, optional=True)
 
-        rs2 = RegexString(['\.'])
+        rs2 = RegexString(['.'])
         
         # First try concat() with the insert_opt_ws set to its default of False.
         regexString3 = RegexString.concat(rs1, rs2)
 
-        # Test the regex.
-        expected = r'(?:a sad monkey|the monkey|a monkey)?\.'
+        # Test the regex. Note: re.escape() escapes spaces ('a\ sad\ monkey'); '\ ' matches
+        # identically to ' ' in normal (non-verbose) mode.
+        expected = r'(?:a\ sad\ monkey|the\ monkey|a\ monkey)?\.'
         self.assertEqual(expected, str(regexString3))
 
         # Test matching.
@@ -563,7 +566,7 @@ class TestRegexString(unittest.TestCase):
         regexString3 = RegexString.concat(rs1, rs2, insert_opt_ws=True)
 
         # Test the regex.
-        expected = r'(?:a sad monkey|the monkey|a monkey)?(?:\s)?\.'
+        expected = r'(?:a\ sad\ monkey|the\ monkey|a\ monkey)?(?:\s)?\.'
         self.assertEqual(expected, str(regexString3))
 
         # Test matching.
