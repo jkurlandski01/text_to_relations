@@ -186,3 +186,47 @@ class TestExtractionLoop(unittest.TestCase):
         ann2 = Annotation('MinMax', '1 2 3', 22, 27, properties)
         self.assertEqual([ann1, ann2], result)
 
+
+    def test_RegexString_object_raises(self):
+        # Verify that passing a RegexString object (instead of a str) raises a
+        # ValueError with a message pointing to .get_regex_str().
+        regex_1_str = TokenAnn.build_annotation_distance_regex("One", (0, 2), None, "Two")
+        regex_1 = RegexString.regex_to_RegexString(regex_1_str)
+        with self.assertRaises(ValueError):
+            ExtractionLoop(regex_str=regex_1, last_ann_str="Two")
+
+    def test_two_loops_with_get_regex_str(self):
+        # Verify that ExtractionLoop works correctly when .get_regex_str() is called
+        # to produce a str from a RegexString object before passing to ExtractionLoop.
+        one_rs = RegexString(["1"])
+        two_rs = RegexString(["2"])
+        three_rs = RegexString(["3"])
+        regex_strs = {"One": one_rs, "Two": two_rs, "Three": three_rs}
+
+        text = "1 a 2 b 3"
+
+        anns = get_sorted_annotations_for_matching(text=text, regex_strs=regex_strs, given_anns=[])
+        annotation_view_str = ExtractionPhaseABC.build_merged_representation(text, anns)
+
+        regex_1 = TokenAnn.build_annotation_distance_regex("One", (0, 2), None, "Two")
+        loop_1 = ExtractionLoop(regex_str=regex_1, last_ann_str="Two", verbose=False)
+
+        regex_2 = TokenAnn.build_annotation_distance_regex("Two", (0, 2), None, "Three")
+        loop_2 = ExtractionLoop(regex_str=regex_2, last_ann_str="Three",
+                                determine_new_annotation_properties=determine_new_annotation_properties,
+                                verbose=False)
+
+        loop_list = [loop_1, loop_2]
+        result = run_loop(annotation_view_text=annotation_view_str,
+                          doc=text,
+                          curr_loop=loop_1,
+                          loop_idx=0,
+                          loops_in_process=[],
+                          loop_list=loop_list,
+                          match_triples_list=[],
+                          new_annotations=[],
+                          verbose=False)
+
+        properties = {"first_character": "1", "last_character": "3"}
+        ann = Annotation("MinMax", "1 a 2 b 3", 0, 9, properties)
+        self.assertEqual([ann], result)

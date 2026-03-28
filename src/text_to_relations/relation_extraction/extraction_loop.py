@@ -10,11 +10,30 @@ from text_to_relations.relation_extraction.TokenAnn import TokenAnn
 
 class ExtractionLoop():
     def __init__(self, 
-                 regex_str: RegexString, 
+                 regex_str: str,
                  last_ann_str: str,
                  determine_new_annotation_properties: Callable=None,
                  verbose :bool=False
                  ):
+        """
+        Args:
+            regex_str (str): Regular expression for this loop's match. If you have a
+                RegexString object, pass regex_str.get_regex_str() instead.
+            last_ann_str (str): The annotation type name that marks the
+                end of this loop's match and the handoff point to the next loop.
+            determine_new_annotation_properties (Callable, optional): A function that
+                produces the properties dict for the new Annotation. Must be None for
+                all loops except the last, and non-None for the last loop.
+            verbose (bool, optional): Defaults to False.
+
+        Raises:
+            ValueError: If regex_str is not a str.
+        """
+        if not isinstance(regex_str, str):
+            raise ValueError(
+                "regex_str must be a str. If you have a RegexString object, "
+                "pass regex_str.get_regex_str() instead."
+            )
         self.regex_str = regex_str
         self.last_ann_str = last_ann_str
         self.when_final_match_found = when_final_match_found
