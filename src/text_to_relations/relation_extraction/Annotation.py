@@ -8,17 +8,17 @@ class Annotation(object):
     """Represents a typed, offset-based annotation (entity mention) in a document."""
     regexQuote = r"['\"].*?['\"]"
 
-    def __init__(self, type: str, contents: str, 
-                 start_offset: int, end_offset: int, 
+    def __init__(self, type: str, contents: str,
+                 start_offset: int, end_offset: int,
                  properties: Dict[str, object]=None):
         """
 
         Args:
             type (str): annotation (entity) type, e.g. Person, Currency, River
             contents (str): the mention in the doc, e.g. 'John Smith', 'Euros', 'Amazon'
-            start_offset (int): 
-            end_offset (int): 
-            properties (Dict[str, object], optional): A free-form dict for 
+            start_offset (int):
+            end_offset (int):
+            properties (Dict[str, object], optional): A free-form dict for
                 adding attributes. Defaults to None.
         """
         if start_offset > end_offset:
@@ -39,12 +39,12 @@ class Annotation(object):
         if properties is None:
             properties = {}
         self.properties = properties
-    
+
 
     def to_dict(self) -> Dict[str, str]:
-        result = {'type': self.type, 
-                  'start': self.start_offset, 
-                  'end': self.end_offset, 
+        result = {'type': self.type,
+                  'start': self.start_offset,
+                  'end': self.end_offset,
                   'text': self.normalizedContents}
         return result
 
@@ -59,7 +59,7 @@ class Annotation(object):
                 features += featureName + "='" + self.properties[featureName] + "', "
             # Remove last comma-space.
             features = features[0:-2]
-                
+
             result = "<'%s'(normalizedContents='%s', start='%s', end='%s', %s)>" \
                      % (self.type, self.normalizedContents, self.start_offset, self.end_offset, features)
 
@@ -73,7 +73,7 @@ class Annotation(object):
         else:
             if self.properties != other.properties:
                 return False
-            
+
             if self.type == other.type and \
                         self.start_offset == other.start_offset and \
                         self.end_offset == other.end_offset and \
@@ -81,7 +81,7 @@ class Annotation(object):
                     return True
 
         return False
-    
+
     def __hash__(self):
         return hash(self.__repr__())
 
@@ -91,10 +91,10 @@ class Annotation(object):
         Sort the in-coming collection of Annotations by starting and
         ending offset.
         Args:
-            items (Collection[Self]): 
+            items (Collection[Self]):
 
         Returns:
-            Collection[Self]: 
+            Collection[Self]:
         """
         anns = sorted(items, key=lambda p: (p.start_offset, p.end_offset), reverse=False)
         return anns
@@ -108,10 +108,10 @@ class Annotation(object):
         - '<"AnnotationName"(normalizedContents="...", start="m", end="n")>'
 
         Args:
-            annStr (str): 
+            annStr (str):
 
         Returns:
-            Self: 
+            Self:
         """
         # TODO: Currently this method will not add any unexpected strings (i.e. features) into the properties.
         matches = re.findall(Annotation.regexQuote, annStr)
@@ -122,8 +122,8 @@ class Annotation(object):
         end = int(matches[3][1:-1])
         ann = Annotation(aType, contents, start, end)
         return ann
-    
-    
+
+
     @staticmethod
     def encloses(ann1: Self, ann2: Self) -> bool:
         """
@@ -131,36 +131,36 @@ class Annotation(object):
         Determination is made with starting and ending offsets only--the annotations'
         normalizedContents properties are ignored.
         Args:
-            ann1 (Self): 
-            ann2 (Self): 
+            ann1 (Self):
+            ann2 (Self):
 
         Returns:
-            bool: 
+            bool:
         """
         if ann1.start_offset <= ann2.start_offset and ann1.end_offset >= ann2.end_offset:
             return True
         return False
-    
-    
+
+
     @staticmethod
     def get_enclosed(ann: Self, ann_list: List[Self]) -> List[Self]:
         """
         Return the subset of the annotations in the given list which are enclosed
         by the given annotation.
         Args:
-            ann (Self): 
-            ann_list (List[Self]): 
+            ann (Self):
+            ann_list (List[Self]):
 
         Returns:
-            List[Self]: 
+            List[Self]:
         """
         result = []
         for annElement in ann_list:
             if Annotation.encloses(ann, annElement):
                 result.append(annElement)
-        
+
         return result
-    
+
 
 if __name__ == '__main__':
     pass

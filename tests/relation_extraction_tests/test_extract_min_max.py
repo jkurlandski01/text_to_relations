@@ -12,7 +12,7 @@ class TestMinMax(unittest.TestCase):
     def test_simple(self):
         text = \
         """
-        During those fraught times his weight ranged between 170 and 220 pounds. 
+        During those fraught times his weight ranged between 170 and 220 pounds.
         """
 
         entities = []
@@ -55,8 +55,8 @@ class TestMinMax(unittest.TestCase):
         text = \
         """
         During those fraught times his weight ranged between 170 and 220 pounds
-        and, with the 30 to 40 drinks per week he was inclined to enjoy, his IQ 
-        varied almost as much--anywhere within the range of 60 to 90 points. 
+        and, with the 30 to 40 drinks per week he was inclined to enjoy, his IQ
+        varied almost as much--anywhere within the range of 60 to 90 points.
         """
         # Note: the code being invoked intentionally doesn't extract the min-max
         # relation in "30 to 40 drinks" above.
@@ -93,9 +93,9 @@ class TestMinMax(unittest.TestCase):
 
         print()
 
-        expected = [{'type': 'MinMax', 'start': 54, 'end': 80, 'text': 'between 170 and 220 pounds'}, 
+        expected = [{'type': 'MinMax', 'start': 54, 'end': 80, 'text': 'between 170 and 220 pounds'},
                     {'type': 'MinMax', 'start': 103, 'end': 118, 'text': '30 to 40 drinks'},
-                    {'type': 'MinMax', 'start': 202, 'end': 237, 'text': 'within the range of 60 to 90 points'}]
+                    {'type': 'MinMax', 'start': 201, 'end': 236, 'text': 'within the range of 60 to 90 points'}]
         relations = entities_to_relations(input_dict, verbose=False)
         self.assertEqual(relations, expected)
 
@@ -139,8 +139,8 @@ class TestMinMax(unittest.TestCase):
             "entities": entities
             }
 
-        expected = [{'type': 'MinMax', 
-                     'start': 35, 'end': 84, 
+        expected = [{'type': 'MinMax',
+                     'start': 35, 'end': 84,
                      'text': 'minimum of 15 minutes and a maximum of 20 minutes'}]
         relations = entities_to_relations(input_dict, verbose=False)
 

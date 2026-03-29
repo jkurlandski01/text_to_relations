@@ -10,7 +10,7 @@ from text_to_relations.relation_extraction.RegexString import RegexString
 
 
 class TestRegexString(unittest.TestCase):
-    
+
     def testInvalidConcat(self):
         # Test concat() for the cases where the parameters are not RegexString objects.
         regex_str = RegexString(['a monkey'])
@@ -29,8 +29,8 @@ class TestRegexString(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             RegexString.concat_with_word_distances(' and', regex_str)
-    
-    
+
+
     def testInvalidconcat_with_word_distances2(self):
         # Test concat_with_word_distances() for invalid min and max parameters.
         rs1 = RegexString(['saw', 'see'], optional=True)
@@ -112,7 +112,7 @@ class TestRegexString(unittest.TestCase):
         match_strs = re.findall(regexString3.get_regex_str(), 'saw a monkey')
         expected = ['saw a', '', '', '', '', '', '', '', '']
         self.assertEqual(expected, match_strs)
-        
+
         regexString4 = RegexString(['saddest', 'sad', 'morose'])
         regexString5 = RegexString.concat_with_word_distances(regexString3, regexString4)
 
@@ -120,7 +120,7 @@ class TestRegexString(unittest.TestCase):
         expected = r'(?:(?:saw)(?:\b\S+)?\s)?(?:(?:the|a)(?:\b\S+)?\s)?(?:saddest|morose|sad)'
         self.assertEqual(expected, regexString5.get_regex_str())
         match_strs = re.findall(regexString5.get_regex_str(), inputStr)
-        
+
         expected = ['saw a sad', 'sad', 'a morose', 'the saddest', 'a sad', 'sad']
         self.assertEqual(expected, match_strs)
 
@@ -163,7 +163,7 @@ class TestRegexString(unittest.TestCase):
 
         expected = r'saw(?:\b\S+)?\s(?:(?:the|a)(?:\b\S+)?\s)?(?:saddest|morose|sad)'
         self.assertEqual(expected, regexString5.get_regex_str())
-        
+
         match_strs = re.findall(regexString5.get_regex_str(), inputStr)
         expected = ['saw a sad']
         self.assertEqual(expected, match_strs)
@@ -427,17 +427,17 @@ class TestRegexString(unittest.TestCase):
         # if the first word was both optional and whole word.
 
         color_qualifiers = ['dull']
-        color_qualifiers_rs = RegexString(color_qualifiers, 
-                                        whole_word=True, 
+        color_qualifiers_rs = RegexString(color_qualifiers,
+                                        whole_word=True,
                                         optional=True)
         colors = ['red']
         colors_rs = RegexString(colors, whole_word=True)
 
-        color_phrase_rs = RegexString.concat_with_word_distances(color_qualifiers_rs, 
+        color_phrase_rs = RegexString.concat_with_word_distances(color_qualifiers_rs,
                                                                 colors_rs,
-                                                                min_nbr_words=0, 
+                                                                min_nbr_words=0,
                                                                 max_nbr_words=0)
-        
+
         input = "dull red"
 
         # This is where we would get "re.error: unbalanced parenthesis at position 39"
@@ -449,12 +449,12 @@ class TestRegexString(unittest.TestCase):
         self.assertEqual([('red', 6, 9)], matchStrs)
 
         # Now turn off whole_word and verify it is turned off.
-        color_qualifiers_rs = RegexString(color_qualifiers, 
-                                        # whole_word=True, 
+        color_qualifiers_rs = RegexString(color_qualifiers,
+                                        # whole_word=True,
                                         optional=True)
-        color_phrase_rs = RegexString.concat_with_word_distances(color_qualifiers_rs, 
+        color_phrase_rs = RegexString.concat_with_word_distances(color_qualifiers_rs,
                                                                 colors_rs,
-                                                                min_nbr_words=0, 
+                                                                min_nbr_words=0,
                                                                 max_nbr_words=0)
         matchStrs = color_phrase_rs.get_match_triples("udull red")
         self.assertEqual([('dull red', 1, 9)], matchStrs)
@@ -487,7 +487,7 @@ class TestRegexString(unittest.TestCase):
 
 
     def testConcatNoCollection(self):
-        # Test concat() with two RegexString objects, the first one Non-OR'd and 
+        # Test concat() with two RegexString objects, the first one Non-OR'd and
         # optional.
         # 1) Look for an optional 'a monkey'.
         # 2) Look for a required period.
@@ -509,7 +509,7 @@ class TestRegexString(unittest.TestCase):
         self.assertEqual(expected, match_strs)
 
     def testConcatWithCollection(self):
-        # Test concat() with two RegexString objects, the first an OR'd, optional 
+        # Test concat() with two RegexString objects, the first an OR'd, optional
         # collection.
         # 1) Look for an optional 'a monkey', 'the monkey', or 'a sad monkey'.
         # 2) Look for a required period.
@@ -534,12 +534,12 @@ class TestRegexString(unittest.TestCase):
 
 
     def testConcatWithCollectionSpaceOptional(self):
-        # Test concat() with two RegexString objects, the first an OR'd, optional 
+        # Test concat() with two RegexString objects, the first an OR'd, optional
         # collection.
         # 1) Look for an optional 'a monkey', 'the monkey', or 'a sad monkey'.
         # 2) Look for an optional space character.
         # 3) Look for a required period.
-        
+
         # Note the whitespace between 'monkey' and the period in the first sentence.
         inputStr = 'I saw a monkey . The monkey was sad. It made me sad to see a sad monkey.'
         inputStr = inputStr.lower()
@@ -548,7 +548,7 @@ class TestRegexString(unittest.TestCase):
         rs1 = RegexString(monkeyStrings, optional=True)
 
         rs2 = RegexString(['.'])
-        
+
         # First try concat() with the insert_opt_ws set to its default of False.
         regexString3 = RegexString.concat(rs1, rs2)
 

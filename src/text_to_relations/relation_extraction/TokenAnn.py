@@ -6,10 +6,10 @@ from typing_extensions import Self
 
 
 class TokenAnn(Annotation):
-    # A class of objects representing word tokens which "know" their 
-    # starting and ending offsets in a source document. 
-    
-    # Contractions and the possessive 's are considered word tokens despite the apostrophe punctuation 
+    # A class of objects representing word tokens which "know" their
+    # starting and ending offsets in a source document.
+
+    # Contractions and the possessive 's are considered word tokens despite the apostrophe punctuation
     # which they contain.
     kindExceptions = ["'s", "'ve", "'d", "'ll", "n't"]
 
@@ -20,16 +20,16 @@ class TokenAnn(Annotation):
             kind = 'punc'
         elif StringUtils.isAllWordChars(contents):
             kind = 'word'
-        else: 
+        else:
             kind = 'other'
-        
+
         features = {'kind': kind}
         super().__init__('Token', contents, start_offset, end_offset, features)
 
 
     @staticmethod
-    def build_annotation_distance_regex(first_ann: Annotation, 
-                                        word_distance_range: Tuple[int, int], 
+    def build_annotation_distance_regex(first_ann: Annotation,
+                                        word_distance_range: Tuple[int, int],
                                         token_kind: str,  # FIXME: change to token_type?
                                         second_ann: Annotation) -> str:
         """
@@ -37,12 +37,12 @@ class TokenAnn(Annotation):
         necessary for a match.
 
         Args:
-            first_ann (Annotation): 
+            first_ann (Annotation):
             word_distance_range (Tuple[int, int]): a pair of integers, whose first element is a minimum token distance
-        and whose second element is a maximum token distance 
+        and whose second element is a maximum token distance
             token_kind (str): the Token.kind property necessary for a match; None if all Token objects
         are to match
-            second_ann (Annotation): 
+            second_ann (Annotation):
 
         Returns:
             str: a regular expression
@@ -71,13 +71,13 @@ class TokenAnn(Annotation):
 
 
     @staticmethod
-    def get_token_objects(input_str: str, 
+    def get_token_objects(input_str: str,
                           start_pos_in_doc: int) -> List[Self]:
         """
         Create TokenAnn objects on the given substring of a longer document.
         Args:
             input_str (str): a substring of some document
-            start_pos_in_doc (int): the starting offset of inputStr in the 
+            start_pos_in_doc (int): the starting offset of inputStr in the
                 source document
 
         Returns:
@@ -85,7 +85,7 @@ class TokenAnn(Annotation):
         """
         result = []
 
-        # This is how we track the starting and ending position of each token. 
+        # This is how we track the starting and ending position of each token.
         # For each token, we find the first instance in this string--and use
         # that to determine the starting position. We replace the found substring
         # with x's to avoid the problem of repeating tokens.
@@ -103,8 +103,8 @@ class TokenAnn(Annotation):
             result.append(token)
 
         return result
-    
-    
+
+
     @staticmethod
     def text_to_token_anns(text_input: str) -> List[Self]:
         """
@@ -112,7 +112,7 @@ class TokenAnn(Annotation):
         on each one.
 
         Args:
-            text_input (str): 
+            text_input (str):
 
         Returns:
             List[Self]: a list of TokenAnn annotations created on the given text

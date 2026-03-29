@@ -5,7 +5,7 @@ from text_to_relations.relation_extraction.TokenAnn import TokenAnn
 
 
 class TestTokenAnn(unittest.TestCase):
-    
+
     def testInit(self):
         token = TokenAnn(0, 3, 'whoo')
         self.assertEqual('whoo', token.normalizedContents)
@@ -49,7 +49,7 @@ class TestTokenAnn(unittest.TestCase):
     def testAnnotationDistance(self):
         # Test demonstrates how to do token distance matching with regular expressions.
         # Note that there is a helper method in Token to do this for you--build_annotation_distance_regex().
-        
+
         # 3 words between annotations.
         inputStr = "<'Token'(start='0', end='125', normalizedContents='zzz', kind='word')>"
         inputStr += "<'WarrantPurchase'(start='126', end='144', normalizedContents='Option to Purchase')>"
@@ -75,8 +75,8 @@ class TestTokenAnn(unittest.TestCase):
 
         match_strs = re.findall(testRegex, inputStr)
         self.assertEqual(expected, match_strs)
-        
-        
+
+
         # Now run the same tests, requiring the match occur within 2 words instead of 3.
         # This means that no match will occur.
         # Literal match on 'word' property.
@@ -111,7 +111,7 @@ class TestTokenAnn(unittest.TestCase):
 
         # Use build_annotation_distance_regex() to match any Token.
         testRegex = TokenAnn.build_annotation_distance_regex("WarrantPurchase", (0, 3), None, "ShareQuantity")
-        
+
         expectedRegex = r"<'WarrantPurchase[^>]*>(?:<'Token[^>]*>){0,3}<'ShareQuantity[^>]*>"
         self.assertEqual(expectedRegex, testRegex)
 

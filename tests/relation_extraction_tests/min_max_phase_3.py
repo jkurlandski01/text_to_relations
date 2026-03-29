@@ -15,13 +15,13 @@ from text_to_relations.relation_extraction.extraction_loop import (
 
 
 class MinMaxPhase_3(ExtractionPhaseABC):
-    def __init__(self, doc_contents:str, 
+    def __init__(self, doc_contents:str,
                  given_annotations: List[Annotation],
                  verbose: bool=False):
         """
         Identify MinMax ranges expressed as two noun phrases following this pattern:
             <at least> Number + UoM and <at most> Number + Uom
-        Example: 
+        Example:
             a minimum of 15 minutes and a maximum of 20 minutes
         Args:
             doc_contents (str): normalized contents of the document
@@ -43,7 +43,7 @@ class MinMaxPhase_3(ExtractionPhaseABC):
 
         if self.verbose:
             print(f"self.given_annotations: {self.given_annotations}")
-        
+
 
     def run_phase(self) -> List[Annotation]:
         """
@@ -61,13 +61,13 @@ class MinMaxPhase_3(ExtractionPhaseABC):
         at_most_rs = RegexString(at_most_markers)
 
         regex_strs = {"AtLeast": at_least_rs, "AtMost": at_most_rs}
-        anns = get_sorted_annotations_for_matching(text=self.doc_contents, 
+        anns = get_sorted_annotations_for_matching(text=self.doc_contents,
                                                          regex_strs=regex_strs,
                                                          given_anns=self.given_annotations)
 
         if self.verbose: print(f"\nsorted anns: {anns}\n")
-        
-        # Replace the text document with a new representation in which every 
+
+        # Replace the text document with a new representation in which every
         # token is an element--except those tokens which are overlapped by
         # one of our previously-created annotations/entities.
         annotation_view_str = ExtractionPhaseABC.build_merged_representation(self.doc_contents, anns)
@@ -83,11 +83,11 @@ class MinMaxPhase_3(ExtractionPhaseABC):
 
     def check_annotation_proximity(self, annotation_view_str: List[Annotation]) -> List[Annotation]:
         """
-        Look for parts of the text where the annotations we are interested in are in close 
+        Look for parts of the text where the annotations we are interested in are in close
         proximity.
-        
+
         Args:
-            annotation_view_str (List[Annotation]): the annotation-only representation of the 
+            annotation_view_str (List[Annotation]): the annotation-only representation of the
                 input document
 
         Returns:
@@ -99,29 +99,29 @@ class MinMaxPhase_3(ExtractionPhaseABC):
         loop_1 = ExtractionLoop(regex_str=regex_1, last_ann_str='Number', verbose=self.verbose)
 
         regex_2 = TokenAnn.build_annotation_distance_regex("Number", (0, 2), None, "Unit_of_Measure")
-        loop_2 = ExtractionLoop(regex_str=regex_2, last_ann_str='Unit_of_Measure', 
+        loop_2 = ExtractionLoop(regex_str=regex_2, last_ann_str='Unit_of_Measure',
                                 verbose=self.verbose)
 
         regex_3 = TokenAnn.build_annotation_distance_regex("Unit_of_Measure", (0, 5), None, "AtMost")
-        loop_3 = ExtractionLoop(regex_str=regex_3, last_ann_str='AtMost', 
+        loop_3 = ExtractionLoop(regex_str=regex_3, last_ann_str='AtMost',
                                 verbose=self.verbose)
 
         regex_4 = TokenAnn.build_annotation_distance_regex("AtMost", (0, 3), None, "Number")
         loop_4 = ExtractionLoop(regex_str=regex_4, last_ann_str='Number', verbose=self.verbose)
 
         regex_5 = TokenAnn.build_annotation_distance_regex("Number", (0, 2), None, "Unit_of_Measure")
-        loop_5 = ExtractionLoop(regex_str=regex_5, last_ann_str='Unit_of_Measure', 
+        loop_5 = ExtractionLoop(regex_str=regex_5, last_ann_str='Unit_of_Measure',
                                 determine_new_annotation_properties=determine_new_annotation_properties,
                                 verbose=self.verbose)
 
         loop_list = [loop_1, loop_2, loop_3, loop_4, loop_5]
         loops_in_process = []
         result = run_loop(annotation_view_text=annotation_view_str,
-                        doc=self.doc_contents, 
-                        curr_loop=loop_1, 
-                        loop_idx=0, 
+                        doc=self.doc_contents,
+                        curr_loop=loop_1,
+                        loop_idx=0,
                         loops_in_process=loops_in_process,
-                        loop_list=loop_list, 
+                        loop_list=loop_list,
                         match_triples_list=[],
                         new_annotations=[],
                         verbose=self.verbose)

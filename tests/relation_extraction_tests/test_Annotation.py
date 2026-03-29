@@ -80,11 +80,11 @@ class TestAnnotation(unittest.TestCase):
                     sentenceAnn2,
                     sentenceAnn3]
         self.assertEqual(expected, sentenceAnns)
-        
+
         # Get and verify the token annotations.
         tokenAnns = TokenAnn.text_to_token_anns(textIn)
         self.assertEqual(63, len(tokenAnns))
-        
+
         myVultureAnn = TokenAnn(0, 9, 'MyVulture')
         sharesAnn = TokenAnn(377, 383, 'shares')
         self.assertEqual(myVultureAnn, tokenAnns[0])
@@ -98,7 +98,7 @@ class TestAnnotation(unittest.TestCase):
         self.assertFalse(Annotation.encloses(sentenceAnn1, sharesAnn))
         self.assertFalse(Annotation.encloses(sentenceAnn2, sharesAnn))
         self.assertTrue(Annotation.encloses(sentenceAnn3, sharesAnn))
-        
+
         # Create a new annotation that spans from sentence1 across sentence2
         # to sentence3.
         crossesSentenceBoundariesAnn = Annotation('MyAnn', "someNonsenseText", 170, 180)
@@ -117,7 +117,7 @@ class TestAnnotation(unittest.TestCase):
         self.assertTrue(Annotation.encloses(entireDocAnn, sentenceAnn1))
         self.assertTrue(Annotation.encloses(entireDocAnn, sentenceAnn2))
         self.assertTrue(Annotation.encloses(entireDocAnn, sentenceAnn3))
-        
+
         # Use the same input data to test get_enclosed().
         actual = Annotation.get_enclosed(entireDocAnn,
                                         [myVultureAnn, sharesAnn, crossesSentenceBoundariesAnn, entireDocAnn])

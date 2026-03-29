@@ -12,7 +12,7 @@ class SentenceAnn(Annotation):
     """
     An Annotation object covering an entire sentence in a document
     """
-    
+
     def __init__(self, contents: str, start_offset: int, end_offset: int):
         """
         Args:
@@ -21,8 +21,8 @@ class SentenceAnn(Annotation):
             end_offset (int): end offset in the doc
         """
         super().__init__('Sentence', contents, start_offset, end_offset)
-    
-    
+
+
     @staticmethod
     def text_to_SentenceAnns(input: str) -> List[Self]:
         """
@@ -32,14 +32,14 @@ class SentenceAnn(Annotation):
             input (str): the text to split
 
         Returns:
-            List[Self]: a list of SentenceAnn annotations created on the 
+            List[Self]: a list of SentenceAnn annotations created on the
                 given text
         """
         sentenceSpans = spacy_model(input).sents
         sentenceStrs = []
         for sentence in sentenceSpans:
             sentenceStrs.append(sentence.text.strip())
-        
+
         result = []
         startSearchIdx = 0
         for sentence in sentenceStrs:
@@ -50,7 +50,7 @@ class SentenceAnn(Annotation):
             startSearchIdx = endIdx
 
         return result
-    
+
 
 if __name__ == '__main__':
     pass

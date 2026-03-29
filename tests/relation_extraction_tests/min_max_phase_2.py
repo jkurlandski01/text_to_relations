@@ -9,7 +9,7 @@ from text_to_relations.relation_extraction.TokenAnn import TokenAnn
 
 class MinMaxPhase_2(ExtractionPhaseABC):
 
-    def __init__(self, doc_contents:str, 
+    def __init__(self, doc_contents:str,
                  given_annotations: List[Annotation],
                  verbose: bool=False):
         """
@@ -36,7 +36,7 @@ class MinMaxPhase_2(ExtractionPhaseABC):
 
         if self.verbose:
             print(f"self.given_annotations: {self.given_annotations}")
-        
+
 
     def run_phase(self) -> List[Annotation]:
         """
@@ -61,8 +61,8 @@ class MinMaxPhase_2(ExtractionPhaseABC):
         anns.extend(to_anns)
         anns = Annotation.sort(anns)
         if self.verbose: print(f"\nsorted anns: {anns}\n")
-        
-        # Replace the text document with a new representation in which every 
+
+        # Replace the text document with a new representation in which every
         # token is an element--except those tokens which are overlapped by
         # one of our previously-created annotations/entities.
         annotation_view_str = ExtractionPhaseABC.build_merged_representation(self.doc_contents, anns)
@@ -80,9 +80,9 @@ class MinMaxPhase_2(ExtractionPhaseABC):
         """
         Look for parts of the text where the annotations we are interested
         in are in close proximity.
-        
+
         Args:
-            annotation_view_str (List[Annotation]): the annotation-only representation of the 
+            annotation_view_str (List[Annotation]): the annotation-only representation of the
                 input document
 
         Returns:
@@ -102,10 +102,10 @@ class MinMaxPhase_2(ExtractionPhaseABC):
         # to only one relation, and no relations overlap.
         # This means that if a relation is created, we want to break from both Loop 3
         # and Loop 2, and continue on Loop 1. We implement this behavior using a
-        # `breaking` flag. 
+        # `breaking` flag.
         # Moreover, for the sake of efficiency, when we continue with the outer loop
-        # we don't want the restarted inner loops to iterate over annotations that 
-        # precede the end of the previous loop's match. We implement this with checks at 
+        # we don't want the restarted inner loops to iterate over annotations that
+        # precede the end of the previous loop's match. We implement this with checks at
         # the start of the inner loops, e.g. "if m1_trip[1] > m2_trip[1]:"
         for m1_trip in match_1_triples:
             breaking = False
@@ -136,9 +136,9 @@ class MinMaxPhase_2(ExtractionPhaseABC):
                     # end of the Unit_of_Measurement.
 
                     # Get the starting position of the Number in the first match.
-                    # Ignore [1] and [2], the offsets of the Number-ToMarker 
+                    # Ignore [1] and [2], the offsets of the Number-ToMarker
                     # match in the merged representation.
-                    text_matched = m1_trip[0]   
+                    text_matched = m1_trip[0]
                     m1_anns = ExtractionPhaseABC.merged_representation_to_Annotations(text_matched)
                     start = m1_anns[0].start_offset
 

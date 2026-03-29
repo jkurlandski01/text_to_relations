@@ -18,7 +18,7 @@ def determine_new_annotation_properties(match_triples: List[Tuple], doc:str) -> 
 class TestExtractionLoop(unittest.TestCase):
 
     def test_invalid_loop_list(self):
-        # Verify an exception is thrown if any but the last loop has 
+        # Verify an exception is thrown if any but the last loop has
         # a defined determine_new_annotation_properties.
         one_rs = RegexString(['1'])
         regex_strs = {"One": one_rs}
@@ -31,12 +31,12 @@ class TestExtractionLoop(unittest.TestCase):
         annotation_view_str = ExtractionPhaseABC.build_merged_representation(text, anns)
 
         regex_1 = TokenAnn.build_annotation_distance_regex("One", (0, 2), None, "Two")
-        loop_1 = ExtractionLoop(regex_str=regex_1, last_ann_str='Two', 
+        loop_1 = ExtractionLoop(regex_str=regex_1, last_ann_str='Two',
                                 determine_new_annotation_properties=determine_new_annotation_properties,
                                 verbose=False)
 
         regex_2 = TokenAnn.build_annotation_distance_regex("Two", (0, 2), None, "Three")
-        loop_2 = ExtractionLoop(regex_str=regex_2, last_ann_str='Three', 
+        loop_2 = ExtractionLoop(regex_str=regex_2, last_ann_str='Three',
                                 determine_new_annotation_properties=determine_new_annotation_properties,
                                 verbose=False)
 
@@ -45,11 +45,11 @@ class TestExtractionLoop(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             run_loop(annotation_view_text=annotation_view_str,
-                doc=text, 
-                curr_loop=loop_1, 
-                loop_idx=0, 
+                doc=text,
+                curr_loop=loop_1,
+                loop_idx=0,
                 loops_in_process=loops_in_process,
-                loop_list=loop_list, 
+                loop_list=loop_list,
                 match_triples_list=[],
                 new_annotations=[],
                 verbose=False)
@@ -57,24 +57,24 @@ class TestExtractionLoop(unittest.TestCase):
 
         # Verify that an exception is thrown if the last loop does not
         # have a determine_new_annotation_properties defined.
-        loop_1 = ExtractionLoop(regex_str=regex_1, last_ann_str='Two', 
+        loop_1 = ExtractionLoop(regex_str=regex_1, last_ann_str='Two',
                                 # determine_new_annotation_properties=determine_new_annotation_properties,
                                 verbose=False)
 
-        loop_2 = ExtractionLoop(regex_str=regex_2, last_ann_str='Three', 
+        loop_2 = ExtractionLoop(regex_str=regex_2, last_ann_str='Three',
                                 # determine_new_annotation_properties=determine_new_annotation_properties,
                                 verbose=False)
         loop_list = [loop_1, loop_2]
         with self.assertRaises(ValueError):
             run_loop(annotation_view_text=annotation_view_str,
-                doc=text, 
-                curr_loop=loop_1, 
-                loop_idx=0, 
+                doc=text,
+                curr_loop=loop_1,
+                loop_idx=0,
                 loops_in_process=loops_in_process,
-                loop_list=loop_list, 
+                loop_list=loop_list,
                 match_triples_list=[],
                 new_annotations=[],
-                verbose=False)            
+                verbose=False)
 
 
 
@@ -97,22 +97,22 @@ class TestExtractionLoop(unittest.TestCase):
         loop_1 = ExtractionLoop(regex_str=regex_1, last_ann_str='Two', verbose=False)
 
         regex_2 = TokenAnn.build_annotation_distance_regex("Two", (0, 2), None, "Three")
-        loop_2 = ExtractionLoop(regex_str=regex_2, last_ann_str='Three', 
+        loop_2 = ExtractionLoop(regex_str=regex_2, last_ann_str='Three',
                                 determine_new_annotation_properties=determine_new_annotation_properties,
                                 verbose=False)
 
         loop_list = [loop_1, loop_2]
         loops_in_process = []
         result = run_loop(annotation_view_text=annotation_view_str,
-                        doc=text, 
-                        curr_loop=loop_1, 
-                        loop_idx=0, 
+                        doc=text,
+                        curr_loop=loop_1,
+                        loop_idx=0,
                         loops_in_process=loops_in_process,
-                        loop_list=loop_list, 
+                        loop_list=loop_list,
                         match_triples_list=[],
                         new_annotations=[],
                         verbose=False)
-        
+
         self.assertEqual([], result)
 
 
@@ -134,18 +134,18 @@ class TestExtractionLoop(unittest.TestCase):
         loop_1 = ExtractionLoop(regex_str=regex_1, last_ann_str='Two', verbose=False)
 
         regex_2 = TokenAnn.build_annotation_distance_regex("Two", (0, 2), None, "Three")
-        loop_2 = ExtractionLoop(regex_str=regex_2, last_ann_str='Three', 
+        loop_2 = ExtractionLoop(regex_str=regex_2, last_ann_str='Three',
                                 determine_new_annotation_properties=determine_new_annotation_properties,
                                 verbose=False)
 
         loop_list = [loop_1, loop_2]
         loops_in_process = []
         result = run_loop(annotation_view_text=annotation_view_str,
-                        doc=text, 
-                        curr_loop=loop_1, 
-                        loop_idx=0, 
+                        doc=text,
+                        curr_loop=loop_1,
+                        loop_idx=0,
                         loops_in_process=loops_in_process,
-                        loop_list=loop_list, 
+                        loop_list=loop_list,
                         match_triples_list=[],
                         new_annotations=[],
                         verbose=False)
@@ -165,18 +165,18 @@ class TestExtractionLoop(unittest.TestCase):
         loop_1 = ExtractionLoop(regex_str=regex_1, last_ann_str='Two', verbose=False)
 
         regex_2 = TokenAnn.build_annotation_distance_regex("Two", (0, 2), None, "Three")
-        loop_2 = ExtractionLoop(regex_str=regex_2, last_ann_str='Three', 
+        loop_2 = ExtractionLoop(regex_str=regex_2, last_ann_str='Three',
                                 determine_new_annotation_properties=determine_new_annotation_properties,
                                 verbose=False)
 
         loop_list = [loop_1, loop_2]
         loops_in_process = []
         result = run_loop(annotation_view_text=annotation_view_str,
-                        doc=text, 
-                        curr_loop=loop_1, 
-                        loop_idx=0, 
+                        doc=text,
+                        curr_loop=loop_1,
+                        loop_idx=0,
                         loops_in_process=loops_in_process,
-                        loop_list=loop_list, 
+                        loop_list=loop_list,
                         match_triples_list=[],
                         new_annotations=[],
                         verbose=False)

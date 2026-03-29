@@ -9,7 +9,7 @@ from text_to_relations.relation_extraction.TokenAnn import TokenAnn
 
 
 class ExtractionLoop():
-    def __init__(self, 
+    def __init__(self,
                  regex_str: str,
                  last_ann_str: str,
                  determine_new_annotation_properties: Callable=None,
@@ -54,7 +54,7 @@ def when_final_match_found(args: Dict[str, object]) -> Annotation:
 
     # Get the starting position of the 1st match.
     text_matched = match_triples_list[0][0]
-    if loop.verbose: 
+    if loop.verbose:
         print(f"  text_matched: {text_matched}")
         print(f"  first's merged to annotations: {ExtractionPhaseABC.merged_representation_to_Annotations(text_matched)}")
     m1_anns = ExtractionPhaseABC.merged_representation_to_Annotations(text_matched)
@@ -62,7 +62,7 @@ def when_final_match_found(args: Dict[str, object]) -> Annotation:
 
     # Get the ending position of the last annotation in the third match.
     text_matched = match_triples_list[-1][0]   # Ignore [1] and [2], the offsets.
-    if loop.verbose: 
+    if loop.verbose:
         print(f"  last's merged to annotations: {ExtractionPhaseABC.merged_representation_to_Annotations(text_matched)}")
     m3_anns = ExtractionPhaseABC.merged_representation_to_Annotations(text_matched)
     end = m3_anns[-1].end_offset
@@ -80,10 +80,10 @@ def when_final_match_found(args: Dict[str, object]) -> Annotation:
     return new_ann
 
 
-def run_loop(annotation_view_text: str, 
-             doc: str, 
-             curr_loop: ExtractionLoop, 
-             loop_idx: int, 
+def run_loop(annotation_view_text: str,
+             doc: str,
+             curr_loop: ExtractionLoop,
+             loop_idx: int,
              loops_in_process: List[ExtractionLoop],
              loop_list: List[ExtractionLoop],
              match_triples_list: List[Tuple],
@@ -93,7 +93,7 @@ def run_loop(annotation_view_text: str,
     Args:
         annotation_view_text (str): A token- and annotation-view of the input where
             tokens we are not interested in appear as Tokens and annotations we
-            are interested in appear as themselves. For example, 
+            are interested in appear as themselves. For example,
                 <'Token'(normalizedContents='for', start='99', end='101', kind='word')>
                 <'CARDINAL'(normalizedContents='92', start='102', end='104')>
                 <'UNIT_OF_MEASUREMENT'(normalizedContents='feet', start='111', end='115')>
@@ -102,7 +102,7 @@ def run_loop(annotation_view_text: str,
         doc (str): the text as an ordinary string
         curr_loop (ExtractionLoop): loop being processed
         loop_idx (int): which loopin loops_in_process we are processing
-        loops_in_process (List[ExtractionLoop]): the loops which have been processed 
+        loops_in_process (List[ExtractionLoop]): the loops which have been processed
             successfully to get this far in the recursion
         loop_list (List[ExtractionLoop]): all the loops which have been set up
         match_triples_list (List[Tuple]): matches found thus far for the loops processed
@@ -121,7 +121,7 @@ def run_loop(annotation_view_text: str,
         print(f"  curr_loop.regex_str: {curr_loop.regex_str}")
         print(f"  curr_loop.last_ann_str: {curr_loop.last_ann_str}")
         print(f"  new_annotations: {new_annotations}")
-    
+
     # Check loop_list to verify that only the last item has a non-None
     # determine_new_annotation_properties function.
     last_idx = len(loop_list) - 1
@@ -140,7 +140,7 @@ def run_loop(annotation_view_text: str,
                 msg += f"attribute. Loop at index {idx} has "
                 msg += f"{loop.determine_new_annotation_properties}() function."
                 raise ValueError(msg)
-            
+
     if verbose:
         print("  Printing the match_triples list:")
         for trip in match_triples_list:
@@ -153,7 +153,7 @@ def run_loop(annotation_view_text: str,
 
     for triple in match_triples:
         match_triples_list.append(triple)
-        if verbose: 
+        if verbose:
             print(f"\nFound match. triple: {triple}")
             print("  Printing the match_triples list:")
             for trip in match_triples_list:
@@ -161,7 +161,7 @@ def run_loop(annotation_view_text: str,
 
         if curr_loop.determine_new_annotation_properties:
 
-            args_dict = {'loop': curr_loop, 'doc': doc, 'triple': triple, 
+            args_dict = {'loop': curr_loop, 'doc': doc, 'triple': triple,
                             'match_triples_list': match_triples_list}
             result = curr_loop.when_final_match_found(args_dict)
             return result
@@ -175,10 +175,10 @@ def run_loop(annotation_view_text: str,
         new_idx = loop_idx + 1
         next_loop = loop_list[new_idx]
 
-        result = run_loop(annotation_view_text=text_substring, 
+        result = run_loop(annotation_view_text=text_substring,
                             doc=doc,
-                            curr_loop=next_loop, loop_idx=new_idx, 
-                            loops_in_process=loops_in_process, 
+                            curr_loop=next_loop, loop_idx=new_idx,
+                            loops_in_process=loops_in_process,
                             loop_list=loop_list,
                             match_triples_list=match_triples_list,
                             new_annotations=new_annotations,
@@ -190,15 +190,15 @@ def run_loop(annotation_view_text: str,
         elif type(result) == Annotation:
             if loop_idx == 0:
                 new_annotations.append(result)
-                # This next step results in non-overlapping annotations, and allows 
+                # This next step results in non-overlapping annotations, and allows
                 # the program to continue through the input, attempting additonal
-                # matches. 
+                # matches.
                 match_triples_list = []
                 continue
             return result
         else:
             raise ValueError(f"Unexpected result: {result}")
-        
+
         # Unreachable:
         # del match_triples_list[-1]
 
@@ -208,7 +208,7 @@ def run_loop(annotation_view_text: str,
     # call stack, where it would be mistaken for an unexpected result type and raise ValueError.
     return new_annotations if loop_idx == 0 else []
 
-def get_sorted_annotations_for_matching(text: str, 
+def get_sorted_annotations_for_matching(text: str,
                                         regex_strs: Dict[str, RegexString],
                                         given_anns: List[Annotation]) -> List[Annotation]:
     """
@@ -246,7 +246,7 @@ def determine_new_annotation_properties(match_triples: List[Tuple], doc:str) -> 
     # This is a function created specifically for the relation being extracted in
     # __main__.  It simply extracts the first and last character of the input text.
 
-    # Commented out lines, however, show how to get specific information for the 
+    # Commented out lines, however, show how to get specific information for the
     # `match_triples` parameter which is passed into the function. Therefore,
     # DO NOT DELETE THE COMMENTED LINES.
 
@@ -306,8 +306,8 @@ if __name__ == '__main__':
         loop_1 = ExtractionLoop(regex_str=regex_1, last_ann_str='Two', verbose=True)
 
         regex_2 = TokenAnn.build_annotation_distance_regex("Two", (0, 2), None, "Three")
-        loop_2 = ExtractionLoop(regex_str=regex_2, last_ann_str='Three', 
-                                # when_final_match_found=when_final_match_found, 
+        loop_2 = ExtractionLoop(regex_str=regex_2, last_ann_str='Three',
+                                # when_final_match_found=when_final_match_found,
                                 determine_new_annotation_properties=determine_new_annotation_properties,
                                 verbose=True)
 
@@ -315,11 +315,11 @@ if __name__ == '__main__':
         loop_list = [loop_1, loop_2]
         loops_in_process = []
         result = run_loop(annotation_view_text=annotation_view_str,
-                        doc=text, 
-                        curr_loop=loop_1, 
-                        loop_idx=0, 
+                        doc=text,
+                        curr_loop=loop_1,
+                        loop_idx=0,
                         loops_in_process=loops_in_process,
-                        loop_list=loop_list, 
+                        loop_list=loop_list,
                         match_triples_list=[],
                         new_annotations=[],
                         verbose=True)

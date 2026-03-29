@@ -21,7 +21,7 @@ class StampDescriptionPhase(ExtractionPhaseABC):
 
     def check_annotation_proximity(self, text: str) -> List[Annotation]:
 
-        # Step 1: Define all the RegexString objects which identify entities 
+        # Step 1: Define all the RegexString objects which identify entities
         # to be extracted.
 
         # Stamp ID: e.g. '# 11A', '# 17', '# 62B'

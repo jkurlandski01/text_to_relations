@@ -16,7 +16,7 @@ from tests.relation_extraction_tests.min_max_phase_3 import MinMaxPhase_3
 def update_annotation_list(prev_anns: List[Annotation],
                            new_anns: List[Annotation]) -> List[Annotation]:
     """
-    Remove from the list of previous annotations any which form part of the 
+    Remove from the list of previous annotations any which form part of the
     new annotations. This prevents the next set of MinMax rules from
     matching on the "consumed" annotations.
 
@@ -35,7 +35,7 @@ def update_annotation_list(prev_anns: List[Annotation],
     for mm_ann in new_anns:
         enclosed.extend(Annotation.get_enclosed(mm_ann, prev_anns))
     remaining_annotations = [x for x in prev_anns if x not in enclosed]
-    
+
     # After this, remaining_annotations will contain the newly-found MinMax annotations
     # plus any unconsumed Cardinal and Unit_of_Measure annotations.
     remaining_annotations.extend(new_anns)
@@ -45,14 +45,14 @@ def update_annotation_list(prev_anns: List[Annotation],
 
 
 
-def run_extraction_phases(input: str, 
+def run_extraction_phases(input: str,
                           anns: List[Annotation],
                           verbose: bool=False) -> List[Annotation]:
     if verbose: print(f"\nEntering run_extraction_phases(). anns: {anns}\n")
 
     extraction_phase_1 = MinMaxPhase_1(input, anns, verbose=verbose)
     minmax_anns_1 = extraction_phase_1.run_phase()
-    if verbose: 
+    if verbose:
         msg = f"\nReturned to run_extraction_phases(). minmax_anns: {minmax_anns_1}"
         print(msg)
 
@@ -94,7 +94,7 @@ def entities_to_relations(input_dict: Dict[str, object],
 
     annotations = entities_to_annotations(input_dict["entities"])
     if verbose: print(f"Annotations created: {annotations}")
-    
+
     new_anns = run_extraction_phases(input_text, annotations, verbose=verbose)
 
     if verbose:
@@ -102,7 +102,7 @@ def entities_to_relations(input_dict: Dict[str, object],
         print(f"new_anns: {new_anns}\n")
 
     result = [x.to_dict() for x in new_anns]
-    
+
     return result
 
 
@@ -111,9 +111,9 @@ if __name__ == '__main__':
     text = \
     """
     During those fraught times his weight ranged between 170 and 220 pounds
-    and, with the 30 to 40 drinks per week he was inclined to enjoy, his IQ 
-    varied almost as much--anywhere within the range of 60 to 90 points. It 
-    would take him a minimum of 15 minutes and a maximum of 20 minutes to 
+    and, with the 30 to 40 drinks per week he was inclined to enjoy, his IQ
+    varied almost as much--anywhere within the range of 60 to 90 points. It
+    would take him a minimum of 15 minutes and a maximum of 20 minutes to
     run a mile.
     """
     input = inspect.cleandoc(text)

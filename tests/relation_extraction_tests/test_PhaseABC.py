@@ -21,9 +21,9 @@ class TestPhaseABC(unittest.TestCase):
 
 
     def testInvalidSubclass2(self):
-        # Test on failure to pass document contents to the 
+        # Test on failure to pass document contents to the
         # ABC's init().
-        
+
         # noinspection PyAbstractClass
         class PhaseTest(ExtractionPhaseABC):
 
@@ -40,7 +40,7 @@ class TestPhaseABC(unittest.TestCase):
 
     def testInvalidSubclass3(self):
         # Test on document contents being an empty string.
-        
+
         # noinspection PyAbstractClass
         class PhaseTest(ExtractionPhaseABC):
 
@@ -159,7 +159,7 @@ class TestPhaseABC(unittest.TestCase):
 
     def testBuildMergedInput2(self):
         # Test build_merged_representation( ) where annotations begin and end the test document.
-        
+
         expected = "<'ShareQuantity'(normalizedContents='15,000,000', start='0', end='10')>"
         expected += "<'Token'(normalizedContents='shares', start='11', end='17', kind='word')>"
         expected += "<'Token'(normalizedContents='of', start='18', end='20', kind='word')>"
@@ -297,5 +297,5 @@ class TestPhaseABC(unittest.TestCase):
                     "<'Token'(normalizedContents='SFSY', start='26', end='30', kind='word')>",
                     "<'Token'(normalizedContents=')', start='30', end='31', kind='punc')>",
                     "<'Token'(normalizedContents=',', start='31', end='32', kind='punc')>"]
-        
+
         self.assertEqual(expected, actual)

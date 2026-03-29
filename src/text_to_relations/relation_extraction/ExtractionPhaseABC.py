@@ -134,22 +134,22 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
         )
 
     @staticmethod
-    def build_merged_representation(doc_contents: str, 
-                                    anns: List[Annotation], 
+    def build_merged_representation(doc_contents: str,
+                                    anns: List[Annotation],
                                     verbose: bool=False) -> str:
         """
         Create an Annotation-only representation of the document by
-        merging the given bespoke annotations on it into a TokenAnn list 
+        merging the given bespoke annotations on it into a TokenAnn list
         for all the other tokens in the doc.
         Args:
-            doc_contents (str): the normalized contents of the doc being 
+            doc_contents (str): the normalized contents of the doc being
                 processed
-            anns (List[Annotation]): a list of bespoke annotations you want 
+            anns (List[Annotation]): a list of bespoke annotations you want
                 to appear merged into the doc
             verbose (bool, optional): Defaults to False.
 
         Raises:
-            ValueError: If the process fails to insert any of the provided 
+            ValueError: If the process fails to insert any of the provided
                 bespoke annotations into the final result
 
         Returns:
@@ -163,15 +163,15 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
 
         result = ""
         lastPos = 0
-        
+
         # Strategy: Tokenize the doc and iterate through all the tokens. If a token
         # is covered by an annotation, write that annotation to the output and advance
         # lastPos to the end of the annotation; otherwise, write the token to output
         # and continue.
         tokensObjs = TokenAnn.get_token_objects(contents, 0)
-        
+
         for tokenObj in tokensObjs:
-            
+
             if lastPos > tokenObj.start_offset:
                 continue
 
@@ -191,8 +191,8 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
 
             if foundAnn:
                 continue
-            
-            # This token occurs in the document before the next unconsumed annotation. Write it to 
+
+            # This token occurs in the document before the next unconsumed annotation. Write it to
             # output.
             result += str(tokenObj)
 
@@ -208,21 +208,21 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
 
 
     @staticmethod
-    def merged_representation_to_Annotations(rep: str, 
+    def merged_representation_to_Annotations(rep: str,
                                     verbose: bool=False) -> List[Annotation]:
         """
         Essentially reverses build_merged_representation(). From a merged representation,
         or a subset thereof, create a list of Annotations.
         Args:
             rep (str): merged representation, e.g. a string looking like this
-                (ignore the backslashes): 
+                (ignore the backslashes):
                     <'CARDINAL'(normalizedContents='80', start='92', end='94')> \
                     <'Token'(normalizedContents='to', start='95', end='97', kind='word')> \
                     <'CARDINAL'(normalizedContents='90', start='98', end='100')>
             verbose (bool, optional): Defaults to False.
 
         Returns:
-            List[Annotation]: 
+            List[Annotation]:
         """
         # Each ann is contained within angle brackets--<>.
         incomplete_strs = rep.split('<')

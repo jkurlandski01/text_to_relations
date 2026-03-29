@@ -11,12 +11,12 @@ Load the spaCy English language model one time for the entire application.
 # Either of these models is acceptable:
 try:
     spacyEnglishModel = spacy.load('en_core_web_lg')
-    lightSpacyEnglishModel = spacy.load('en_core_web_lg', 
+    lightSpacyEnglishModel = spacy.load('en_core_web_lg',
                                     disable=["tagger", "parser", "ner", "textcat", "lemmatizer"])
 except IOError:
     spacyEnglishModel = spacy.load('en_core_web_trf')
     # Does not work under Python 3.9:
-    lightSpacyEnglishModel = spacy.load('en_core_web_trf', 
+    lightSpacyEnglishModel = spacy.load('en_core_web_trf',
                                     disable=["tagger", "parser", "ner", "textcat", "lemmatizer"])
 
 
@@ -24,10 +24,10 @@ def tokenize(inputStr: str) -> list[str]:
     """
     Use the lightweight English model to tokenize a piece of text.
     Fixes a couple of bugs in the default Spacy tokenizer.
-    :param inputStr: 
+    :param inputStr:
     :return: a list of tokens
     """
-    
+
     inputStr = inputStr.strip()
 
     # Bug 1: Hyphen issue: if the input consists solely of '- + word' or 'word + -',

@@ -10,9 +10,9 @@ class RegexString(object):
     easy-to-use set of functions.
     """
 
-    def __init__(self, match_strs: List[str], 
+    def __init__(self, match_strs: List[str],
                  whole_word: bool=False,
-                 optional: bool=False, 
+                 optional: bool=False,
                  non_capturing: bool=True,
                  prepend: str='', append: str=''):
         """
@@ -28,16 +28,16 @@ class RegexString(object):
                 get_match_triples().
             whole_word (bool, optional): whether or not to require a match on
                 whole words only. Defaults to True.
-            optional (bool, optional): whether or not the OR'd items in the 
+            optional (bool, optional): whether or not the OR'd items in the
                 regex should be optional. Defaults to False.
-            non_capturing (bool, optional): if True, the OR'd items should 
-                form a non-capturing group (i.e., '?:' should be inserted 
+            non_capturing (bool, optional): if True, the OR'd items should
+                form a non-capturing group (i.e., '?:' should be inserted
                 after the left parenthesis). Note that other RegexString functions,
                 such as get_match_triples() may behave unexpectedly if this
                 is set to False. Defaults to True.
-            prepend (str, optional): regex string to prepend to the OR'd list. 
+            prepend (str, optional): regex string to prepend to the OR'd list.
                 Defaults to ''.
-            append (str, optional): regex string to append to the OR'd list. 
+            append (str, optional): regex string to append to the OR'd list.
                 Defaults to ''.
         """
         # If match_strs is a string, the user has made an error.
@@ -56,8 +56,8 @@ class RegexString(object):
         self.optional = optional
         self.non_capturing = non_capturing
 
-        # '\b' causes debugging issues because in print statements it 
-        # is invisible because it is interpreted as backspace. We don't 
+        # '\b' causes debugging issues because in print statements it
+        # is invisible because it is interpreted as backspace. We don't
         # attempt to fix this if '\b' is just a substring of a longer
         # prepend or append.
         esc_backslash_b = r'\b'
@@ -140,7 +140,7 @@ class RegexString(object):
         :return:
         """
         return self.regex_str
-    
+
     def get_match_triples(self, input: str, case_insensitive: bool = False) -> List[Tuple]:
         """
         Run re.finditer() on this regex.
@@ -160,8 +160,8 @@ class RegexString(object):
         return match_triples
 
     @staticmethod
-    def concat(rs1: Self, 
-               rs2: Self, 
+    def concat(rs1: Self,
+               rs2: Self,
                insert_opt_ws: bool=False) -> Self:
         """
         Create a new RegexString by concatenating the two input RegexString objects.
@@ -169,9 +169,9 @@ class RegexString(object):
         allow words, use concat_with_word_distances().
 
         Args:
-            rs1 (RegexString): 
-            rs2 (RegexString): 
-            insert_opt_ws (bool, optional): if True, allow a single whitespace 
+            rs1 (RegexString):
+            rs2 (RegexString):
+            insert_opt_ws (bool, optional): if True, allow a single whitespace
             character between the regex expressions. Defaults to False.
 
         Raises:
@@ -203,29 +203,29 @@ class RegexString(object):
 
 
     @staticmethod
-    def concat_with_word_distances(rs1: Self, 
-                                   rs2: Self,  
-                                   min_nbr_words: int=0, 
+    def concat_with_word_distances(rs1: Self,
+                                   rs2: Self,
+                                   min_nbr_words: int=0,
                                    max_nbr_words: int=0) -> Self:
         """
-        Create a new RegexString by concatenating the two input 
-        RegexString objects with a minimum and maximum number of 
-        non-whitespace-character strings between them. Note that, 
-        in this implementation, all of these strings are considered 
+        Create a new RegexString by concatenating the two input
+        RegexString objects with a minimum and maximum number of
+        non-whitespace-character strings between them. Note that,
+        in this implementation, all of these strings are considered
         single words: 'John', 'John:', '("John.")'.
         Note:
-        - This functionality assumes that the input text does not have 
-        spurious or accidental consecutive whitespace. In other words, if 
-        the input text has 'a  dog' and you are looking for 'a' followed by 
+        - This functionality assumes that the input text does not have
+        spurious or accidental consecutive whitespace. In other words, if
+        the input text has 'a  dog' and you are looking for 'a' followed by
         'dog', no match will occur because of the double spaces.
 
         Args:
             rs1 (RegexString): the left-hand RegexString to concatenate.
             rs2 (RegexString): the right-hand RegexString to concatenate.
-            min_nbr_words (int, optional): the minimum number of words 
-                allowed between the 
+            min_nbr_words (int, optional): the minimum number of words
+                allowed between the
             two regex expressions. Defaults to 0.
-            max_nbr_words (int, optional): the maximum number of words 
+            max_nbr_words (int, optional): the maximum number of words
                 allowed between the two regex expressions. Defaults to 0.
         Raises:
             ValueError: if parameters are not RegexStings
@@ -303,10 +303,10 @@ class RegexString(object):
         Build a RegexString object from the given regular
         expression.
         Args:
-            regex (str): 
+            regex (str):
 
         Returns:
-            RegexString: 
+            RegexString:
         """
         # Create an empty/invalid RegexString object, and make it valid by editing
         # its regex_str property.
@@ -318,23 +318,23 @@ class RegexString(object):
     @staticmethod
     def build_regex_string(input_list: List[str]) -> Self:
         """
-        Read the input list to create a new RegexString object from 
+        Read the input list to create a new RegexString object from
         the concatenated elements.
 
         Args:
-            input_list (List[str]): a list having an odd number of elements 
-            following the pattern "phraseList1, maxDistance1, phraseList2, 
-            maxDistance2, phraseList3, ...", each phraseList consisting of a 
+            input_list (List[str]): a list having an odd number of elements
+            following the pattern "phraseList1, maxDistance1, phraseList2,
+            maxDistance2, phraseList3, ...", each phraseList consisting of a
             list of strings and each distance consisting of an integer >= 0;
-            each phraseList will be used to create a new RegexString object, 
-            after which each RegexString distance RegexString triple will be 
+            each phraseList will be used to create a new RegexString object,
+            after which each RegexString distance RegexString triple will be
             concatenated to create another set of RegexString objects
 
         Raises:
             ValueError: if the input list has an invalid number of elements
 
         Returns:
-            RegexString: a single RegexString object concatenating all the 
+            RegexString: a single RegexString object concatenating all the
                 list items
         """
         if len(input_list) < 3 or len(input_list) % 2 == 0:
@@ -350,8 +350,8 @@ class RegexString(object):
         idx = 2
         while idx < len(input_list):
             nextRegexStr = RegexString(input_list[idx])
-            finalRegexStr = RegexString.concat_with_word_distances(currRegexStr, 
-                                                                   nextRegexStr, 
+            finalRegexStr = RegexString.concat_with_word_distances(currRegexStr,
+                                                                   nextRegexStr,
                                                                    max_nbr_words=currMaxDistance)
             if idx + 2 < len(input_list):
                 currRegexStr = finalRegexStr
@@ -408,9 +408,9 @@ if __name__ == '__main__':
     roman_nums_rs = RegexString(roman_numerals, whole_word=True)
     print(f"Regular expression for 'roman_nums_rs': {roman_nums_rs.get_regex_str()}")
 
-    type_phrase_rs = RegexString.concat_with_word_distances(type_rs, 
+    type_phrase_rs = RegexString.concat_with_word_distances(type_rs,
                                                             roman_nums_rs,
-                                                            min_nbr_words=0, 
+                                                            min_nbr_words=0,
                                                             max_nbr_words=0)
     matchStrs = type_phrase_rs.get_match_triples(input)
     print("\nType info found in the input:")
@@ -462,13 +462,13 @@ if __name__ == '__main__':
 
     # Not getting the colors not preceded by a qualifier.
     # Make the qualifier optional.
-    color_qualifiers_rs = RegexString(color_qualifiers, 
-                                      whole_word=True, 
+    color_qualifiers_rs = RegexString(color_qualifiers,
+                                      whole_word=True,
                                       optional=True
                                     )
-    color_phrase_rs = RegexString.concat_with_word_distances(color_qualifiers_rs, 
+    color_phrase_rs = RegexString.concat_with_word_distances(color_qualifiers_rs,
                                                             colors_rs,
-                                                            min_nbr_words=0, 
+                                                            min_nbr_words=0,
                                                             max_nbr_words=0)
     matchStrs = color_phrase_rs.get_match_triples(input)
     print("\nOptional color qualifiers + colors found in the input:")

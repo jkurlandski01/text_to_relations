@@ -11,7 +11,7 @@ from text_to_relations.relation_extraction.RegexString import RegexString
 
 
 class TestRegexString(unittest.TestCase):
-    
+
     def testInvalidInit(self):
         with self.assertRaises(ValueError):
             RegexString('a monkey')
@@ -53,8 +53,8 @@ class TestRegexString(unittest.TestCase):
         match_strs = re.findall(regexString.get_regex_str(), inputStr)
         expected = ['a monkey.', '.', '.']
         self.assertEqual(expected, match_strs)
-    
-    
+
+
     def testSimpleWithCollection(self):
         """ Test on the normal case--no grouping and case-insensitive. """
         inputStr = 'I saw a monkey. The monkey was sad. It made me sad to see a sad monkey.'
@@ -108,19 +108,19 @@ class TestRegexString(unittest.TestCase):
 
         # Allow an optional one word before 'see/saw'--
         # and require the word 'a' after.
-        regexString = RegexString(matchStrings, 
+        regexString = RegexString(matchStrings,
                         prepend='(?:\w+ )?', append=' a')
-    
+
         # Test the regex.
         expected = r'(?:\w+ )?(?:see|saw) a'
         self.assertEqual(expected, str(regexString))
-    
+
         # Test matching.
         match_strs = re.findall(regexString.get_regex_str(), inputStr)
         expected = ['i saw a', 'to see a']
         self.assertEqual(expected, match_strs)
-    
-    
+
+
     def testCaseSensitiveWithCollection(self):
         """ Test on a case-sensitive usage. """
         inputStr = 'I saw a monkey. The monkey was sad. It made me sad to see a sad monkey.'

@@ -10,7 +10,7 @@ class TestSpacyUtils(unittest.TestCase):
         # Note the starting and ending whitespace.
         docContents = " I saw a sad monkey. The monkey's face was miserable--miserable and forlorn. "
 
-        # The SpacyUtils function fixes a Spacy bug by stripping the input string of 
+        # The SpacyUtils function fixes a Spacy bug by stripping the input string of
         # beginning and ending whitespace.
         actual = SpacyUtils.tokenize(docContents)
 
