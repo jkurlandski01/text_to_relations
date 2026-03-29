@@ -1,16 +1,21 @@
 # Text-To-Relations: Tutorial
 
 ## Table of Contents
-- [Entity Recognition](#entity-recognition)
-- [RegexString](#regexstring)
-  - [Example 1](#example-1)
-  - [Example 2](#example-2)
-  - [Example 3](#example-3)
-- [RegexString: build\_regex\_string( )](#regexstring-build_regex_string-)
-- [RegexString: appending more complicated regular expressions](#regexstring-appending-more-complicated-regular-expressions)
-- [Relation Extraction](#relation-extraction)
+- [Text-To-Relations: Tutorial](#text-to-relations-tutorial)
+  - [Table of Contents](#table-of-contents)
+  - [Entity Recognition](#entity-recognition)
+    - [RegexString](#regexstring)
+      - [Case-Insensitive Matching](#case-insensitive-matching)
+    - [Example 1](#example-1)
+    - [Example 2](#example-2)
+    - [Example 3](#example-3)
+    - [Example 4: Using build\_regex\_string( )](#example-4-using-build_regex_string-)
+    - [Example 5: Appending More Complicated Regular Expressions](#example-5-appending-more-complicated-regular-expressions)
+  - [Relation Extraction](#relation-extraction)
+    - [The extraction phase](#the-extraction-phase)
+    - [Running the extraction](#running-the-extraction)
 
-### Entity Recognition
+## Entity Recognition
 
 For this example we're going to write rules to extract postage stamp descriptions as found at https://www.mysticstamp.com/.
 
@@ -59,7 +64,23 @@ With Text-To-Relations, the go-to tool is RegexString, which is essentially a wr
 
 The simplest interface is RegexString's constructor, which with default parameters just takes a list of strings which you want to be considered "synonymous" in some way, that is, as different examples of the same kind of thing.
 
-#### Example 1
+#### Case-Insensitive Matching
+
+RegexString does not use `re.IGNORECASE`. The recommended approach for case-insensitive matching is to lowercase both sides:
+
+```python
+match_strs = ['type', 'kind', 'sort']   # already lowercase
+rs = RegexString(match_strs, whole_word=True)
+
+input_text = "We need a Type I or a SORT II widget."
+matches = rs.get_match_triples(input_text.lower())
+print(matches)
+# [('type', 9, 13), ('sort', 22, 26)]
+```
+
+Note that the offsets returned refer to positions in the lowercased string, which are identical to positions in the original string.
+
+### Example 1
 
 We'll use the *type* entity to begin our demonstration of RegexString. In the text above you see that there are only two--"type I" and "type II". But let's suppose that, in the complete data on the website:
 - First, that sometimes the word *type* is capitalized and sometimes it is all-lowercase.
@@ -88,15 +109,16 @@ Both regular expressions begin and end with '\b,' which is regex-speak for "whol
 
 The meat of the regex for `roman_nums_rs` consists of the five Roman numerals separated by "|" (meaning OR), which will match on any one of the five if found in a piece of text. Some other things to note here:
 - The regular expression sorts the OR'd numerals by length so that, for example, if "II" occurs in the text you will get a single match on the entire string rather than two matches on "I." (Note that this is only an issue when `whole_word` is set to False.)
-- The scary looking "?:" at the start of the block tells the regular expression matcher not to perform grouping on the match. If you don't know what this means--don't worry, you don't need to know. For most *natural language* processing tasks (as opposed to some text processing tasks), you don't need grouping. Text-To-Relations employs non-capturing by default so that some of the other functionality that builds on RegexString objects can assume the associated regular expression is non-capturing. (If you must have capturing, create the RegeString with `non_capturing=False` to allow capturing.)
+- The scary looking "?:" at the start of the block tells the regular expression matcher not to perform grouping on the match. If you don't know what this means--don't worry, you don't need to know. For most *natural language* processing tasks (as opposed to some text processing tasks), you don't need grouping. Text-To-Relations employs non-capturing by default so that some of the other functionality that builds on RegexString objects can assume the associated regular expression is non-capturing. (If you must have capturing, create the RegexString with `non_capturing=False` to allow capturing.)
 
 Finally we're ready to run our RegexString objects against the stamp descriptions at top.
 
 ```python
-type_phrase_rs = RegexString.concat_with_word_distances(type_rs,
-                                                        roman_nums_rs,
-                                                        min_nbr_words=0,
-                                                        max_nbr_words=0)
+type_phrase_rs = RegexString.concat_with_word_distances(
+    type_rs, 
+    roman_nums_rs, 
+    min_nbr_words=0, 
+    max_nbr_words=0)
 matchStrs = type_phrase_rs.get_match_triples(input)
 print("\nType info found in the input:")
 print(matchStrs)
@@ -114,7 +136,7 @@ get_match_triples( ) runs a MatchString object's regular expression against user
 You see that the `type_phrase_rs` object which we constructed from smaller pieces managed to find all three "type" expressions in the postage stamp input.
 
 
-#### Example 2
+### Example 2
 
 Now let's extract the value of the postage stamp, which will give us a chance to demo RegexString's `prepend` parameter. Our description above has six unique values, only one of which uses the old-fashioned cents character, '¢'. These are: 3¢, 12c, 5c, 1c, 1c, 5c, 10c.
 
@@ -138,7 +160,7 @@ Cents info found in the input:
 
 As a side note, Text-to-Relations offers at least one other way of accomplishing the same goal: we could have created two RegexString objects and then concatenated them with the RegexString concat( ) function.
 
-#### Example 3
+### Example 3
 
 Here's one more "Introduction-to-RegexString" example, this time used to extract the perforation information in our postage stamp descriptions. The specific perforation examples we're targeting are: imperf, imperforate, perf 15.
 
@@ -181,7 +203,7 @@ Perforated sizes:
 [('perf 15', 203, 210)]
 ```
 
-### RegexString: build_regex_string( )
+### Example 4: Using build_regex_string( )
 
 Now for some new RegexString functionality. First we'll use the function build_regex_string( ) to create a regular expression that matches on one set of list items on one word, then on another set for the next word in the text--this seems right for colors that are preceded by qualifiers like *bright* and *dark*.
 
@@ -222,14 +244,12 @@ Oops! We're not getting the colors which aren't preceded by a qualifier. The bui
 Instead, let's try concat_with_word_distances( ), which we've already used successfully to identify *type + roman numeral*, a context where the first word was not optional.
 
 ```python
-color_qualifiers_rs = RegexString(color_qualifiers,
-                                  whole_word=True,
-                                  optional=True
-                                )
-color_phrase_rs = RegexString.concat_with_word_distances(color_qualifiers_rs,
-                                                        colors_rs,
-                                                        min_nbr_words=0,
-                                                        max_nbr_words=0)
+color_qualifiers_rs = RegexString(color_qualifiers, whole_word=True, optional=True)
+color_phrase_rs = RegexString.concat_with_word_distances(
+    color_qualifiers_rs, 
+    colors_rs, 
+    min_nbr_words=0, 
+    max_nbr_words=0)
 matchStrs = color_phrase_rs.get_match_triples(input)
 print("\nOptional color qualifiers + colors found in the input:")
 print(matchStrs)
@@ -241,7 +261,7 @@ Optional color qualifiers + colors found in the input:
 [('dull red', 38, 46), ('black', 105, 110), ('red brown', 138, 147), ('bright blue', 237, 248), ('orange brown', 276, 288), ('dark green', 319, 329)]
 ```
 
-### RegexString: appending more complicated regular expressions
+### Example 5: Appending More Complicated Regular Expressions
 
 For our final example we're going to extract the Mystic Stamp Company's IDs for the postage stamps in our description. These are: # 11A, # 17, # 12, # 18, # 40, # 42, # 62B.
 
@@ -279,27 +299,104 @@ Stamp IDs with letters found in the input:
 [('# 11A', 0, 5), ('# 17', 65, 69), ('# 12', 112, 116), ('# 18', 170, 174), ('# 40', 212, 216), ('# 42', 250, 254), ('# 62B', 290, 295)]
 ```
 
-### Relation Extraction
+## Relation Extraction
 
-By *relation extraction* we mean the identification of relationships between multiple entities. So, to use our postage stamp exercise as an example, creating a StampDescription class with properties such as *type*, *value* and *perforation_info* would qualify as relation extraction.
+By *relation extraction* we mean the identification of relationships between multiple entities. With the stamp data we have been working with, a natural relation is a `StampDescription` that groups together the stamp's ID, denomination, type numeral, and perforation information. Not every stamp entry contains all four fields — only three of the seven have type information — so only those three will produce a result.
 
-I have not done that, however. What I have done--and what I can offer as an example of relation extraction--is `relation_extraction/extract_min_max_relation.py`. You can find it in the source code at [the GitHub Text-to-Relations project](https://github.com/jkurlandski01/text_to_relations).
+Text-To-Relations provides two building blocks for relation extraction:
 
-The Python code there takes you all the way from using RegexString to extract entities to subclassing the ExtractionPhaseABC abstract base class in order to combine those entities into a MinMax object based on text snippets like:
-- *within the range of 60 to 90 points*
-- *between 170 and 220 pounds*.
-- *30 to 40 drinks*
+- **`ExtractionPhaseABC`** — an abstract base class whose subclasses implement a single extraction phase. Each phase takes the document text plus any pre-existing entity annotations, finds new patterns, and returns a list of new `Annotation` objects.
+- **`ExtractionLoop` / `run_loop`** — a recursive engine (in `extraction_loop.py`) that chains a sequence of regex-based loops together. Each loop matches one entity, then hands off to the next loop starting from that entity's position.
 
-The process begins by using RegexString to identify these entities:
-- Number (for integers)
-- Unit_of_Measure on the words *points*, *pounds* and *drinks*.
+### The extraction phase
 
-The process then passes these entities (as objects of the Text-to-Relations *Annotation* class) to two phases.
-- Phase 1 creates a new temporary annotation called RangeMarker on phrases like *within the range of* and *between*. Then it looks for a **RangeMarker + Number + Number + Unit_of_Measure** in close proximity. If any are found, it creates a new MinMax annotation.
-- Phase 2 creates a new temporary annotation called ToMarker on *to* and *-* (the hyphen character). Then it looks for a **Number + ToMarker + Number + Unit_of_Measure** in close proximity. If any are found, it creates a new MinMax annotation.
+The full source is in `relation_extraction/extract_stamp_description.py`. Here are the key parts.
 
-There is a critical snippet of code which is executed after Phase 1 and before Phase 2. You can find this in the run_extraction_phases( ) function of `extract_min_max_relation.py`. It is designed to prevent Phase 2 from matching on any of the Number and Unit_of_Measure entities which were used to create MinMax relations in Phase 1, and it accomplishes this by removing from the annotation list all Number and Unit_of_Measure annotations which are enclosed by the MinMax relations extracted in that phase.
+**Entities.** Inside `run_phase()` we build RegexStrings for the four fields we want, using the same patterns introduced earlier in this tutorial. We create a single combined `Perforation` regex that covers both "imperforate"/"imperf" and "perf NN":
 
-**Latest Update**: The two MinMax phases mentioned above are implemented with two separate nested for-loops which contain highly duplicative lines of code. The latest `min_max_phase_3.py` file implements this same kind of logic in a set of functions defined in `extraction_loop.py`: it avoids the duplicated code with a recursive function. Both of the other min-max-phase files could also be implemented this way.
+```python
+id_rs    = RegexString(['#'], append=r'\s\d+(?:\w+)?')
+cent_rs  = RegexString(['c', '¢'], prepend=r'\d\d?')
 
-**SentenceAnn**: There is a class called SentenceAnn which subclasses Annotation. Not used in the MinMax extraction discussed here, it could be useful (in combination with Annotation.encloses( )) if you wanted to require that relations occur within a single sentence. Naturally, to succeed the Spacy sentence-splitting, which is used here, must be correct.
+type_markers_rs = RegexString(['type', 'Type'], whole_word=True)
+roman_nums_rs   = RegexString(['I', 'II', 'III', 'IV', 'V'], whole_word=True)
+type_phrase_rs  = RegexString.concat_with_word_distances(
+    type_markers_rs, roman_nums_rs, min_nbr_words=0, max_nbr_words=0)
+
+imperf_rs      = RegexString(['imperforate', 'imperf'])
+perf_sized_rs  = RegexString(['perf'], append=r'\s\d+')
+perf_combined_rs = RegexString.regex_to_RegexString(
+    f'(?:{imperf_rs.get_regex_str()}|{perf_sized_rs.get_regex_str()})')
+
+regex_strs = {
+    'StampID':      id_rs,
+    'Denomination': cent_rs,
+    'TypePhrase':   type_phrase_rs,
+    'Perforation':  perf_combined_rs,
+}
+```
+
+`get_sorted_annotations_for_matching()` runs each RegexString against the document and returns a single sorted list of `Annotation` objects. `build_merged_representation()` then converts the document into an *annotation-view string* — a representation where every token is either a typed annotation (for the entities we care about) or a generic `Token` annotation (for everything else). This annotation-view string is what the loops operate on.
+
+**The loop chain.** Inside `check_annotation_proximity()` we define three `ExtractionLoop` objects. Each loop specifies a regex (built by `TokenAnn.build_annotation_distance_regex()`) that matches one entity followed by a bounded number of `Token` annotations and then the next entity. The loops are chained: when loop 1 finds a match, it hands off to loop 2 starting from the end of that match, and so on.
+
+```python
+# StampID → Denomination: at most 3 tokens (e.g. '- 1853-55')
+regex_1 = TokenAnn.build_annotation_distance_regex('StampID', (0, 3), None, 'Denomination')
+loop_1  = ExtractionLoop(regex_str=regex_1, last_ann_str='Denomination')
+
+# Denomination → TypePhrase: at most 8 tokens (e.g. 'George Washington, dull red,')
+regex_2 = TokenAnn.build_annotation_distance_regex('Denomination', (0, 8), None, 'TypePhrase')
+loop_2  = ExtractionLoop(regex_str=regex_2, last_ann_str='TypePhrase')
+
+# TypePhrase → Perforation: at most 2 tokens (typically just a comma)
+regex_3 = TokenAnn.build_annotation_distance_regex('TypePhrase', (0, 2), None, 'Perforation')
+loop_3  = ExtractionLoop(regex_str=regex_3, last_ann_str='Perforation',
+                         determine_new_annotation_properties=determine_new_annotation_properties)
+loop_3.when_final_match_found = when_final_match_found
+```
+
+The last loop carries two callbacks. `determine_new_annotation_properties()` pulls the four field values out of the matched annotation triples:
+
+```python
+def determine_new_annotation_properties(match_triples, doc):
+    m0_anns = ExtractionPhaseABC.merged_representation_to_Annotations(match_triples[0][0])
+    stamp_id    = m0_anns[0].normalizedContents   # StampID is first in loop 1's match
+    denomination = m0_anns[-1].normalizedContents  # Denomination is last
+
+    m1_anns = ExtractionPhaseABC.merged_representation_to_Annotations(match_triples[1][0])
+    stamp_type = m1_anns[-1].normalizedContents    # TypePhrase is last in loop 2's match
+
+    m2_anns = ExtractionPhaseABC.merged_representation_to_Annotations(match_triples[2][0])
+    perforation = m2_anns[-1].normalizedContents   # Perforation is last in loop 3's match
+
+    return {'stamp_id': stamp_id, 'denomination': denomination,
+            'type': stamp_type, 'perforation_info': perforation}
+```
+
+`when_final_match_found()` uses the start offset of the first match and the end offset of the last match to assemble the final `Annotation`, here typed as `'StampDescription'`.
+
+### Running the extraction
+
+```python
+phase = StampDescriptionPhase(input_text)
+results = phase.run_phase()
+
+print(f'{len(results)} of 7 stamp descriptions extracted:\n')
+for ann in results:
+    p = ann.properties
+    print(f"  stamp_id='{p['stamp_id']}', denomination='{p['denomination']}', "
+          f"type='{p['type']}', perforation_info='{p['perforation_info']}'")
+```
+
+Output:
+
+```console
+3 of 7 stamp descriptions extracted:
+
+  stamp_id='# 11A', denomination='3¢', type='type II', perforation_info='imperf'
+  stamp_id='# 12', denomination='5c', type='type I', perforation_info='imperforate'
+  stamp_id='# 18', denomination='1c', type='type I', perforation_info='perf 15'
+```
+
+Only 3 of 7 stamp descriptions were extracted because the loop chain requires all four fields to be present. The other four stamps either lack type information entirely (stamps #40, #42, #62B) or have perforation information but no type (stamp #17). Handling those cases would require additional phases — one for each alternative pattern — following the same approach shown here.

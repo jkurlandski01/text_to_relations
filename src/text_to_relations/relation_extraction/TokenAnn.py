@@ -30,7 +30,7 @@ class TokenAnn(Annotation):
     @staticmethod
     def build_annotation_distance_regex(first_ann: Annotation, 
                                         word_distance_range: Tuple[int, int], 
-                                        token_kind: str, 
+                                        token_kind: str,  # FIXME: change to token_type?
                                         second_ann: Annotation) -> str:
         """
         Build a string regular expression that specifies the token distance between two annotations
@@ -46,13 +46,6 @@ class TokenAnn(Annotation):
 
         Returns:
             str: a regular expression
-        """
-        """
-        :param first_ann: 
-        :param word_distance_range: 
-        :param token_kind: 
-        :param second_ann: 
-        :return: 
         """
         distanceToken = 'Token'
 

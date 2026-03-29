@@ -43,6 +43,7 @@ class ExtractionLoop():
         self.result = None
 
 def when_final_match_found(args: Dict[str, object]) -> Annotation:
+    # FIXME: document
     loop: ExtractionLoop = args['loop']
     # text: str = args['text']
     doc: str = args['doc']
@@ -201,7 +202,11 @@ def run_loop(annotation_view_text: str,
         # Unreachable:
         # del match_triples_list[-1]
 
-    return new_annotations
+    # Only the top-level call (loop_idx == 0) should return the accumulated results list.
+    # Intermediate loops return [] to signal "no match found" to their caller; returning
+    # new_annotations from an intermediate loop would pass the shared results list up the
+    # call stack, where it would be mistaken for an unexpected result type and raise ValueError.
+    return new_annotations if loop_idx == 0 else []
 
 def get_sorted_annotations_for_matching(text: str, 
                                         regex_strs: Dict[str, RegexString],
@@ -237,6 +242,7 @@ def get_sorted_annotations_for_matching(text: str,
     return anns
 
 def determine_new_annotation_properties(match_triples: List[Tuple], doc:str) -> Dict[str, object]:
+    # FIXME: why does this function exist? Couldn't what it shows be documented somewhere formally?
     # This is a function created specifically for the relation being extracted in
     # __main__.  It simply extracts the first and last character of the input text.
 
@@ -248,6 +254,7 @@ def determine_new_annotation_properties(match_triples: List[Tuple], doc:str) -> 
     # text_matched = match_triples[0][0]
 
     # Get the contents of the first and last annotation which the first match matched.
+    # FIXME: why are these variables called min and max?
     # m1_anns = ExtractionPhaseABC.merged_representation_to_Annotations(text_matched)
     # min = m1_anns[0].normalizedContents
     # max = m1_anns[-1].normalizedContents
