@@ -23,6 +23,9 @@ class RegexString(object):
                 OR'd together. Items are automatically escaped via re.escape(),
                 so regex metacharacters (e.g. '(', '[', '.') are treated as
                 literals. Use prepend/append or concat() for regex syntax.
+                For case-insensitive matching, lowercase all items here and
+                also lowercase the input string before calling
+                get_match_triples().
             whole_word (bool, optional): whether or not to require a match on
                 whole words only. Defaults to True.
             optional (bool, optional): whether or not the OR'd items in the 
@@ -138,18 +141,22 @@ class RegexString(object):
         """
         return self.regex_str
     
-    def get_match_triples(self, input: str) -> List[Tuple]:
+    def get_match_triples(self, input: str, case_insensitive: bool = False) -> List[Tuple]:
         """
         Run re.finditer() on this regex.
         Note that this function is likely to fail if you have created any RegexString objects where non-group capturing is False.
-        
+
         Args:
             input (str): text to run re.finditer() against.
+            case_insensitive (bool): if True, matching ignores case and the
+                matched text in each triple preserves the original casing of
+                the input string. Defaults to False.
         Returns:
             List[Tuple]: a list of (text-matched, start-offset, end-offset)
             triples.
         """
-        match_triples = [(m.group(), m.start(), m.end()) for m in re.finditer(self.get_regex_str(), input)]
+        flags = re.IGNORECASE if case_insensitive else 0
+        match_triples = [(m.group(), m.start(), m.end()) for m in re.finditer(self.get_regex_str(), input, flags)]
         return match_triples
 
     @staticmethod

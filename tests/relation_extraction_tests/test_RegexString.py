@@ -217,6 +217,24 @@ class TestRegexString(unittest.TestCase):
         with self.assertRaises(ValueError):
             RegexString(['IV'], whole_word=True, append=backslash_b)
 
+    def test_case_insensitive(self):
+        """Test case_insensitive=True matches regardless of case and preserves original casing in triples."""
+        inputStr = 'I Saw A Monkey. The MONKEY was SAD.'
+
+        rs = RegexString(['monkey', 'sad'])
+
+        # Without the flag: lowercase match_strs don't match mixed-case input.
+        triples = rs.get_match_triples(inputStr)
+        self.assertEqual([], triples)
+
+        # With the flag: matches all case variants; original casing preserved in matched text.
+        triples = rs.get_match_triples(inputStr, case_insensitive=True)
+        self.assertEqual([('Monkey', 8, 14), ('MONKEY', 20, 26), ('SAD', 31, 34)], triples)
+
+        # Old approach (lowercase both sides): works but matched text is lowercased.
+        triples_lower = rs.get_match_triples(inputStr.lower())
+        self.assertEqual([('monkey', 8, 14), ('monkey', 20, 26), ('sad', 31, 34)], triples_lower)
+
     def test_special_chars_in_match_strs(self):
         """ Test that regex metacharacters in match_strs are treated as literals
         via re.escape(). Previously these would cause re.error at match time. """
