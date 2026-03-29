@@ -2,7 +2,7 @@ import inspect
 import unittest
 
 from text_to_relations.relation_extraction.ExtractionPhaseABC import ExtractionPhaseABC
-from text_to_relations.relation_extraction.extract_stamp_description import StampDescriptionPhase
+from examples.extract_stamp_description import StampDescriptionPhase
 
 
 class TestStampDescriptionPhase(unittest.TestCase):

@@ -4,21 +4,13 @@ between those entities.
 """
 
 from typing import Dict, List
-from pathlib import Path
-import sys
-
 import inspect
-
-# All project imports must occur after we have updated the path.
-path = Path(__file__).absolute()
-path = path.parent.parent.parent
-sys.path.append(str(path))
 
 from text_to_relations.relation_extraction.RegexString import RegexString
 from text_to_relations.relation_extraction.Annotation import Annotation
-from text_to_relations.relation_extraction.min_max_phase_1 import MinMaxPhase_1
-from text_to_relations.relation_extraction.min_max_phase_2 import MinMaxPhase_2
-from text_to_relations.relation_extraction.min_max_phase_3 import MinMaxPhase_3
+from tests.relation_extraction_tests.min_max_phase_1 import MinMaxPhase_1
+from tests.relation_extraction_tests.min_max_phase_2 import MinMaxPhase_2
+from tests.relation_extraction_tests.min_max_phase_3 import MinMaxPhase_3
 
 
 def update_annotation_list(prev_anns: List[Annotation],

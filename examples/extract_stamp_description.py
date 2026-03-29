@@ -63,7 +63,7 @@ class StampDescriptionPhase(ExtractionPhaseABC):
 
 if __name__ == '__main__':
     # Sample call:
-    #   python -m text_to_relations.relation_extraction.extract_stamp_description
+    #   python -m examples.extract_stamp_description
 
     import argparse
     parser = argparse.ArgumentParser()

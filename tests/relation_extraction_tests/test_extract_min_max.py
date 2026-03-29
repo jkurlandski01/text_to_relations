@@ -4,7 +4,7 @@ import re
 import unittest
 
 from text_to_relations.relation_extraction.RegexString import RegexString
-from text_to_relations.relation_extraction.extract_min_max_relation import entities_to_relations
+from tests.relation_extraction_tests.extract_min_max_relation import entities_to_relations
 
 
 class TestMinMax(unittest.TestCase):
