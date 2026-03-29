@@ -3,8 +3,8 @@ Abstract base class for relation extraction--i.e., building
 relations between previously-identified entities.
 """
 import re
-from abc import ABCMeta, abstractmethod
-from typing import List
+from abc import ABCMeta
+from typing import Dict, List, Tuple
 
 from text_to_relations.relation_extraction.TokenAnn import TokenAnn
 from text_to_relations.relation_extraction.Annotation import Annotation
@@ -15,25 +15,123 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
     """
     regexWhitespace = re.compile(r'\s+', re.IGNORECASE | re.DOTALL | re.MULTILINE)
 
-    @abstractmethod
-    def run_phase(self):
+    def __init__(self, doc_contents: str, verbose: bool = False):
         """
-        Runs this extraction phase object.
-        """
-        pass
-
-    def __init__(self, doc_contents: str):
-        """
-
         Args:
-            doc_contents (str): the normalized contents of the 
+            doc_contents (str): the normalized contents of the
                 document being processed
+            verbose (bool): if True, print internal state at each step.
         """
         if doc_contents is None or doc_contents == '':
             msg = "doc_contents is empty or None. "
             msg += "An extraction phase object requires a document to process."
             raise TypeError(msg)
         self.doc_contents = doc_contents
+        self.verbose = verbose
+
+    def run_phase(self) -> List[Annotation]:
+        """
+        Splits the document on blank lines and runs check_annotation_proximity()
+        on each entry, returning the combined results.
+        """
+        entries = [e.strip() for e in re.split(r'\n\s*\n', self.doc_contents) if e.strip()]
+        results = []
+        for entry in entries:
+            results.extend(self.check_annotation_proximity(entry))
+        return results
+
+    def check_annotation_proximity(self, text: str) -> List[Annotation]:
+        """
+        Given a single text entry, define the annotation regex patterns and
+        proximity chain, then call self.run_chained_loops() and return its result.
+
+        Subclasses that use the default run_phase() must override this method.
+        Subclasses that override run_phase() directly do not need to.
+
+        Args:
+            text: a single document entry to process.
+
+        Returns:
+            List[Annotation]: newly created relation annotations.
+        """
+        raise NotImplementedError("Subclasses using the default run_phase() must implement check_annotation_proximity().")
+
+    def run_chained_loops(self, text: str, result_ann_type: str,
+                          regex_patterns: Dict[str, object],
+                          chain: List[Tuple[str, Tuple[int, int], str]]) -> List[Annotation]:
+        """
+        Build annotations from regex_patterns, then run a chain of proximity
+        loops and return the resulting relation annotations.
+
+        Args:
+            text: the document entry to process.
+            result_ann_type: the annotation type name for newly created relations
+                (e.g. 'StampDescription').
+            regex_patterns: dict mapping annotation type name to RegexString.
+            chain: list of (start_type, (min_dist, max_dist), end_type) tuples
+                defining the proximity constraints between consecutive annotation
+                types.
+
+        Returns:
+            List[Annotation]: newly created relation annotations.
+        """
+        from text_to_relations.relation_extraction.extraction_loop import (
+            ExtractionLoop, run_loop, get_sorted_annotations_for_matching)
+
+        anns = get_sorted_annotations_for_matching(text=text, regex_strs=regex_patterns, given_anns=[])
+        annotation_view_str = ExtractionPhaseABC.build_merged_representation(text, anns)
+
+        def _determine_properties(match_triples, doc):
+            properties = {}
+            for triple in match_triples:
+                for ann in ExtractionPhaseABC.merged_representation_to_Annotations(triple[0]):
+                    if ann.type != 'Token':
+                        properties[ann.type] = ann.normalizedContents
+            return properties
+
+        def _when_final_match_found(args):
+            loop = args['loop']
+            doc = args['doc']
+            triple = args['triple']
+            match_triples_list = args['match_triples_list']
+            if loop.verbose:
+                print(f"\n  In when_final_match_found(). Found final match. triple: {triple}")
+            m0_anns = ExtractionPhaseABC.merged_representation_to_Annotations(match_triples_list[0][0])
+            start = m0_anns[0].start_offset
+            m_last_anns = ExtractionPhaseABC.merged_representation_to_Annotations(match_triples_list[-1][0])
+            end = m_last_anns[-1].end_offset
+            substr = doc[start:end]
+            properties = loop.determine_new_annotation_properties(match_triples_list, doc)
+            new_ann = Annotation(result_ann_type, substr, start, end, properties)
+            if loop.verbose:
+                print(f"  New annotation created: {new_ann}")
+            return new_ann
+
+        loops = []
+        for i, (start_type, distance, end_type) in enumerate(chain):
+            is_last = (i == len(chain) - 1)
+            regex = TokenAnn.build_annotation_distance_regex(start_type, distance, None, end_type)
+            loop = ExtractionLoop(
+                regex_str=regex,
+                last_ann_str=end_type,
+                determine_new_annotation_properties=_determine_properties if is_last else None,
+                verbose=self.verbose
+            )
+            if is_last:
+                loop.when_final_match_found = _when_final_match_found
+            loops.append(loop)
+
+        return run_loop(
+            annotation_view_text=annotation_view_str,
+            doc=text,
+            curr_loop=loops[0],
+            loop_idx=0,
+            loops_in_process=[],
+            loop_list=loops,
+            match_triples_list=[],
+            new_annotations=[],
+            verbose=self.verbose
+        )
 
     @staticmethod
     def build_merged_representation(doc_contents: str, 
