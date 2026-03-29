@@ -48,9 +48,10 @@ colors = RegexString(['red', 'blue', 'green', 'brown'], whole_word=True)
 # Optionally prepend a qualifier
 qualifiers = RegexString(['bright', 'dark', 'dull'], whole_word=True, optional=True)
 
-color_phrase = RegexString.concat_with_word_distances(qualifiers, colors,
-                                                      min_nbr_words=0,
-                                                      max_nbr_words=0)
+color_phrase = RegexString.concat_with_word_distances(
+    qualifiers, colors,
+    min_nbr_words=0,
+    max_nbr_words=0)
 print(color_phrase.get_match_triples(text))
 # [('bright blue', 11, 22), ('dark green', 40, 50), ('brown', 57, 62)]
 ```
@@ -62,3 +63,9 @@ The key classes — `RegexString`, `Annotation`, `TokenAnn`, `SentenceAnn`, and 
 ## Further Reading
 
 For a full walkthrough, including entity recognition and relation extraction examples, see [TUTORIAL.md](TUTORIAL.md).
+
+A working end-to-end relation extraction example can be found in `examples/extract_stamp_description.py`. Run it with:
+
+```
+python -m examples.extract_stamp_description
+```
