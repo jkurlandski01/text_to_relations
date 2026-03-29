@@ -2,7 +2,12 @@
 
 **Text-To-Relations: a tool for Information and Relation Extraction**
 
-Text-To-Relations lets you perform **entity recognition** by providing a simple interface for building complex regular expressions. You can then combine recognized entities to extract **relations** using the included abstract base class.
+Text-To-Relations is built around a two-layer pipeline:
+
+1. **Entity recognition** — `RegexString` provides a simple interface for building complex regular expressions that identify typed entity spans (e.g. a stamp ID, a denomination, a perforation value) in raw text.
+2. **Relation extraction** — `ExtractionPhaseABC` and its supporting machinery take those entity spans and find relationships between them based on proximity in token space (e.g. "a StampID followed within 4 tokens by a Denomination"). You define which entity types to link and how close together they must appear; the framework handles the rest.
+
+The two layers are independent: you can use `RegexString` alone for entity recognition tasks, or combine both layers for full relation extraction.
 
 Source code at [GitHub text_to_relations](https://github.com/jkurlandski01/text_to_relations).
 

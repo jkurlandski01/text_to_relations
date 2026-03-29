@@ -303,32 +303,29 @@ Stamp IDs with letters found in the input:
 
 By *relation extraction* we mean the identification of relationships between multiple entities. With the stamp data we have been working with, a natural relation is a `StampDescription` that groups together the stamp's ID, denomination, type numeral, and perforation information. Not every stamp entry contains all four fields — only three of the seven have type information — so only those three will produce a result.
 
-Text-To-Relations provides two building blocks for relation extraction:
-
-- **`ExtractionPhaseABC`** — an abstract base class whose subclasses implement a single extraction phase. Each phase takes the document text plus any pre-existing entity annotations, finds new patterns, and returns a list of new `Annotation` objects.
-- **`ExtractionLoop` / `run_loop`** — a recursive engine (in `extraction_loop.py`) that chains a sequence of regex-based loops together. Each loop matches one entity, then hands off to the next loop starting from that entity's position.
+To extract a relation, subclass `ExtractionPhaseABC` and implement `check_annotation_proximity()`. The default `run_phase()` splits the document on blank lines and calls `check_annotation_proximity()` for each entry — no further boilerplate required.
 
 ### The extraction phase
 
-The full source is in `relation_extraction/extract_stamp_description.py`. Here are the key parts.
+Inside `check_annotation_proximity()` you define two things:
 
-**Entities.** Inside `run_phase()` we build RegexStrings for the four fields we want, using the same patterns introduced earlier in this tutorial. We create a single combined `Perforation` regex that covers both "imperforate"/"imperf" and "perf NN":
+**1. Regex patterns** — a dict mapping annotation type names to `RegexString` objects, using the same patterns introduced earlier in this tutorial:
 
 ```python
 id_rs    = RegexString(['#'], append=r'\s\d+(?:\w+)?')
 cent_rs  = RegexString(['c', '¢'], prepend=r'\d\d?')
 
-type_markers_rs = RegexString(['type', 'Type'], whole_word=True)
-roman_nums_rs   = RegexString(['I', 'II', 'III', 'IV', 'V'], whole_word=True)
-type_phrase_rs  = RegexString.concat_with_word_distances(
+type_markers_rs  = RegexString(['type', 'Type'], whole_word=True)
+roman_nums_rs    = RegexString(['I', 'II', 'III', 'IV', 'V'], whole_word=True)
+type_phrase_rs   = RegexString.concat_with_word_distances(
     type_markers_rs, roman_nums_rs, min_nbr_words=0, max_nbr_words=0)
 
-imperf_rs      = RegexString(['imperforate', 'imperf'])
-perf_sized_rs  = RegexString(['perf'], append=r'\s\d+')
+imperf_rs        = RegexString(['imperforate', 'imperf'])
+perf_sized_rs    = RegexString(['perf'], append=r'\s\d+')
 perf_combined_rs = RegexString.regex_to_RegexString(
     f'(?:{imperf_rs.get_regex_str()}|{perf_sized_rs.get_regex_str()})')
 
-regex_strs = {
+regex_patterns = {
     'StampID':      id_rs,
     'Denomination': cent_rs,
     'TypePhrase':   type_phrase_rs,
@@ -336,45 +333,35 @@ regex_strs = {
 }
 ```
 
-`get_sorted_annotations_for_matching()` runs each RegexString against the document and returns a single sorted list of `Annotation` objects. `build_merged_representation()` then converts the document into an *annotation-view string* — a representation where every token is either a typed annotation (for the entities we care about) or a generic `Token` annotation (for everything else). This annotation-view string is what the loops operate on.
-
-**The loop chain.** Inside `check_annotation_proximity()` we define three `ExtractionLoop` objects. Each loop specifies a regex (built by `TokenAnn.build_annotation_distance_regex()`) that matches one entity followed by a bounded number of `Token` annotations and then the next entity. The loops are chained: when loop 1 finds a match, it hands off to loop 2 starting from the end of that match, and so on.
+**2. A proximity chain** — a list of `(start_type, (min_tokens, max_tokens), end_type)` tuples specifying how close together consecutive entity types must appear:
 
 ```python
-# StampID → Denomination: at most 3 tokens (e.g. '- 1853-55')
-regex_1 = TokenAnn.build_annotation_distance_regex('StampID', (0, 3), None, 'Denomination')
-loop_1  = ExtractionLoop(regex_str=regex_1, last_ann_str='Denomination')
-
-# Denomination → TypePhrase: at most 8 tokens (e.g. 'George Washington, dull red,')
-regex_2 = TokenAnn.build_annotation_distance_regex('Denomination', (0, 8), None, 'TypePhrase')
-loop_2  = ExtractionLoop(regex_str=regex_2, last_ann_str='TypePhrase')
-
-# TypePhrase → Perforation: at most 2 tokens (typically just a comma)
-regex_3 = TokenAnn.build_annotation_distance_regex('TypePhrase', (0, 2), None, 'Perforation')
-loop_3  = ExtractionLoop(regex_str=regex_3, last_ann_str='Perforation',
-                         determine_new_annotation_properties=determine_new_annotation_properties)
-loop_3.when_final_match_found = when_final_match_found
+chain = [
+    ('StampID',      (0, 4), 'Denomination'),   # e.g. '- 1853-55'
+    ('Denomination', (0, 8), 'TypePhrase'),      # e.g. 'George Washington, dull red,'
+    ('TypePhrase',   (0, 2), 'Perforation'),     # e.g. ','
+]
 ```
 
-The last loop carries two callbacks. `determine_new_annotation_properties()` pulls the four field values out of the matched annotation triples:
+Then call `run_chained_loops()`, which handles everything else — building annotations, constructing the merged representation, running the loop engine, and assembling the result:
 
 ```python
-def determine_new_annotation_properties(match_triples, doc):
-    m0_anns = ExtractionPhaseABC.merged_representation_to_Annotations(match_triples[0][0])
-    stamp_id    = m0_anns[0].normalizedContents   # StampID is first in loop 1's match
-    denomination = m0_anns[-1].normalizedContents  # Denomination is last
-
-    m1_anns = ExtractionPhaseABC.merged_representation_to_Annotations(match_triples[1][0])
-    stamp_type = m1_anns[-1].normalizedContents    # TypePhrase is last in loop 2's match
-
-    m2_anns = ExtractionPhaseABC.merged_representation_to_Annotations(match_triples[2][0])
-    perforation = m2_anns[-1].normalizedContents   # Perforation is last in loop 3's match
-
-    return {'stamp_id': stamp_id, 'denomination': denomination,
-            'type': stamp_type, 'perforation_info': perforation}
+return self.run_chained_loops(text, 'StampDescription', regex_patterns, chain)
 ```
 
-`when_final_match_found()` uses the start offset of the first match and the end offset of the last match to assemble the final `Annotation`, here typed as `'StampDescription'`.
+The full class looks like this:
+
+```python
+class StampDescriptionPhase(ExtractionPhaseABC):
+    def __init__(self, doc_contents: str, verbose: bool = False):
+        super().__init__(doc_contents, verbose=verbose)
+
+    def check_annotation_proximity(self, text: str) -> List[Annotation]:
+        # ... (regex pattern definitions as above) ...
+        regex_patterns = { ... }
+        chain = [ ... ]
+        return self.run_chained_loops(text, 'StampDescription', regex_patterns, chain)
+```
 
 ### Running the extraction
 
@@ -385,8 +372,8 @@ results = phase.run_phase()
 print(f'{len(results)} of 7 stamp descriptions extracted:\n')
 for ann in results:
     p = ann.properties
-    print(f"  stamp_id='{p['stamp_id']}', denomination='{p['denomination']}', "
-          f"type='{p['type']}', perforation_info='{p['perforation_info']}'")
+    print(f"  stamp_id='{p['StampID']}', denomination='{p['Denomination']}', "
+          f"type='{p['TypePhrase']}', perforation_info='{p['Perforation']}'")
 ```
 
 Output:
@@ -400,3 +387,5 @@ Output:
 ```
 
 Only 3 of 7 stamp descriptions were extracted because the loop chain requires all four fields to be present. The other four stamps either lack type information entirely (stamps #40, #42, #62B) or have perforation information but no type (stamp #17). Handling those cases would require additional phases — one for each alternative pattern — following the same approach shown here.
+
+Note that `ann.properties` keys match the annotation type names defined in `regex_patterns` (`StampID`, `Denomination`, `TypePhrase`, `Perforation`).
