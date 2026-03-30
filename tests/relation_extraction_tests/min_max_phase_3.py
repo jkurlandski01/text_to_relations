@@ -117,7 +117,7 @@ class MinMaxPhase_3(ExtractionPhaseABC):
 
         loop_list = [loop_1, loop_2, loop_3, loop_4, loop_5]
         loops_in_process = []
-        result = run_loop(annotation_view_text=annotation_view_str,
+        result = run_loop(annotation_view_str=annotation_view_str,
                         doc=self.doc_contents,
                         curr_loop=loop_1,
                         loop_idx=0,

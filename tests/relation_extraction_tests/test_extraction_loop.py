@@ -65,7 +65,7 @@ class TestExtractionLoop(unittest.TestCase):
         loops_in_process = []
 
         with self.assertRaises(ValueError):
-            run_loop(annotation_view_text=annotation_view_str,
+            run_loop(annotation_view_str=annotation_view_str,
                 doc=text,
                 curr_loop=loop_1,
                 loop_idx=0,
@@ -87,7 +87,7 @@ class TestExtractionLoop(unittest.TestCase):
                                 verbose=False)
         loop_list = [loop_1, loop_2]
         with self.assertRaises(ValueError):
-            run_loop(annotation_view_text=annotation_view_str,
+            run_loop(annotation_view_str=annotation_view_str,
                 doc=text,
                 curr_loop=loop_1,
                 loop_idx=0,
@@ -124,7 +124,7 @@ class TestExtractionLoop(unittest.TestCase):
 
         loop_list = [loop_1, loop_2]
         loops_in_process = []
-        result = run_loop(annotation_view_text=annotation_view_str,
+        result = run_loop(annotation_view_str=annotation_view_str,
                         doc=text,
                         curr_loop=loop_1,
                         loop_idx=0,
@@ -162,7 +162,7 @@ class TestExtractionLoop(unittest.TestCase):
 
         loop_list = [loop_1, loop_2]
         loops_in_process = []
-        result = run_loop(annotation_view_text=annotation_view_str,
+        result = run_loop(annotation_view_str=annotation_view_str,
                         doc=text,
                         curr_loop=loop_1,
                         loop_idx=0,
@@ -194,7 +194,7 @@ class TestExtractionLoop(unittest.TestCase):
 
         loop_list = [loop_1, loop_2]
         loops_in_process = []
-        result = run_loop(annotation_view_text=annotation_view_str,
+        result = run_loop(annotation_view_str=annotation_view_str,
                         doc=text,
                         curr_loop=loop_1,
                         loop_idx=0,
@@ -241,7 +241,7 @@ class TestExtractionLoop(unittest.TestCase):
         loop_2.create_relation_annotation = create_relation_annotation
 
         loop_list = [loop_1, loop_2]
-        result = run_loop(annotation_view_text=annotation_view_str,
+        result = run_loop(annotation_view_str=annotation_view_str,
                           doc=text,
                           curr_loop=loop_1,
                           loop_idx=0,

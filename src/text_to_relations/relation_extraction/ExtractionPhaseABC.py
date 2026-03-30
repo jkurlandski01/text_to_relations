@@ -124,7 +124,7 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
             loops.append(loop)
 
         return run_loop(
-            annotation_view_text=annotation_view_str,
+            annotation_view_str=annotation_view_str,
             doc=text,
             curr_loop=loops[0],
             loop_idx=0,

@@ -58,7 +58,7 @@ class ExtractionLoop():
         self.result = None
 
 
-def run_loop(annotation_view_text: str,
+def run_loop(annotation_view_str: str,
              doc: str,
              curr_loop: ExtractionLoop,
              loop_idx: int,
@@ -71,7 +71,7 @@ def run_loop(annotation_view_text: str,
     Recursively execute a chain of ExtractionLoop objects against the
     annotation-view string, accumulating result Annotations.
 
-    Each call attempts to match curr_loop's regex against annotation_view_text.
+    Each call attempts to match curr_loop's regex against annotation_view_str.
     For each match found, the function recurses into the next loop, starting
     the search from the end of the current match. When the final loop matches,
     curr_loop.create_relation_annotation() is called to build the result
@@ -79,7 +79,7 @@ def run_loop(annotation_view_text: str,
     the top level (loop_idx == 0) are accumulated and returned together.
 
     Args:
-        annotation_view_text (str): A token- and annotation-view of the input where
+        annotation_view_str (str): A token- and annotation-view of the input where
             tokens we are not interested in appear as Tokens and annotations we
             are interested in appear as themselves. For example,
                 <'Token'(normalizedContents='for', start='99', end='101', kind='word')>
@@ -105,7 +105,7 @@ def run_loop(annotation_view_text: str,
     """
     if verbose:
         print("Entering run_loop()")
-        print(f"  annotation_view_text: {annotation_view_text}")
+        print(f"  annotation_view_str: {annotation_view_str}")
         print(f"  curr_loop.regex_str: {curr_loop.regex_str}")
         print(f"  curr_loop.last_ann_str: {curr_loop.last_ann_str}")
         print(f"  new_annotations: {new_annotations}")
@@ -137,7 +137,7 @@ def run_loop(annotation_view_text: str,
     # Recursive functionality begins here.
 
     # Create a list of (substring, start_offset, end_offset) triples for the current loop's regex string.
-    match_triples = [(m.group(), m.start(), m.end()) for m in re.finditer(curr_loop.regex_str, annotation_view_text)]
+    match_triples = [(m.group(), m.start(), m.end()) for m in re.finditer(curr_loop.regex_str, annotation_view_str)]
 
     for triple in match_triples:
         match_triples_list.append(triple)
@@ -156,14 +156,14 @@ def run_loop(annotation_view_text: str,
 
         match_end_offset = triple[2]
         ptrn = f"<'{curr_loop.last_ann_str}"
-        last_ann_st_offset = annotation_view_text[0 : match_end_offset].rfind(ptrn)
-        text_substring = annotation_view_text[last_ann_st_offset : ]
+        last_ann_st_offset = annotation_view_str[0 : match_end_offset].rfind(ptrn)
+        text_substring = annotation_view_str[last_ann_st_offset : ]
 
         loops_in_process.append(curr_loop)
         new_idx = loop_idx + 1
         next_loop = loop_list[new_idx]
 
-        result = run_loop(annotation_view_text=text_substring,
+        result = run_loop(annotation_view_str=text_substring,
                             doc=doc,
                             curr_loop=next_loop, loop_idx=new_idx,
                             loops_in_process=loops_in_process,
