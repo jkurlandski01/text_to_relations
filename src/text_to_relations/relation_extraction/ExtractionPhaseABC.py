@@ -89,13 +89,14 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
                         properties[ann.type] = ann.normalizedContents
             return properties
 
-        def _when_final_match_found(args):
+        def _create_relation_annotation(args):
+            # FIXME: document this
             loop = args['loop']
             doc = args['doc']
             triple = args['triple']
             match_triples_list = args['match_triples_list']
             if loop.verbose:
-                print(f"\n  In when_final_match_found(). Found final match. triple: {triple}")
+                print(f"\n  In _create_relation_annotation(). Found final match. triple: {triple}")
             m0_anns = ExtractionPhaseABC.merged_representation_to_Annotations(match_triples_list[0][0])
             start = m0_anns[0].start_offset
             m_last_anns = ExtractionPhaseABC.merged_representation_to_Annotations(match_triples_list[-1][0])
@@ -118,7 +119,8 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
                 verbose=self.verbose
             )
             if is_last:
-                loop.when_final_match_found = _when_final_match_found
+                # FIXME: what is happening here?
+                loop.create_relation_annotation = _create_relation_annotation
             loops.append(loop)
 
         return run_loop(

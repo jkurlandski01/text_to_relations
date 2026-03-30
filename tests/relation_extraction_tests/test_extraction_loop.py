@@ -14,6 +14,27 @@ def determine_new_annotation_properties(match_triples: List[Tuple], doc:str) -> 
     properties = {'first_character': doc[0], 'last_character': doc[-1]}
     return properties
 
+def create_relation_annotation(args):
+    # Callback assigned to the last ExtractionLoop. Called by run_loop() once
+    # every loop in the chain has matched. Builds and returns the result Annotation.
+    loop = args['loop']
+    doc = args['doc']
+    # Each triple's text is a substring of the annotation-view string -- a sequence
+    # of entity tags, not raw text. The real document offsets are encoded inside those tags.
+    match_triples_list = args['match_triples_list']
+
+    # Parse the first triple's tags to recover the document offset where the span begins.
+    m1_anns = ExtractionPhaseABC.merged_representation_to_Annotations(match_triples_list[0][0])
+    start = m1_anns[0].start_offset
+
+    # Parse the last triple's tags to recover the document offset where the span ends.
+    m_last_anns = ExtractionPhaseABC.merged_representation_to_Annotations(match_triples_list[-1][0])
+    end = m_last_anns[-1].end_offset
+
+    substr = doc[start:end]
+    properties = loop.determine_new_annotation_properties(match_triples_list, doc)
+    return Annotation('MinMax', substr, start, end, properties)
+
 
 class TestExtractionLoop(unittest.TestCase):
 
@@ -137,6 +158,7 @@ class TestExtractionLoop(unittest.TestCase):
         loop_2 = ExtractionLoop(regex_str=regex_2, last_ann_str='Three',
                                 determine_new_annotation_properties=determine_new_annotation_properties,
                                 verbose=False)
+        loop_2.create_relation_annotation = create_relation_annotation
 
         loop_list = [loop_1, loop_2]
         loops_in_process = []
@@ -168,6 +190,7 @@ class TestExtractionLoop(unittest.TestCase):
         loop_2 = ExtractionLoop(regex_str=regex_2, last_ann_str='Three',
                                 determine_new_annotation_properties=determine_new_annotation_properties,
                                 verbose=False)
+        loop_2.create_relation_annotation = create_relation_annotation
 
         loop_list = [loop_1, loop_2]
         loops_in_process = []
@@ -215,6 +238,7 @@ class TestExtractionLoop(unittest.TestCase):
         loop_2 = ExtractionLoop(regex_str=regex_2, last_ann_str="Three",
                                 determine_new_annotation_properties=determine_new_annotation_properties,
                                 verbose=False)
+        loop_2.create_relation_annotation = create_relation_annotation
 
         loop_list = [loop_1, loop_2]
         result = run_loop(annotation_view_text=annotation_view_str,
