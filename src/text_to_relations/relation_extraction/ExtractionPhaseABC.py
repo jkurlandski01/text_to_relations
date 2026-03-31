@@ -186,25 +186,6 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
                     properties[chain[i].end_property] = non_token_anns[-1].normalizedContents
             return properties
 
-        def _create_relation_annotation(args):
-            # FIXME: document this
-            loop = args['loop']
-            doc = args['doc']
-            triple = args['triple']
-            match_triples_list = args['match_triples_list']
-            if loop.verbose:
-                print(f"\n  In _create_relation_annotation(). Found final match. triple: {triple}")
-            m0_anns = ExtractionPhaseABC.merged_representation_to_Annotations(match_triples_list[0][0])
-            start = m0_anns[0].start_offset
-            m_last_anns = ExtractionPhaseABC.merged_representation_to_Annotations(match_triples_list[-1][0])
-            end = m_last_anns[-1].end_offset
-            substr = doc[start:end]
-            properties = loop.determine_new_annotation_properties(match_triples_list, doc)
-            new_ann = Annotation(self.relation_name, substr, start, end, properties)
-            if loop.verbose:
-                print(f"  New annotation created: {new_ann}")
-            return new_ann
-
         loops = []
         for i, link in enumerate(chain):
             is_last = (i == len(chain) - 1)
@@ -216,14 +197,12 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
                 determine_new_annotation_properties=_determine_properties if is_last else None,
                 verbose=self.verbose
             )
-            if is_last:
-                # FIXME: what is happening here?
-                loop.create_relation_annotation = _create_relation_annotation
             loops.append(loop)
 
         return run_loop(
             annotation_view_str=annotation_view_str,
             doc=text,
+            relation_name=self.relation_name,
             curr_loop=loops[0],
             loop_idx=0,
             loops_in_process=[],

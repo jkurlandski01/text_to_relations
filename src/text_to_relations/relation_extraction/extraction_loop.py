@@ -15,13 +15,11 @@ class ExtractionLoop():
     and passing them to run_loop(). Each loop holds a regex that matches one
     entity-to-entity proximity pattern against the annotation-view string. When
     a loop matches, the end of its match becomes the starting point for the next
-    loop's search. When the final loop matches, create_relation_annotation() is
-    called to assemble the result Annotation spanning all matched entities.
+    loop's search. When the final loop matches, run_loop() assembles the result
+    Annotation spanning all matched entities.
 
     All loops except the last must have determine_new_annotation_properties=None.
-    The last loop must have determine_new_annotation_properties set, and its
-    create_relation_annotation attribute must also be assigned before run_loop()
-    is called.
+    The last loop must have determine_new_annotation_properties set.
     """
     def __init__(self,
                  regex_str: str,
@@ -52,14 +50,12 @@ class ExtractionLoop():
         self.last_ann_str = last_ann_str
         self.determine_new_annotation_properties = determine_new_annotation_properties
         self.verbose = verbose
-
-        # FIXME: this must be explained
-        self.create_relation_annotation = None
         self.result = None
 
 
 def run_loop(annotation_view_str: str,
              doc: str,
+             relation_name: str,
              curr_loop: ExtractionLoop,
              loop_idx: int,
              loops_in_process: List[ExtractionLoop],
@@ -74,20 +70,16 @@ def run_loop(annotation_view_str: str,
     Each call attempts to match curr_loop's regex against annotation_view_str.
     For each match found, the function recurses into the next loop, starting
     the search from the end of the current match. When the final loop matches,
-    curr_loop.create_relation_annotation() is called to build the result
-    Annotation. Non-matching paths are backtracked; all successful matches at
-    the top level (loop_idx == 0) are accumulated and returned together.
+    a result Annotation is built spanning all matched entities and returned.
+    Non-matching paths are backtracked; all successful matches at the top level
+    (loop_idx == 0) are accumulated and returned together.
 
     Args:
-        annotation_view_str (str): A token- and annotation-view of the input where
-            tokens we are not interested in appear as Tokens and annotations we
-            are interested in appear as themselves. For example,
-                <'Token'(normalizedContents='for', start='99', end='101', kind='word')>
-                <'CARDINAL'(normalizedContents='92', start='102', end='104')>
-                <'UNIT_OF_MEASUREMENT'(normalizedContents='feet', start='111', end='115')>
-            would represent "for 92 feet" if we have created annotations for Cardinal
-            numbers and Units of Measurement.
-        doc (str): the text as an ordinary string
+        annotation_view_str (str): merged annotation-view of the input document,
+            as produced by ExtractionPhaseABC.build_merged_representation().
+        doc (str): the text as an ordinary string.
+        relation_name (str): type name assigned to each successfully extracted
+            relation Annotation (e.g. 'MinMax').
         curr_loop (ExtractionLoop): loop being processed
         loop_idx (int): which loopin loops_in_process we are processing
         loops_in_process (List[ExtractionLoop]): the loops which have been processed
@@ -148,10 +140,17 @@ def run_loop(annotation_view_str: str,
                 print(f"    trip: {trip}")
 
         if curr_loop.determine_new_annotation_properties:
-
-            args_dict = {'loop': curr_loop, 'doc': doc, 'triple': triple,
-                            'match_triples_list': match_triples_list}
-            result = curr_loop.create_relation_annotation(args_dict)
+            if verbose:
+                print(f"\n  Found final match. triple: {triple}")
+            m0_anns = ExtractionPhaseABC.merged_representation_to_Annotations(match_triples_list[0][0])
+            start = m0_anns[0].start_offset
+            m_last_anns = ExtractionPhaseABC.merged_representation_to_Annotations(match_triples_list[-1][0])
+            end = m_last_anns[-1].end_offset
+            substr = doc[start:end]
+            properties = curr_loop.determine_new_annotation_properties(match_triples_list, doc)
+            result = Annotation(relation_name, substr, start, end, properties)
+            if verbose:
+                print(f"  New annotation created: {result}")
             return result
 
         match_end_offset = triple[2]
@@ -165,6 +164,7 @@ def run_loop(annotation_view_str: str,
 
         result = run_loop(annotation_view_str=text_substring,
                             doc=doc,
+                            relation_name=relation_name,
                             curr_loop=next_loop, loop_idx=new_idx,
                             loops_in_process=loops_in_process,
                             loop_list=loop_list,
