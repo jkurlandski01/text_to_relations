@@ -4,10 +4,28 @@ relations between previously-identified entities.
 """
 import re
 from abc import ABCMeta
-from typing import Dict, List, Tuple
+from typing import Dict, List, NamedTuple
 
 from text_to_relations.relation_extraction.TokenAnn import TokenAnn
 from text_to_relations.relation_extraction.Annotation import Annotation
+
+
+class ChainLink(NamedTuple):
+    """
+    One step in a proximity chain, constraining how close two annotation
+    types must be to be considered a match.
+
+    Attributes:
+        start_type: annotation type that begins this step (e.g. 'Number').
+        min_distance: minimum number of intervening tokens allowed (inclusive).
+        max_distance: maximum number of intervening tokens allowed (inclusive).
+        end_type: annotation type that ends this step (e.g. 'Magnitude').
+    """
+    start_type: str
+    min_distance: int
+    max_distance: int
+    end_type: str
+
 
 class ExtractionPhaseABC(metaclass=ABCMeta):
     """
@@ -20,6 +38,8 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
         Args:
             verbose (bool): if True, print internal state at each step.
         """
+        # FIXME: shouldn't there be placeholders for the attributes that must 
+        # be assigned in subclasses?
         self.verbose = verbose
 
     def find_match(self, text: str, entity_annotations: List[Annotation] = None) -> List[Annotation]:
@@ -44,7 +64,7 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
 
     def run_chained_loops(self, text: str,
                           regex_patterns: Dict[str, object],
-                          chain: List[Tuple[str, Tuple[int, int], str]],
+                          chain: List[ChainLink],
                           entity_annotations: List[Annotation] = None) -> List[Annotation]:
         """
         Build annotations from regex_patterns, then run a chain of proximity
@@ -53,9 +73,8 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
         Args:
             text: the document entry to process.
             regex_patterns: dict mapping annotation type name to RegexString.
-            chain: list of (start_type, (min_dist, max_dist), end_type) tuples
-                defining the proximity constraints between consecutive annotation
-                types.
+            chain: list of ChainLinks defining the proximity constraints between
+                consecutive annotation types.
             entity_annotations: annotations produced by external tools before
                 relation extraction begins, to be incorporated alongside those
                 produced by regex_patterns.
@@ -71,6 +90,7 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
         annotation_view_str = ExtractionPhaseABC.build_merged_representation(text, anns)
 
         def _determine_properties(match_triples, doc):
+            # FIXME: why the doc parameter?
             properties = {}
             for triple in match_triples:
                 for ann in ExtractionPhaseABC.merged_representation_to_Annotations(triple[0]):
@@ -98,12 +118,13 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
             return new_ann
 
         loops = []
-        for i, (start_type, distance, end_type) in enumerate(chain):
+        for i, link in enumerate(chain):
             is_last = (i == len(chain) - 1)
-            regex = TokenAnn.build_annotation_distance_regex(start_type, distance, None, end_type)
+            regex = TokenAnn.build_annotation_distance_regex(
+                link.start_type, (link.min_distance, link.max_distance), None, link.end_type)
             loop = ExtractionLoop(
                 regex_str=regex,
-                last_ann_str=end_type,
+                last_ann_str=link.end_type,
                 determine_new_annotation_properties=_determine_properties if is_last else None,
                 verbose=self.verbose
             )

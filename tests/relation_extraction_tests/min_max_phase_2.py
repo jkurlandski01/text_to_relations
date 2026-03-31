@@ -1,6 +1,6 @@
 from typing import List
 
-from text_to_relations.relation_extraction.ExtractionPhaseABC import ExtractionPhaseABC
+from text_to_relations.relation_extraction.ExtractionPhaseABC import ExtractionPhaseABC, ChainLink
 from text_to_relations.relation_extraction.RegexString import RegexString
 from text_to_relations.relation_extraction.Annotation import Annotation
 
@@ -19,7 +19,7 @@ class MinMaxPhase_2(ExtractionPhaseABC):
 
         self.regex_patterns = {'ToMarker': to_marker_rs}
         self.chain = [
-            ('Number',   (0, 3), 'ToMarker'),
-            ('ToMarker', (0, 2), 'Number'),
-            ('Number',   (0, 2), 'Unit_of_Measure'),
+            ChainLink('Number',   0, 3, 'ToMarker'),
+            ChainLink('ToMarker', 0, 2, 'Number'),
+            ChainLink('Number',   0, 2, 'Unit_of_Measure'),
         ]

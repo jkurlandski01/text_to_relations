@@ -1,6 +1,6 @@
 from typing import List
 
-from text_to_relations.relation_extraction.ExtractionPhaseABC import ExtractionPhaseABC
+from text_to_relations.relation_extraction.ExtractionPhaseABC import ExtractionPhaseABC, ChainLink
 from text_to_relations.relation_extraction.RegexString import RegexString
 from text_to_relations.relation_extraction.Annotation import Annotation
 
@@ -21,9 +21,9 @@ class MinMaxPhase_3(ExtractionPhaseABC):
 
         self.regex_patterns = {'AtLeast': at_least_rs, 'AtMost': at_most_rs}
         self.chain = [
-            ('AtLeast',         (0, 3), 'Number'),
-            ('Number',          (0, 2), 'Unit_of_Measure'),
-            ('Unit_of_Measure', (0, 5), 'AtMost'),
-            ('AtMost',          (0, 3), 'Number'),
-            ('Number',          (0, 2), 'Unit_of_Measure'),
+            ChainLink('AtLeast',         0, 3, 'Number'),
+            ChainLink('Number',          0, 2, 'Unit_of_Measure'),
+            ChainLink('Unit_of_Measure', 0, 5, 'AtMost'),
+            ChainLink('AtMost',          0, 3, 'Number'),
+            ChainLink('Number',          0, 2, 'Unit_of_Measure'),
         ]

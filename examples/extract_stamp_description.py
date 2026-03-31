@@ -8,11 +8,11 @@ skipped; in the main function, the sample data this means 3 of 7 entries
 produce a result.
 """
 import inspect
-from typing import List
+# from typing import List
 
 from text_to_relations.relation_extraction.RegexString import RegexString
 from text_to_relations.relation_extraction.Annotation import Annotation
-from text_to_relations.relation_extraction.ExtractionPhaseABC import ExtractionPhaseABC
+from text_to_relations.relation_extraction.ExtractionPhaseABC import ExtractionPhaseABC, ChainLink
 
 
 class StampDescriptionPhase(ExtractionPhaseABC):
@@ -53,12 +53,12 @@ class StampDescriptionPhase(ExtractionPhaseABC):
         self.chain = [
             # Look for a StampID entity followed by a Denomination entity
             # within four tokens...
-            ('StampID',      (0, 4), 'Denomination'),
+            ChainLink('StampID',      0, 4, 'Denomination'),
             # ... which in turn is followed by a TypePhrase entity within
             # eight tokens...
-            ('Denomination', (0, 8), 'TypePhrase'),
+            ChainLink('Denomination', 0, 8, 'TypePhrase'),
             # ... followed by a Perforation entity within two tokens
-            ('TypePhrase',   (0, 2), 'Perforation'),
+            ChainLink('TypePhrase',   0, 2, 'Perforation'),
         ]
 
 
