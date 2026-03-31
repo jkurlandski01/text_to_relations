@@ -7,70 +7,19 @@ from text_to_relations.relation_extraction.ExtractionPhaseABC import ExtractionP
 
 class TestPhaseABC(unittest.TestCase):
 
-    def testInvalidSubclass1(self):
-
-        # noinspection PyAbstractClass
-        class PhaseTest(ExtractionPhaseABC):
-            """ This class has no run_phase() method. """
-            def __init__(self):
-                """"""
-                super().__init__()
-
-        with self.assertRaises(TypeError):
-            PhaseTest()
-
-
-    def testInvalidSubclass2(self):
-        # Test on failure to pass document contents to the
-        # ABC's init().
-
-        # noinspection PyAbstractClass
-        class PhaseTest(ExtractionPhaseABC):
-
-            # noinspection PyUnusedLocal
-            def __init__(self, docContents):
-                """"""
-                super().__init__()
-
-            def run_phase(self):
-                return 'How are you?!'
-
-        with self.assertRaises(TypeError):
-            PhaseTest("Hi!")
-
-    def testInvalidSubclass3(self):
-        # Test on document contents being an empty string.
-
-        # noinspection PyAbstractClass
-        class PhaseTest(ExtractionPhaseABC):
-
-            # noinspection PyUnusedLocal
-            def __init__(self, docContents):
-                """"""
-                super().__init__(docContents)
-
-            def run_phase(self):
-                return 'How are you?!'
-
-        with self.assertRaises(TypeError):
-            PhaseTest("")
-
-
     def testValidSubclass(self):
 
         class PhaseTest(ExtractionPhaseABC):
-            # noinspection PyUnusedLocal
-            def __init__(self, docContents):
-                """"""
-                super().__init__(docContents)
+            def __init__(self):
+                super().__init__()
 
-            def run_phase(self):
-                return 'Hi!'
+            def find_match(self, text):
+                return ['Hi!']
 
-        phase = PhaseTest('blahBlahBlah')
-        actual = phase.run_phase()
+        phase = PhaseTest()
+        actual = phase.find_match('blahBlahBlah')
 
-        self.assertEqual('Hi!', actual)
+        self.assertEqual(['Hi!'], actual)
 
     def testBuildMergedInput1(self):
         # All assertions expect the same output, except for sometimes the annotation offsets.

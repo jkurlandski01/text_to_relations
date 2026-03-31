@@ -1,4 +1,5 @@
 import inspect
+import re
 import unittest
 
 from text_to_relations.relation_extraction.ExtractionPhaseABC import ExtractionPhaseABC
@@ -10,8 +11,8 @@ class TestStampDescriptionPhase(unittest.TestCase):
     def test_single_match(self):
         # A single entry with all four fields should produce one StampDescription.
         text = '# 11A - 1853-55 3¢ George Washington, dull red, type II, imperf'
-        phase = StampDescriptionPhase(text)
-        results = phase.check_annotation_proximity(text)
+        phase = StampDescriptionPhase()
+        results = phase.find_match(text)
 
         self.assertEqual(1, len(results))
         self.assertEqual('StampDescription', results[0].type)
@@ -24,22 +25,22 @@ class TestStampDescriptionPhase(unittest.TestCase):
     def test_missing_type_phrase(self):
         # An entry missing TypePhrase should produce no result.
         text = '# 17 - 1851 12c Washington imperforate, black'
-        phase = StampDescriptionPhase(text)
-        results = phase.check_annotation_proximity(text)
+        phase = StampDescriptionPhase()
+        results = phase.find_match(text)
 
         self.assertEqual(0, len(results))
 
     def test_missing_all_optional_fields(self):
         # An entry with only a StampID should produce no result.
         text = '# 40 - 1875 1c Franklin, bright blue'
-        phase = StampDescriptionPhase(text)
-        results = phase.check_annotation_proximity(text)
+        phase = StampDescriptionPhase()
+        results = phase.find_match(text)
 
         self.assertEqual(0, len(results))
 
-    def test_run_phase_splits_on_blank_lines(self):
-        # run_phase() should process each blank-line-separated entry independently,
-        # yielding 3 matches out of 7 entries.
+    def test_multi_entry_extraction(self):
+        # Processing each blank-line-separated entry independently should
+        # yield 3 matches out of 7 entries.
         input_text = """
         # 11A - 1853-55 3¢ George Washington, dull red, type II, imperf
 
@@ -56,12 +57,15 @@ class TestStampDescriptionPhase(unittest.TestCase):
         # 62B - 1861 10c Washington, dark green
         """
         input_text = inspect.cleandoc(input_text)
-        phase = StampDescriptionPhase(input_text)
-        results = phase.run_phase()
+        phase = StampDescriptionPhase()
+        entries = [e.strip() for e in re.split(r'\n\s*\n', input_text) if e.strip()]
+        results = []
+        for entry in entries:
+            results.extend(phase.find_match(entry))
 
         self.assertEqual(3, len(results))
 
-    def test_run_phase_correct_properties(self):
+    def test_correct_properties(self):
         # Verify the properties of each extracted relation.
         input_text = """
         # 11A - 1853-55 3¢ George Washington, dull red, type II, imperf
@@ -71,8 +75,11 @@ class TestStampDescriptionPhase(unittest.TestCase):
         # 18 - 1861 1c Franklin, type I, perf 15
         """
         input_text = inspect.cleandoc(input_text)
-        phase = StampDescriptionPhase(input_text)
-        results = phase.run_phase()
+        phase = StampDescriptionPhase()
+        entries = [e.strip() for e in re.split(r'\n\s*\n', input_text) if e.strip()]
+        results = []
+        for entry in entries:
+            results.extend(phase.find_match(entry))
 
         self.assertEqual(3, len(results))
 
@@ -94,13 +101,13 @@ class TestStampDescriptionPhase(unittest.TestCase):
         self.assertEqual('type I', p['TypePhrase'])
         self.assertEqual('perf 15', p['Perforation'])
 
-    def test_check_annotation_proximity_not_implemented(self):
-        # A subclass that uses the default run_phase() without overriding
-        # check_annotation_proximity() should raise NotImplementedError.
+    def test_find_match_requires_instance_vars(self):
+        # A subclass that does not set relation_name, regex_patterns, and chain
+        # should raise AttributeError when find_match() is called.
         class BarePhase(ExtractionPhaseABC):
-            def __init__(self, doc_contents):
-                super().__init__(doc_contents)
+            def __init__(self):
+                super().__init__()
 
-        phase = BarePhase('some text')
-        with self.assertRaises(NotImplementedError):
-            phase.run_phase()
+        phase = BarePhase()
+        with self.assertRaises(AttributeError):
+            phase.find_match('some text')

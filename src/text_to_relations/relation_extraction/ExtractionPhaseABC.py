@@ -15,38 +15,19 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
     """
     regexWhitespace = re.compile(r'\s+', re.IGNORECASE | re.DOTALL | re.MULTILINE)
 
-    def __init__(self, doc_contents: str, verbose: bool = False):
+    def __init__(self, verbose: bool = False):
         """
         Args:
-            doc_contents (str): the normalized contents of the
-                document being processed
             verbose (bool): if True, print internal state at each step.
         """
-        if doc_contents is None or doc_contents == '':
-            msg = "doc_contents is empty or None. "
-            msg += "An extraction phase object requires a document to process."
-            raise TypeError(msg)
-        self.doc_contents = doc_contents
         self.verbose = verbose
 
-    def run_phase(self) -> List[Annotation]:
+    def find_match(self, text: str) -> List[Annotation]:
         """
-        Splits the document on blank lines and runs check_annotation_proximity()
-        on each entry, returning the combined results.
-        """
-        entries = [e.strip() for e in re.split(r'\n\s*\n', self.doc_contents) if e.strip()]
-        results = []
-        for entry in entries:
-            results.extend(self.check_annotation_proximity(entry))
-        return results
+        Process text input and return any extracted relation annotations.
 
-    def check_annotation_proximity(self, text: str) -> List[Annotation]:
-        """
-        Given a single text entry, define the annotation regex patterns and
-        proximity chain, then call self.run_chained_loops() and return its result.
-
-        Subclasses that use the default run_phase() must override this method.
-        Subclasses that override run_phase() directly do not need to.
+        Uses self.relation_name, self.regex_patterns, and self.chain, which
+        subclasses set in their __init__.
 
         Args:
             text: a single document entry to process.
@@ -54,9 +35,9 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
         Returns:
             List[Annotation]: newly created relation annotations.
         """
-        raise NotImplementedError("Subclasses using the default run_phase() must implement check_annotation_proximity().")
+        return self.run_chained_loops(text, self.regex_patterns, self.chain)
 
-    def run_chained_loops(self, text: str, result_ann_type: str,
+    def run_chained_loops(self, text: str,
                           regex_patterns: Dict[str, object],
                           chain: List[Tuple[str, Tuple[int, int], str]]) -> List[Annotation]:
         """
@@ -65,8 +46,6 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
 
         Args:
             text: the document entry to process.
-            result_ann_type: the annotation type name for newly created relations
-                (e.g. 'StampDescription').
             regex_patterns: dict mapping annotation type name to RegexString.
             chain: list of (start_type, (min_dist, max_dist), end_type) tuples
                 defining the proximity constraints between consecutive annotation
@@ -103,7 +82,7 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
             end = m_last_anns[-1].end_offset
             substr = doc[start:end]
             properties = loop.determine_new_annotation_properties(match_triples_list, doc)
-            new_ann = Annotation(result_ann_type, substr, start, end, properties)
+            new_ann = Annotation(self.relation_name, substr, start, end, properties)
             if loop.verbose:
                 print(f"  New annotation created: {new_ann}")
             return new_ann

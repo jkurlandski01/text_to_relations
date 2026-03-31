@@ -16,10 +16,9 @@ from text_to_relations.relation_extraction.ExtractionPhaseABC import ExtractionP
 
 
 class StampDescriptionPhase(ExtractionPhaseABC):
-    def __init__(self, doc_contents: str, verbose: bool = False):
-        super().__init__(doc_contents, verbose=verbose)
-
-    def check_annotation_proximity(self, text: str) -> List[Annotation]:
+    def __init__(self, verbose: bool = False):
+        super().__init__(verbose=verbose)
+        self.relation_name = 'StampDescription'
 
         # Step 1: Define all the RegexString objects which identify entities
         # to be extracted.
@@ -42,7 +41,7 @@ class StampDescriptionPhase(ExtractionPhaseABC):
         perf_combined_rs = RegexString.regex_to_RegexString(
             f'(?:{imperf_rs.get_regex_str()}|{perf_sized_rs.get_regex_str()})')
 
-        regex_patterns = {
+        self.regex_patterns = {
             'StampID':      id_rs,
             'Denomination': cent_rs,
             'TypePhrase':   type_phrase_rs,
@@ -51,20 +50,23 @@ class StampDescriptionPhase(ExtractionPhaseABC):
 
         # Step 2: Define the allowable distance between entities for
         # extractions of this particular relation.
-        chain = [
+        self.chain = [
+            # Look for a StampID entity followed by a Denomination entity
+            # within four tokens...
             ('StampID',      (0, 4), 'Denomination'),
+            # ... which in turn is followed by a TypePhrase entity within
+            # eight tokens...
             ('Denomination', (0, 8), 'TypePhrase'),
+            # ... followed by a Perforation entity within two tokens
             ('TypePhrase',   (0, 2), 'Perforation'),
         ]
-
-        # Create the "StampDescription" relation.
-        return self.run_chained_loops(text, 'StampDescription', regex_patterns, chain)
 
 
 if __name__ == '__main__':
     # Sample call:
     #   python -m examples.extract_stamp_description
 
+    import re
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('-v', '--verbose', action='store_true')
@@ -89,8 +91,11 @@ if __name__ == '__main__':
     """
     input_text = inspect.cleandoc(input_text)
 
-    phase = StampDescriptionPhase(input_text, verbose=verbose)
-    results = phase.run_phase()
+    phase = StampDescriptionPhase(verbose=verbose)
+    entries = [e.strip() for e in re.split(r'\n\s*\n', input_text) if e.strip()]
+    results = []
+    for entry in entries:
+        results.extend(phase.find_match(entry))
 
     print(f'\n{len(results)} of 7 stamp descriptions extracted:\n')
     for ann in results:
