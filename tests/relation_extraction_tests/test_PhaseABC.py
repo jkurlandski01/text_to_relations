@@ -2,7 +2,7 @@ import unittest
 
 from text_to_relations.relation_extraction.TokenAnn import TokenAnn
 from text_to_relations.relation_extraction.Annotation import Annotation
-from text_to_relations.relation_extraction.ExtractionPhaseABC import ExtractionPhaseABC
+from text_to_relations.relation_extraction.ExtractionPhaseABC import ExtractionPhaseABC, ChainLink
 
 
 class TestPhaseABC(unittest.TestCase):
@@ -50,6 +50,41 @@ class TestPhaseABC(unittest.TestCase):
                 super().__init__()
                 self.relation_name = 'Test'
                 self.regex_patterns = {}
+
+        with self.assertRaises(ValueError):
+            PhaseTest()
+
+    def testChainLinkInvalidDistance(self):
+        # min_distance > max_distance must raise ValueError at ChainLink construction.
+        with self.assertRaises(ValueError):
+            ChainLink('Number', 'number', 3, 0, 'Unit', 'unit')
+
+    def testChainConsecutiveMismatch(self):
+        # A chain where link[1].start does not match link[0].end must raise ValueError.
+        class PhaseTest(ExtractionPhaseABC):
+            def __init__(self):
+                super().__init__()
+                self.relation_name = 'Test'
+                self.regex_patterns = {}
+                self.chain = [
+                    ChainLink('A', 'a', 0, 2, 'B', 'b'),
+                    ChainLink('X', 'x', 0, 2, 'C', 'c'),  # should be ('B', 'b', ...)
+                ]
+
+        with self.assertRaises(ValueError):
+            PhaseTest()
+
+    def testChainPropertyNameCollision(self):
+        # Reusing a property name at a non-adjacent slot must raise ValueError.
+        class PhaseTest(ExtractionPhaseABC):
+            def __init__(self):
+                super().__init__()
+                self.relation_name = 'Test'
+                self.regex_patterns = {}
+                self.chain = [
+                    ChainLink('A', 'a', 0, 2, 'B', 'b'),
+                    ChainLink('B', 'b', 0, 2, 'C', 'a'),  # 'a' already used for slot 0
+                ]
 
         with self.assertRaises(ValueError):
             PhaseTest()

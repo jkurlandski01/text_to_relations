@@ -150,58 +150,49 @@ class TestMinMax(unittest.TestCase):
         self.assertEqual(relations, expected)
 
 
-# class TestMinMaxProperties(unittest.TestCase):
-#     """
-#     These tests expose a property-naming collision that occurs when the same
-#     annotation type (e.g. 'Number') appears more than once in a chain.
-#     _determine_properties() keys properties by type name, so the second
-#     occurrence silently overwrites the first. Until the naming scheme is
-#     changed to '{type}_{position:02d}', these tests are expected to FAIL.
-#     """
+class TestMinMaxProperties(unittest.TestCase):
+    """
+    Verify that when the same annotation type (e.g. 'Number') appears more
+    than once in a chain, both values are accessible in the relation's
+    properties under distinct keys. The fix is to assign meaningful property
+    names in each ChainLink rather than keying by annotation type.
+    """
 
-#     def _make_entity_annotations(self, text, number_pattern=r'(\d+)', uom_words=None):
-#         anns = []
-#         number_rs = RegexString.regex_to_RegexString(number_pattern)
-#         for match in number_rs.get_match_triples(text):
-#             anns.append(Annotation('Number', match[0], match[1], match[2]))
-#         if uom_words:
-#             uom_rs = RegexString(uom_words)
-#             for match in uom_rs.get_match_triples(text):
-#                 anns.append(Annotation('Unit_of_Measure', match[0], match[1], match[2]))
-#         return anns
+    def _make_entity_annotations(self, text, number_pattern=r'(\d+)', uom_words=None):
+        anns = []
+        number_rs = RegexString.regex_to_RegexString(number_pattern)
+        for match in number_rs.get_match_triples(text):
+            anns.append(Annotation('Number', match[0], match[1], match[2]))
+        if uom_words:
+            uom_rs = RegexString(uom_words)
+            for match in uom_rs.get_match_triples(text):
+                anns.append(Annotation('Unit_of_Measure', match[0], match[1], match[2]))
+        return anns
 
-#     def test_phase3_min_number_not_overwritten(self):
-#         # MinMaxPhase_3 chain: AtLeast -> Number -> Unit_of_Measure -> AtMost -> Number -> Unit_of_Measure
-#         # 'Number' appears twice; the min value ('15') should be accessible in properties.
-#         # Currently _determine_properties() stores properties['Number'] = '20' (max overwrites min).
-#         text = "a minimum of 15 minutes and a maximum of 20 minutes"
-#         anns = self._make_entity_annotations(text, uom_words=['minutes'])
+    def test_phase3_min_number_not_overwritten(self):
+        # MinMaxPhase_3 chain: AtLeast -> Number -> Unit_of_Measure -> AtMost -> Number -> Unit_of_Measure
+        # 'Number' appears twice; both values must be accessible under distinct keys.
+        text = "a minimum of 15 minutes and a maximum of 20 minutes"
+        anns = self._make_entity_annotations(text, uom_words=['minutes'])
 
-#         phase = MinMaxPhase_3()
-#         results = phase.find_match(text, anns)
+        phase = MinMaxPhase_3()
+        results = phase.find_match(text, anns)
 
-#         self.assertEqual(len(results), 1)
-#         props = results[0].properties
-#         # The min and max Numbers must be stored under distinct keys.
-#         # With the current implementation this fails because only one 'Number' key exists.
-#         self.assertIn('Number_01', props, "min Number should be stored as 'Number_01'")
-#         self.assertIn('Number_02', props, "max Number should be stored as 'Number_02'")
-#         self.assertEqual(props['Number_01'], '15')
-#         self.assertEqual(props['Number_02'], '20')
+        self.assertEqual(len(results), 1)
+        props = results[0].properties
+        self.assertEqual(props['min_number'], '15')
+        self.assertEqual(props['max_number'], '20')
 
-#     def test_phase1_both_numbers_in_properties(self):
-#         # MinMaxPhase_1 chain: RangeMarker -> Number -> Number -> Unit_of_Measure
-#         # 'Number' appears twice; both values should be independently accessible.
-#         # Currently _determine_properties() stores only the last Number seen.
-#         text = "between 170 and 220 pounds"
-#         anns = self._make_entity_annotations(text, uom_words=['pounds'])
+    def test_phase1_both_numbers_in_properties(self):
+        # MinMaxPhase_1 chain: RangeMarker -> Number -> Number -> Unit_of_Measure
+        # 'Number' appears twice; both values must be accessible under distinct keys.
+        text = "between 170 and 220 pounds"
+        anns = self._make_entity_annotations(text, uom_words=['pounds'])
 
-#         phase = MinMaxPhase_1()
-#         results = phase.find_match(text, anns)
+        phase = MinMaxPhase_1()
+        results = phase.find_match(text, anns)
 
-#         self.assertEqual(len(results), 1)
-#         props = results[0].properties
-#         self.assertIn('Number_01', props, "first Number should be stored as 'Number_01'")
-#         self.assertIn('Number_02', props, "second Number should be stored as 'Number_02'")
-#         self.assertEqual(props['Number_01'], '170')
-#         self.assertEqual(props['Number_02'], '220')
+        self.assertEqual(len(results), 1)
+        props = results[0].properties
+        self.assertEqual(props['min_number'], '170')
+        self.assertEqual(props['max_number'], '220')

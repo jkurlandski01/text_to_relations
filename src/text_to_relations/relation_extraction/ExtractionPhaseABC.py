@@ -4,13 +4,13 @@ relations between previously-identified entities.
 """
 import re
 from abc import ABCMeta
-from typing import Dict, List, NamedTuple
+from typing import Dict, List
 
 from text_to_relations.relation_extraction.TokenAnn import TokenAnn
 from text_to_relations.relation_extraction.Annotation import Annotation
 
 
-class ChainLink(NamedTuple):
+class ChainLink:
     """
     One step in a proximity chain, constraining how close two annotation
     types must be to be considered a match.
@@ -26,21 +26,34 @@ class ChainLink(NamedTuple):
             stored in the resulting relation's properties (e.g. 'max_number').
             For all links except the last, this should equal the start_property
             of the following link.
+
+    Raises ValueError if min_distance > max_distance.
     """
-    start_type: str
-    start_property: str
-    min_distance: int
-    max_distance: int
-    end_type: str
-    end_property: str
+
+    def __init__(self, start_type: str, start_property: str, min_distance: int,
+                 max_distance: int, end_type: str, end_property: str):
+        if min_distance > max_distance:
+            raise ValueError(
+                f"ChainLink min_distance ({min_distance}) must be <= max_distance ({max_distance})"
+            )
+        self.start_type = start_type
+        self.start_property = start_property
+        self.min_distance = min_distance
+        self.max_distance = max_distance
+        self.end_type = end_type
+        self.end_property = end_property
 
 
 class ExtractionPhaseABC(metaclass=ABCMeta):
     """
     Abstract base class of phases.
     Valid subclasses must:
-    1. Set self.relation_name, self.regex_patterns and 
-    self.chain to non-None values.
+    1. Set self.relation_name, self.regex_patterns, and self.chain to non-None values.
+    2. Ensure that for every link after the first, the link's start_type and
+       start_property match the previous link's end_type and end_property.
+    3. Ensure that all property names across the chain are unique (i.e. the
+       resulting relation will have one attribute per chain node, with no
+       two nodes sharing a property name).
     """
     regexWhitespace = re.compile(r'\s+', re.IGNORECASE | re.DOTALL | re.MULTILINE)
 
@@ -72,9 +85,11 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
 
     def _validate(self):
         """
-        Validate the subclass. Raises ValueError naming every missing
-        attribute so the subclass author knows exactly what to fix.
+        Verify that the subclass satisfies all three requirements documented
+        on the class. Raises ValueError with a clear message for the first
+        violation found.
         """
+        # Requirement 1: all three instance variables must be assigned.
         missing = [name for name, val in [
             ('relation_name', self.relation_name),
             ('regex_patterns', self.regex_patterns),
@@ -84,6 +99,27 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
             raise ValueError(
                 f"{type(self).__name__}.__init__ must assign: {', '.join(missing)}"
             )
+
+        # Requirement 2: consecutive links must share their boundary annotation.
+        for i in range(1, len(self.chain)):
+            prev, curr = self.chain[i - 1], self.chain[i]
+            if curr.start_type != prev.end_type or curr.start_property != prev.end_property:
+                raise ValueError(
+                    f"{type(self).__name__}: chain[{i}] start "
+                    f"({curr.start_type!r}, {curr.start_property!r}) does not match "
+                    f"chain[{i - 1}] end ({prev.end_type!r}, {prev.end_property!r})"
+                )
+
+        # Requirement 3: all property names must be unique across the chain.
+        all_props = ([self.chain[0].start_property] if self.chain else []) + \
+                    [link.end_property for link in self.chain]
+        seen = set()
+        for prop in all_props:
+            if prop in seen:
+                raise ValueError(
+                    f"{type(self).__name__}: property name {prop!r} appears more than once in the chain"
+                )
+            seen.add(prop)
 
     def find_match(self, text: str, entity_annotations: List[Annotation] = None) -> List[Annotation]:
         """
