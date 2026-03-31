@@ -12,6 +12,9 @@ class TestPhaseABC(unittest.TestCase):
         class PhaseTest(ExtractionPhaseABC):
             def __init__(self):
                 super().__init__()
+                self.relation_name = 'Test'
+                self.regex_patterns = {}
+                self.chain = []
 
             def find_match(self, text):
                 return ['Hi!']
@@ -20,6 +23,36 @@ class TestPhaseABC(unittest.TestCase):
         actual = phase.find_match('blahBlahBlah')
 
         self.assertEqual(['Hi!'], actual)
+
+    def testMissingRelationName(self):
+        class PhaseTest(ExtractionPhaseABC):
+            def __init__(self):
+                super().__init__()
+                self.regex_patterns = {}
+                self.chain = []
+
+        with self.assertRaises(ValueError):
+            PhaseTest()
+
+    def testMissingRegexPatterns(self):
+        class PhaseTest(ExtractionPhaseABC):
+            def __init__(self):
+                super().__init__()
+                self.relation_name = 'Test'
+                self.chain = []
+
+        with self.assertRaises(ValueError):
+            PhaseTest()
+
+    def testMissingChain(self):
+        class PhaseTest(ExtractionPhaseABC):
+            def __init__(self):
+                super().__init__()
+                self.relation_name = 'Test'
+                self.regex_patterns = {}
+
+        with self.assertRaises(ValueError):
+            PhaseTest()
 
     def testBuildMergedInput1(self):
         # All assertions expect the same output, except for sometimes the annotation offsets.

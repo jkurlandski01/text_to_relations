@@ -103,11 +103,10 @@ class TestStampDescriptionPhase(unittest.TestCase):
 
     def test_find_match_requires_instance_vars(self):
         # A subclass that does not set relation_name, regex_patterns, and chain
-        # should raise AttributeError when find_match() is called.
+        # should raise ValueError at construction time.
         class BarePhase(ExtractionPhaseABC):
             def __init__(self):
                 super().__init__()
 
-        phase = BarePhase()
-        with self.assertRaises(AttributeError):
-            phase.find_match('some text')
+        with self.assertRaises(ValueError):
+            BarePhase()

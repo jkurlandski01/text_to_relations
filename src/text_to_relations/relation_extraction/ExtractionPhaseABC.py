@@ -38,17 +38,52 @@ class ChainLink(NamedTuple):
 class ExtractionPhaseABC(metaclass=ABCMeta):
     """
     Abstract base class of phases.
+    Valid subclasses must:
+    1. Set self.relation_name, self.regex_patterns and 
+    self.chain to non-None values.
     """
     regexWhitespace = re.compile(r'\s+', re.IGNORECASE | re.DOTALL | re.MULTILINE)
+
+    def __init_subclass__(cls, **kwargs):
+        """
+        Automatically wrap every subclass's __init__ so that _validate() is
+        called immediately after the subclass finishes constructing itself.
+        This ensures that any invalid subclass fails at
+        construction time with a clear error rather than later.
+        """
+        super().__init_subclass__(**kwargs)
+        original_init = cls.__init__
+        def new_init(self, *args, **kwargs):
+            original_init(self, *args, **kwargs)
+            self._validate()
+        cls.__init__ = new_init
 
     def __init__(self, verbose: bool = False):
         """
         Args:
             verbose (bool): if True, print internal state at each step.
         """
-        # FIXME: shouldn't there be placeholders for the attributes that must 
-        # be assigned in subclasses?
         self.verbose = verbose
+
+        # Subclasses must assign all three of the following in their __init__.
+        self.relation_name = None
+        self.regex_patterns = None
+        self.chain = None
+
+    def _validate(self):
+        """
+        Validate the subclass. Raises ValueError naming every missing
+        attribute so the subclass author knows exactly what to fix.
+        """
+        missing = [name for name, val in [
+            ('relation_name', self.relation_name),
+            ('regex_patterns', self.regex_patterns),
+            ('chain', self.chain),
+        ] if val is None]
+        if missing:
+            raise ValueError(
+                f"{type(self).__name__}.__init__ must assign: {', '.join(missing)}"
+            )
 
     def find_match(self, text: str, entity_annotations: List[Annotation] = None) -> List[Annotation]:
         """
