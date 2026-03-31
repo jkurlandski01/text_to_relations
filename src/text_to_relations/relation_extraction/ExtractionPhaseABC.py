@@ -17,14 +17,22 @@ class ChainLink(NamedTuple):
 
     Attributes:
         start_type: annotation type that begins this step (e.g. 'Number').
+        start_property: key under which the start annotation's value will be
+            stored in the resulting relation's properties (e.g. 'min_number').
         min_distance: minimum number of intervening tokens allowed (inclusive).
         max_distance: maximum number of intervening tokens allowed (inclusive).
         end_type: annotation type that ends this step (e.g. 'Magnitude').
+        end_property: key under which the end annotation's value will be
+            stored in the resulting relation's properties (e.g. 'max_number').
+            For all links except the last, this should equal the start_property
+            of the following link.
     """
     start_type: str
+    start_property: str
     min_distance: int
     max_distance: int
     end_type: str
+    end_property: str
 
 
 class ExtractionPhaseABC(metaclass=ABCMeta):
@@ -91,11 +99,20 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
 
         def _determine_properties(match_triples, doc):
             # FIXME: why the doc parameter?
+            # For each link i, the matched segment (triple[0]) contains the
+            # start annotation followed by zero or more Token annotations
+            # followed by the end annotation. Map the first non-Token annotation
+            # to chain[i].start_property and the last to chain[i].end_property.
+            # Consecutive links share an annotation (end of link i == start of
+            # link i+1), so intermediate end_property/start_property pairs write
+            # the same value under the same key, which is harmless.
             properties = {}
-            for triple in match_triples:
-                for ann in ExtractionPhaseABC.merged_representation_to_Annotations(triple[0]):
-                    if ann.type != 'Token':
-                        properties[ann.type] = ann.normalizedContents
+            for i, triple in enumerate(match_triples):
+                non_token_anns = [a for a in ExtractionPhaseABC.merged_representation_to_Annotations(triple[0])
+                                  if a.type != 'Token']
+                if non_token_anns:
+                    properties[chain[i].start_property] = non_token_anns[0].normalizedContents
+                    properties[chain[i].end_property] = non_token_anns[-1].normalizedContents
             return properties
 
         def _create_relation_annotation(args):

@@ -21,9 +21,9 @@ class MinMaxPhase_3(ExtractionPhaseABC):
 
         self.regex_patterns = {'AtLeast': at_least_rs, 'AtMost': at_most_rs}
         self.chain = [
-            ChainLink('AtLeast',         0, 3, 'Number'),
-            ChainLink('Number',          0, 2, 'Unit_of_Measure'),
-            ChainLink('Unit_of_Measure', 0, 5, 'AtMost'),
-            ChainLink('AtMost',          0, 3, 'Number'),
-            ChainLink('Number',          0, 2, 'Unit_of_Measure'),
+            ChainLink('AtLeast',         'at_least',   0, 3, 'Number',          'min_number'),
+            ChainLink('Number',          'min_number', 0, 2, 'Unit_of_Measure', 'min_unit'),
+            ChainLink('Unit_of_Measure', 'min_unit',   0, 5, 'AtMost',          'at_most'),
+            ChainLink('AtMost',          'at_most',    0, 3, 'Number',          'max_number'),
+            ChainLink('Number',          'max_number', 0, 2, 'Unit_of_Measure', 'max_unit'),
         ]

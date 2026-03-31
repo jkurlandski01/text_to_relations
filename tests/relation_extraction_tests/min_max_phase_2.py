@@ -19,7 +19,7 @@ class MinMaxPhase_2(ExtractionPhaseABC):
 
         self.regex_patterns = {'ToMarker': to_marker_rs}
         self.chain = [
-            ChainLink('Number',   0, 3, 'ToMarker'),
-            ChainLink('ToMarker', 0, 2, 'Number'),
-            ChainLink('Number',   0, 2, 'Unit_of_Measure'),
+            ChainLink('Number',   'min_number', 0, 3, 'ToMarker',        'to_marker'),
+            ChainLink('ToMarker', 'to_marker',  0, 2, 'Number',          'max_number'),
+            ChainLink('Number',   'max_number', 0, 2, 'Unit_of_Measure', 'unit'),
         ]
