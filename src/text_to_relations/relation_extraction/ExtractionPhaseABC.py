@@ -22,7 +22,7 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
         """
         self.verbose = verbose
 
-    def find_match(self, text: str) -> List[Annotation]:
+    def find_match(self, text: str, entity_annotations: List[Annotation] = None) -> List[Annotation]:
         """
         Process text input and return any extracted relation annotations.
 
@@ -31,15 +31,21 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
 
         Args:
             text: a single document entry to process.
+            entity_annotations: annotations produced by external tools before
+                relation extraction begins (e.g. Number, Unit_of_Measure),
+                to be incorporated alongside those produced by regex_patterns
+                during the relation extraction process.
 
         Returns:
             List[Annotation]: newly created relation annotations.
         """
-        return self.run_chained_loops(text, self.regex_patterns, self.chain)
+        return self.run_chained_loops(text, self.regex_patterns, self.chain,
+                                      entity_annotations=entity_annotations)
 
     def run_chained_loops(self, text: str,
                           regex_patterns: Dict[str, object],
-                          chain: List[Tuple[str, Tuple[int, int], str]]) -> List[Annotation]:
+                          chain: List[Tuple[str, Tuple[int, int], str]],
+                          entity_annotations: List[Annotation] = None) -> List[Annotation]:
         """
         Build annotations from regex_patterns, then run a chain of proximity
         loops and return the resulting relation annotations.
@@ -50,6 +56,9 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
             chain: list of (start_type, (min_dist, max_dist), end_type) tuples
                 defining the proximity constraints between consecutive annotation
                 types.
+            entity_annotations: annotations produced by external tools before
+                relation extraction begins, to be incorporated alongside those
+                produced by regex_patterns.
 
         Returns:
             List[Annotation]: newly created relation annotations.
@@ -57,7 +66,8 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
         from text_to_relations.relation_extraction.extraction_loop import (
             ExtractionLoop, run_loop, get_sorted_annotations_for_matching)
 
-        anns = get_sorted_annotations_for_matching(text=text, regex_strs=regex_patterns, given_anns=[])
+        given_anns = list(entity_annotations) if entity_annotations else []
+        anns = get_sorted_annotations_for_matching(text=text, regex_strs=regex_patterns, given_anns=given_anns)
         annotation_view_str = ExtractionPhaseABC.build_merged_representation(text, anns)
 
         def _determine_properties(match_triples, doc):

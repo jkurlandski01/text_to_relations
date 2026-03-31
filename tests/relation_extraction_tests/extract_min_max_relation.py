@@ -50,8 +50,8 @@ def run_extraction_phases(input: str,
                           verbose: bool=False) -> List[Annotation]:
     if verbose: print(f"\nEntering run_extraction_phases(). anns: {anns}\n")
 
-    extraction_phase_1 = MinMaxPhase_1(input, anns, verbose=verbose)
-    minmax_anns_1 = extraction_phase_1.run_phase()
+    phase_1 = MinMaxPhase_1(verbose=verbose)
+    minmax_anns_1 = phase_1.find_match(input, anns)
     if verbose:
         msg = f"\nReturned to run_extraction_phases(). minmax_anns: {minmax_anns_1}"
         print(msg)
@@ -62,13 +62,13 @@ def run_extraction_phases(input: str,
 
     if verbose: print(f"  Filtered anns_2 annotations: {anns_2}\n")
 
-    extraction_phase_2 = MinMaxPhase_2(input, anns_2, verbose=verbose)
-    minmax_anns_2 = extraction_phase_2.run_phase()
+    phase_2 = MinMaxPhase_2(verbose=verbose)
+    minmax_anns_2 = phase_2.find_match(input, anns_2)
 
     anns_3 = update_annotation_list(prev_anns=anns_2, new_anns=minmax_anns_2)
 
-    extraction_phase_3 = MinMaxPhase_3(input, anns_3, verbose=verbose)
-    minmax_anns_3 = extraction_phase_3.run_phase()
+    phase_3 = MinMaxPhase_3(verbose=verbose)
+    minmax_anns_3 = phase_3.find_match(input, anns_3)
 
     result = minmax_anns_1 + minmax_anns_2 + minmax_anns_3
     return Annotation.sort(result)
