@@ -92,10 +92,11 @@ if __name__ == '__main__':
     input_text = inspect.cleandoc(input_text)
 
     phase = StampDescriptionPhase(verbose=verbose)
-    entries = [e.strip() for e in re.split(r'\n\s*\n', input_text) if e.strip()]
+    paragraphs = [e.strip() for e in re.split(r'\n\s*\n', input_text) if e.strip()]
     results = []
-    for entry in entries:
-        results.extend(phase.find_match(entry))
+    for par in paragraphs:
+        relations = phase.find_match(par)
+        results.extend(relations)
 
     print(f'\n{len(results)} of 7 stamp descriptions extracted:\n')
     for ann in results:
