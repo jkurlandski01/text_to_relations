@@ -113,7 +113,6 @@ class Annotation(object):
         Returns:
             Self:
         """
-        # TODO: Currently this method will not add any unexpected strings (i.e. features) into the properties.
         matches = re.findall(Annotation.regexQuote, annStr)
         # We use '[1:-1]' to chop off the quote at either end.
         aType = matches[0][1:-1]

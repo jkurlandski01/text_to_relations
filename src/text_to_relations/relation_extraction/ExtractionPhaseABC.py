@@ -168,8 +168,7 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
         anns = get_sorted_annotations_for_matching(text=text, regex_strs=regex_patterns, given_anns=given_anns)
         annotation_view_str = ExtractionPhaseABC.build_merged_representation(text, anns)
 
-        def _determine_properties(match_triples, doc):
-            # FIXME: why the doc parameter?
+        def _determine_properties(match_triples):
             # For each link i, the matched segment (triple[0]) contains the
             # start annotation followed by zero or more Token annotations
             # followed by the end annotation. Map the first non-Token annotation

@@ -147,7 +147,7 @@ def run_loop(annotation_view_str: str,
             m_last_anns = ExtractionPhaseABC.merged_representation_to_Annotations(match_triples_list[-1][0])
             end = m_last_anns[-1].end_offset
             substr = doc[start:end]
-            properties = curr_loop.determine_new_annotation_properties(match_triples_list, doc)
+            properties = curr_loop.determine_new_annotation_properties(match_triples_list)
             result = Annotation(relation_name, substr, start, end, properties)
             if verbose:
                 print(f"  New annotation created: {result}")

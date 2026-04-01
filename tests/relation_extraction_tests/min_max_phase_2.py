@@ -1,8 +1,5 @@
-from typing import List
-
 from text_to_relations.relation_extraction.ExtractionPhaseABC import ExtractionPhaseABC, ChainLink
 from text_to_relations.relation_extraction.RegexString import RegexString
-from text_to_relations.relation_extraction.Annotation import Annotation
 
 
 class MinMaxPhase_2(ExtractionPhaseABC):

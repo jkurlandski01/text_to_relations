@@ -2,6 +2,8 @@
 Utility functions built on spaCy.
 """
 
+from typing import List
+
 import spacy
 import re
 
@@ -20,7 +22,7 @@ except IOError:
                                     disable=["tagger", "parser", "ner", "textcat", "lemmatizer"])
 
 
-def tokenize(inputStr: str) -> list[str]:
+def tokenize(inputStr: str) -> List[str]:
     """
     Use the lightweight English model to tokenize a piece of text.
     Fixes a couple of bugs in the default Spacy tokenizer.
