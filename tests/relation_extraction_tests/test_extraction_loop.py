@@ -8,7 +8,10 @@ from text_to_relations.relation_extraction.extraction_loop import ExtractionLoop
 
 
 def _simple_properties(match_triples):
-    # FIXME: what's this?
+    # Stub callback for the determine_new_annotation_properties parameter of ExtractionLoop.
+    # run_loop() requires the last loop in a chain to have a non-None value for that parameter,
+    # so tests that exercise validation logic (rather than the resulting Annotation's properties)
+    # pass this no-op to satisfy the contract.
     return {}
 
 
