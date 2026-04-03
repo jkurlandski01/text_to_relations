@@ -1,7 +1,6 @@
 import re
 
-from typing import List, Tuple
-from typing_extensions import Self
+from typing import List, Tuple, Union, cast
 
 class RegexString(object):
     """
@@ -160,9 +159,9 @@ class RegexString(object):
         return match_triples
 
     @staticmethod
-    def concat(rs1: Self,
-               rs2: Self,
-               insert_opt_ws: bool=False) -> Self:
+    def concat(rs1: 'RegexString',
+               rs2: 'RegexString',
+               insert_opt_ws: bool=False) -> 'RegexString':
         """
         Create a new RegexString by concatenating the two input RegexString objects.
         Note: This method does not allow words between the two regex's. To
@@ -203,10 +202,10 @@ class RegexString(object):
 
 
     @staticmethod
-    def concat_with_word_distances(rs1: Self,
-                                   rs2: Self,
+    def concat_with_word_distances(rs1: 'RegexString',
+                                   rs2: 'RegexString',
                                    min_nbr_words: int=0,
-                                   max_nbr_words: int=0) -> Self:
+                                   max_nbr_words: int=0) -> 'RegexString':
         """
         Create a new RegexString by concatenating the two input
         RegexString objects with a minimum and maximum number of
@@ -316,7 +315,7 @@ class RegexString(object):
 
 
     @staticmethod
-    def build_regex_string(input_list: List[str]) -> Self:
+    def build_regex_string(input_list: List[Union[List[str], int]]) -> 'RegexString':
         """
         Read the input list to create a new RegexString object from
         the concatenated elements.
@@ -345,21 +344,22 @@ class RegexString(object):
             raise ValueError(msg)
 
         finalRegexStr = None
-        currRegexStr = RegexString(input_list[0])
-        currMaxDistance = input_list[1]
+        currRegexStr = RegexString(cast(List[str], input_list[0]))
+        currMaxDistance = cast(int, input_list[1])
         idx = 2
         while idx < len(input_list):
-            nextRegexStr = RegexString(input_list[idx])
+            nextRegexStr = RegexString(cast(List[str], input_list[idx]))
             finalRegexStr = RegexString.concat_with_word_distances(currRegexStr,
                                                                    nextRegexStr,
                                                                    max_nbr_words=currMaxDistance)
             if idx + 2 < len(input_list):
                 currRegexStr = finalRegexStr
-                currMaxDistance = input_list[idx+1]
+                currMaxDistance = cast(int, input_list[idx+1])
                 idx += 2
             else:
                 idx += 1
 
+        assert finalRegexStr is not None
         return finalRegexStr
 
 
@@ -454,7 +454,7 @@ if __name__ == '__main__':
     # Add colors to the qualifiers, so that we can ID, e.g. 'orange brown'.
     color_qualifiers = ['bright', 'dark', 'dull'] + colors
 
-    inputList = [color_qualifiers, 0, colors]
+    inputList: List[Union[List[str], int]] = [color_qualifiers, 0, colors]
     color_phrase_rs = RegexString.build_regex_string(inputList)
     matchStrs = color_phrase_rs.get_match_triples(input)
     print("\nColor qualifiers + colors:")
