@@ -10,61 +10,7 @@ produce a result.
 import inspect
 
 from text_to_relations.relation_extraction.RegexString import RegexString
-from text_to_relations.relation_extraction.Annotation import Annotation
-from text_to_relations.relation_extraction.ExtractionPhaseABC import ExtractionPhaseABC, ChainLink
-
-
-class StampDescriptionPhase(ExtractionPhaseABC):
-    def __init__(self, verbose: bool = False):
-        super().__init__(verbose=verbose)
-        self.relation_name = 'StampDescription'
-
-        # Step 1: Define all the RegexString objects which identify entities
-        # to be extracted.
-
-        # Stamp ID: e.g. '# 11A', '# 17', '# 62B'
-        id_rs = RegexString(['#'], append=r'\s\d+(?:\w+)?')
-
-        # Denomination: e.g. '3¢', '12c', '5c', '1c', '10c'
-        cent_rs = RegexString(['c', '¢'], prepend=r'\d\d?')
-
-        # Type phrase: e.g. 'type I', 'type II'
-        type_markers_rs = RegexString(['type', 'Type'], whole_word=True)
-        roman_nums_rs = RegexString(['I', 'II', 'III', 'IV', 'V'], whole_word=True)
-        type_phrase_rs = RegexString.concat_with_word_distances(
-            type_markers_rs, roman_nums_rs, min_nbr_words=0, max_nbr_words=0)
-
-        # Perforation: 'imperf', 'imperforate', or 'perf NN'
-        imperf_rs = RegexString(['imperforate', 'imperf'])
-        perf_sized_rs = RegexString(['perf'], append=r'\s\d+')
-        perf_combined_rs = RegexString.regex_to_RegexString(
-            f'(?:{imperf_rs.get_regex_str()}|{perf_sized_rs.get_regex_str()})')
-
-        self.regex_patterns = {
-            'StampID':      id_rs,
-            'Denomination': cent_rs,
-            'TypePhrase':   type_phrase_rs,
-            'Perforation':  perf_combined_rs,
-        }
-
-        # Step 2: Define the allowable distance between entities for
-        # extractions of this particular relation.
-        self.chain = [
-            # Look for a StampID entity followed by a Denomination entity
-            # within four tokens...
-            ChainLink(start_type='StampID', start_property='StampID',
-                      min_distance=0, max_distance=4,
-                      end_type='Denomination', end_property='Denomination'),
-            # ... which in turn is followed by a TypePhrase entity within
-            # eight tokens...
-            ChainLink(start_type='Denomination', start_property='Denomination',
-                      min_distance=0, max_distance=8,
-                      end_type='TypePhrase', end_property='TypePhrase'),
-            # ... followed by a Perforation entity within two tokens
-            ChainLink(start_type='TypePhrase', start_property='TypePhrase',
-                      min_distance=0, max_distance=2,
-                      end_type='Perforation', end_property='Perforation'),
-        ]
+from text_to_relations.relation_extraction.ExtractionPhaseABC import SimpleExtractionPhase, ChainLink
 
 
 if __name__ == '__main__':
@@ -77,6 +23,61 @@ if __name__ == '__main__':
     parser.add_argument('-v', '--verbose', action='store_true')
     args = parser.parse_args()
     verbose = args.verbose
+
+    # Step 1: Define all the RegexString objects which identify entities
+    # to be extracted.
+
+    # Stamp ID: e.g. '# 11A', '# 17', '# 62B'
+    id_rs = RegexString(['#'], append=r'\s\d+(?:\w+)?')
+
+    # Denomination: e.g. '3¢', '12c', '5c', '1c', '10c'
+    cent_rs = RegexString(['c', '¢'], prepend=r'\d\d?')
+
+    # Type phrase: e.g. 'type I', 'type II'
+    type_markers_rs = RegexString(['type', 'Type'], whole_word=True)
+    roman_nums_rs = RegexString(['I', 'II', 'III', 'IV', 'V'], whole_word=True)
+    type_phrase_rs = RegexString.concat_with_word_distances(
+        type_markers_rs, roman_nums_rs, min_nbr_words=0, max_nbr_words=0)
+
+    # Perforation: 'imperf', 'imperforate', or 'perf NN'
+    imperf_rs = RegexString(['imperforate', 'imperf'])
+    perf_sized_rs = RegexString(['perf'], append=r'\s\d+')
+    perf_combined_rs = RegexString.regex_to_RegexString(
+        f'(?:{imperf_rs.get_regex_str()}|{perf_sized_rs.get_regex_str()})')
+
+    regex_patterns = {
+        'StampID':      id_rs,
+        'Denomination': cent_rs,
+        'TypePhrase':   type_phrase_rs,
+        'Perforation':  perf_combined_rs,
+    }
+
+    # Step 2: Define the allowable distance between entities for
+    # extractions of this particular relation.
+    chain = [
+        # Look for a StampID entity followed by a Denomination entity
+        # within four tokens...
+        ChainLink(start_type='StampID', start_property='StampID',
+                  min_distance=0, max_distance=4,
+                  end_type='Denomination', end_property='Denomination'),
+        # ... which in turn is followed by a TypePhrase entity within
+        # eight tokens...
+        ChainLink(start_type='Denomination', start_property='Denomination',
+                  min_distance=0, max_distance=8,
+                  end_type='TypePhrase', end_property='TypePhrase'),
+        # ... followed by a Perforation entity within two tokens
+        ChainLink(start_type='TypePhrase', start_property='TypePhrase',
+                  min_distance=0, max_distance=2,
+                  end_type='Perforation', end_property='Perforation'),
+    ]
+
+    # Step 3: Instantiate and run.
+    phase = SimpleExtractionPhase(
+        relation_name='StampDescription',
+        regex_patterns=regex_patterns,
+        chain=chain,
+        verbose=verbose,
+    )
 
     input_text = \
     """
@@ -96,7 +97,6 @@ if __name__ == '__main__':
     """
     input_text = inspect.cleandoc(input_text)
 
-    phase = StampDescriptionPhase(verbose=verbose)
     paragraphs = [e.strip() for e in re.split(r'\n\s*\n', input_text) if e.strip()]
     results = []
     for par in paragraphs:

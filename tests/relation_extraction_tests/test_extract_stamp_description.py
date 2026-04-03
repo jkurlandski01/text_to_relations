@@ -2,8 +2,43 @@ import inspect
 import re
 import unittest
 
-from text_to_relations.relation_extraction.ExtractionPhaseABC import ExtractionPhaseABC
-from examples.extract_stamp_description import StampDescriptionPhase
+from text_to_relations.relation_extraction.RegexString import RegexString
+from text_to_relations.relation_extraction.ExtractionPhaseABC import ExtractionPhaseABC, SimpleExtractionPhase, ChainLink
+
+
+def _make_phase(verbose: bool = False) -> SimpleExtractionPhase:
+    id_rs = RegexString(['#'], append=r'\s\d+(?:\w+)?')
+    cent_rs = RegexString(['c', '¢'], prepend=r'\d\d?')
+    type_markers_rs = RegexString(['type', 'Type'], whole_word=True)
+    roman_nums_rs = RegexString(['I', 'II', 'III', 'IV', 'V'], whole_word=True)
+    type_phrase_rs = RegexString.concat_with_word_distances(
+        type_markers_rs, roman_nums_rs, min_nbr_words=0, max_nbr_words=0)
+    imperf_rs = RegexString(['imperforate', 'imperf'])
+    perf_sized_rs = RegexString(['perf'], append=r'\s\d+')
+    perf_combined_rs = RegexString.regex_to_RegexString(
+        f'(?:{imperf_rs.get_regex_str()}|{perf_sized_rs.get_regex_str()})')
+
+    return SimpleExtractionPhase(
+        relation_name='StampDescription',
+        regex_patterns={
+            'StampID':      id_rs,
+            'Denomination': cent_rs,
+            'TypePhrase':   type_phrase_rs,
+            'Perforation':  perf_combined_rs,
+        },
+        chain=[
+            ChainLink(start_type='StampID', start_property='StampID',
+                      min_distance=0, max_distance=4,
+                      end_type='Denomination', end_property='Denomination'),
+            ChainLink(start_type='Denomination', start_property='Denomination',
+                      min_distance=0, max_distance=8,
+                      end_type='TypePhrase', end_property='TypePhrase'),
+            ChainLink(start_type='TypePhrase', start_property='TypePhrase',
+                      min_distance=0, max_distance=2,
+                      end_type='Perforation', end_property='Perforation'),
+        ],
+        verbose=verbose,
+    )
 
 
 class TestStampDescriptionPhase(unittest.TestCase):
@@ -11,7 +46,7 @@ class TestStampDescriptionPhase(unittest.TestCase):
     def test_single_match(self):
         # A single entry with all four fields should produce one StampDescription.
         text = '# 11A - 1853-55 3¢ George Washington, dull red, type II, imperf'
-        phase = StampDescriptionPhase()
+        phase = _make_phase()
         results = phase.find_match(text)
 
         self.assertEqual(1, len(results))
@@ -25,7 +60,7 @@ class TestStampDescriptionPhase(unittest.TestCase):
     def test_missing_type_phrase(self):
         # An entry missing TypePhrase should produce no result.
         text = '# 17 - 1851 12c Washington imperforate, black'
-        phase = StampDescriptionPhase()
+        phase = _make_phase()
         results = phase.find_match(text)
 
         self.assertEqual(0, len(results))
@@ -33,7 +68,7 @@ class TestStampDescriptionPhase(unittest.TestCase):
     def test_missing_all_optional_fields(self):
         # An entry with only a StampID should produce no result.
         text = '# 40 - 1875 1c Franklin, bright blue'
-        phase = StampDescriptionPhase()
+        phase = _make_phase()
         results = phase.find_match(text)
 
         self.assertEqual(0, len(results))
@@ -57,7 +92,7 @@ class TestStampDescriptionPhase(unittest.TestCase):
         # 62B - 1861 10c Washington, dark green
         """
         input_text = inspect.cleandoc(input_text)
-        phase = StampDescriptionPhase()
+        phase = _make_phase()
         entries = [e.strip() for e in re.split(r'\n\s*\n', input_text) if e.strip()]
         results = []
         for entry in entries:
@@ -75,7 +110,7 @@ class TestStampDescriptionPhase(unittest.TestCase):
         # 18 - 1861 1c Franklin, type I, perf 15
         """
         input_text = inspect.cleandoc(input_text)
-        phase = StampDescriptionPhase()
+        phase = _make_phase()
         entries = [e.strip() for e in re.split(r'\n\s*\n', input_text) if e.strip()]
         results = []
         for entry in entries:

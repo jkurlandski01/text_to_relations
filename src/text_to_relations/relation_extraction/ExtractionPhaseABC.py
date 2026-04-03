@@ -313,3 +313,41 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
         if verbose: print(f"complete_strs: {complete_strs}")
         anns = [Annotation.str_to_Annotation(c_str) for c_str in complete_strs]
         return anns
+
+
+class SimpleExtractionPhase(ExtractionPhaseABC):
+    """
+    A ready-to-use concrete implementation of ExtractionPhaseABC for cases
+    where no custom validation, matching, or loop behaviour is needed.
+
+    Instead of subclassing ExtractionPhaseABC and assigning relation_name,
+    regex_patterns, and chain in __init__, callers can instantiate this class
+    directly:
+
+        phase = SimpleExtractionPhase(
+            relation_name='MyRelation',
+            regex_patterns={'EntityA': rs_a, 'EntityB': rs_b},
+            chain=[ChainLink(...)],
+        )
+        results = phase.find_match(text)
+
+    For use cases that require overriding find_match(), run_chained_loops(),
+    or _validate(), subclass ExtractionPhaseABC directly instead.
+    """
+
+    def __init__(self, relation_name: str, regex_patterns: Dict, chain: List[ChainLink],
+                 verbose: bool = False):
+        """
+        Args:
+            relation_name (str): type name assigned to each extracted relation
+                Annotation (e.g. 'MinMax', 'StampDescription').
+            regex_patterns (Dict[str, RegexString]): dict mapping annotation
+                type name to RegexString, defining the entities to find.
+            chain (List[ChainLink]): proximity constraints between consecutive
+                annotation types.
+            verbose (bool): if True, print internal state at each step.
+        """
+        super().__init__(verbose=verbose)
+        self.relation_name = relation_name
+        self.regex_patterns = regex_patterns
+        self.chain = chain
