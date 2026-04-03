@@ -69,7 +69,7 @@ def run_loop(annotation_view_str: str,
              loops_in_process: List[ExtractionLoop],
              loop_list: List[ExtractionLoop],
              match_triples_list: List[Tuple],
-             new_annotations: List[Tuple],
+             new_annotations: List[Annotation],
              verbose: bool=False) -> Union[List[Annotation], Annotation, None]:
     """
     Recursively execute a chain of ExtractionLoop objects against the
@@ -170,7 +170,7 @@ def run_loop(annotation_view_str: str,
         new_idx = loop_idx + 1
         next_loop = loop_list[new_idx]
 
-        result = run_loop(annotation_view_str=text_substring,
+        recursive_result = run_loop(annotation_view_str=text_substring,
                             doc=doc,
                             relation_name=relation_name,
                             curr_loop=next_loop, loop_idx=new_idx,
@@ -179,21 +179,21 @@ def run_loop(annotation_view_str: str,
                             match_triples_list=match_triples_list,
                             new_annotations=new_annotations,
                             verbose=verbose)
-        if verbose: print(f"\nrun_loop result: {result}\n")
-        if result is None or result == []:
+        if verbose: print(f"\nrun_loop result: {recursive_result}\n")
+        if recursive_result is None or recursive_result == []:
             del match_triples_list[-1]
             continue
-        elif type(result) == Annotation:
+        elif type(recursive_result) == Annotation:
             if loop_idx == 0:
-                new_annotations.append(result)
+                new_annotations.append(recursive_result)
                 # This next step results in non-overlapping annotations, and allows
                 # the program to continue through the input, attempting additonal
                 # matches.
                 match_triples_list = []
                 continue
-            return result
+            return recursive_result
         else:
-            raise ValueError(f"Unexpected result: {result}")
+            raise ValueError(f"Unexpected result: {recursive_result}")
 
     # Only the top-level call (loop_idx == 0) should return the accumulated results list.
     # Intermediate loops return [] to signal "no match found" to their caller; returning

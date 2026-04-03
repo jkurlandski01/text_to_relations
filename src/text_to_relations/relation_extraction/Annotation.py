@@ -85,7 +85,7 @@ class Annotation(object):
         return hash(self.__repr__())
 
     @staticmethod
-    def sort(items: Collection['Annotation']) -> Collection['Annotation']:
+    def sort(items: Collection['Annotation']) -> List['Annotation']:
         """
         Sort the in-coming collection of Annotations by starting and
         ending offset.
@@ -93,7 +93,7 @@ class Annotation(object):
             items (Collection['Annotation']):
 
         Returns:
-            Collection['Annotation']:
+            List['Annotation']:
         """
         anns = sorted(items, key=lambda p: (p.start_offset, p.end_offset), reverse=False)
         return anns
