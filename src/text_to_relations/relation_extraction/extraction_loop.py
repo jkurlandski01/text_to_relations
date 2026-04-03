@@ -9,7 +9,7 @@ Most callers should use ExtractionPhaseABC and its run_chained_loops()
 method rather than calling these directly.
 """
 import re
-from typing import List, Union, Tuple, Dict, Callable
+from typing import List, Union, Tuple, Dict, Callable, Optional
 from text_to_relations.relation_extraction.RegexString import RegexString
 from text_to_relations.relation_extraction.Annotation import Annotation
 from text_to_relations.relation_extraction.ExtractionPhaseABC import ExtractionPhaseABC
@@ -32,7 +32,7 @@ class ExtractionLoop():
     def __init__(self,
                  regex_str: str,
                  last_ann_str: str,
-                 determine_new_annotation_properties: Callable=None,
+                 determine_new_annotation_properties: Optional[Callable]=None,
                  verbose: bool = False
                  ):
         """

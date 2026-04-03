@@ -201,7 +201,7 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
             loops.append(loop)
 
         assert self.relation_name is not None
-        return run_loop(
+        result = run_loop(
             annotation_view_str=annotation_view_str,
             doc=text,
             relation_name=self.relation_name,
@@ -213,6 +213,11 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
             new_annotations=[],
             verbose=self.verbose
         )
+        # run_loop() is recursive and its return type is Union[List[Annotation], Annotation, None]
+        # to accommodate intermediate recursion levels. At the top-level call (loop_idx=0) it
+        # always returns a list, so this assert narrows the type for mypy.
+        assert isinstance(result, list)
+        return result
 
     @staticmethod
     def build_merged_representation(doc_contents: str,
