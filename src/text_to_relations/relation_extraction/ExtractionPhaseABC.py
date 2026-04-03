@@ -279,7 +279,7 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
         # Verify that all the annotations have been consumed.
         if len(unconsumedAnnotations) > 0:
             msg = "Final annotations in the anns parameter not inserted into the merged document."
-            msg += f"  uncomsumed annotations: {unconsumedAnnotations}"
+            msg += f"  unconsumed annotations: {unconsumedAnnotations}"
             raise ValueError(msg)
 
         return result

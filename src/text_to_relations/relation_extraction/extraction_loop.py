@@ -1,4 +1,12 @@
 """
+Low-level machinery for chained proximity matching.
+
+ExtractionLoop holds the configuration for one step in a chain, and
+run_loop() recursively executes a list of ExtractionLoop objects against
+an annotation-view string to produce relation Annotations.
+
+Most callers should use ExtractionPhaseABC and its run_chained_loops()
+method rather than calling these directly.
 """
 import re
 from typing import List, Union, Tuple, Dict, Callable
@@ -25,7 +33,7 @@ class ExtractionLoop():
                  regex_str: str,
                  last_ann_str: str,
                  determine_new_annotation_properties: Callable=None,
-                 verbose :bool=False
+                 verbose: bool = False
                  ):
         """
         Args:
@@ -187,9 +195,6 @@ def run_loop(annotation_view_str: str,
         else:
             raise ValueError(f"Unexpected result: {result}")
 
-        # Unreachable:
-        # del match_triples_list[-1]
-
     # Only the top-level call (loop_idx == 0) should return the accumulated results list.
     # Intermediate loops return [] to signal "no match found" to their caller; returning
     # new_annotations from an intermediate loop would pass the shared results list up the
@@ -216,7 +221,6 @@ def get_sorted_annotations_for_matching(text: str,
             by offset.
     """
     anns = given_anns
-    # anns = []
 
     for key in regex_strs.keys():
         regex_str = regex_strs[key]
