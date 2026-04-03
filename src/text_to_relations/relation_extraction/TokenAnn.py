@@ -1,7 +1,7 @@
 from text_to_relations.relation_extraction import StringUtils
 from text_to_relations.relation_extraction import SpacyUtils
 from text_to_relations.relation_extraction.Annotation import Annotation
-from typing import Tuple, List
+from typing import Tuple, List, Union, Optional
 
 
 class TokenAnn(Annotation):
@@ -27,10 +27,10 @@ class TokenAnn(Annotation):
 
 
     @staticmethod
-    def build_annotation_distance_regex(first_ann: Annotation,
+    def build_annotation_distance_regex(first_ann: Union[str, Annotation],
                                         word_distance_range: Tuple[int, int],
-                                        token_type: str,
-                                        second_ann: Annotation) -> str:
+                                        token_type: Optional[str],
+                                        second_ann: Union[str, Annotation]) -> str:
         """
         Build a string regular expression that specifies the token distance between two annotations
         necessary for a match.

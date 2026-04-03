@@ -8,6 +8,7 @@ from typing import Dict, List, Optional
 
 from text_to_relations.relation_extraction.TokenAnn import TokenAnn
 from text_to_relations.relation_extraction.Annotation import Annotation
+from text_to_relations.relation_extraction.RegexString import RegexString
 
 
 class ChainLink:
@@ -80,7 +81,7 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
 
         # Subclasses must assign all three of the following in their __init__.
         self.relation_name: Optional[str] = None
-        self.regex_patterns: Optional[Dict[str, object]] = None
+        self.regex_patterns: Optional[Dict[str, RegexString]] = None
         self.chain: Optional[List[ChainLink]] = None
 
     def _validate(self):
@@ -144,7 +145,7 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
                                       entity_annotations=entity_annotations)
 
     def run_chained_loops(self, text: str,
-                          regex_patterns: Dict[str, object],
+                          regex_patterns: Dict[str, RegexString],
                           chain: List[ChainLink],
                           entity_annotations: Optional[List[Annotation]] = None) -> List[Annotation]:
         """
