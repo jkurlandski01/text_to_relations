@@ -2,7 +2,6 @@ from text_to_relations.relation_extraction import StringUtils
 from text_to_relations.relation_extraction import SpacyUtils
 from text_to_relations.relation_extraction.Annotation import Annotation
 from typing import Tuple, List
-from typing_extensions import Self
 
 
 class TokenAnn(Annotation):
@@ -50,7 +49,7 @@ class TokenAnn(Annotation):
         distanceToken = 'Token'
 
         result = r"<'"
-        result += first_ann
+        result += str(first_ann)
         result += r"[^>]*>(?:<'"
         result += distanceToken
 
@@ -64,7 +63,7 @@ class TokenAnn(Annotation):
         minTs, maxTs = word_distance_range
         result += str(minTs) + ',' + str(maxTs)
         result += r"}<'"
-        result += second_ann
+        result += str(second_ann)
         result += r"[^>]*>"
 
         return result
@@ -72,7 +71,7 @@ class TokenAnn(Annotation):
 
     @staticmethod
     def get_token_objects(input_str: str,
-                          start_pos_in_doc: int) -> List[Self]:
+                          start_pos_in_doc: int) -> List['TokenAnn']:
         """
         Create TokenAnn objects on the given substring of a longer document.
         Args:
@@ -81,7 +80,7 @@ class TokenAnn(Annotation):
                 source document
 
         Returns:
-            List[Self]: a list of TokenAnn objects
+            List['TokenAnn']: a list of TokenAnn objects
         """
         result = []
 
@@ -106,7 +105,7 @@ class TokenAnn(Annotation):
 
 
     @staticmethod
-    def text_to_token_anns(text_input: str) -> List[Self]:
+    def text_to_token_anns(text_input: str) -> List['TokenAnn']:
         """
         Split the given input text into tokens, and create a TokenAnn
         on each one.
@@ -115,7 +114,7 @@ class TokenAnn(Annotation):
             text_input (str):
 
         Returns:
-            List[Self]: a list of TokenAnn annotations created on the given text
+            List['TokenAnn']: a list of TokenAnn annotations created on the given text
         """
         tokenStrs = SpacyUtils.tokenize(text_input)
 
