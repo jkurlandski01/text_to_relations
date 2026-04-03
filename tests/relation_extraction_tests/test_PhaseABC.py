@@ -57,7 +57,9 @@ class TestPhaseABC(unittest.TestCase):
     def testChainLinkInvalidDistance(self):
         # min_distance > max_distance must raise ValueError at ChainLink construction.
         with self.assertRaises(ValueError):
-            ChainLink('Number', 'number', 3, 0, 'Unit', 'unit')
+            ChainLink(start_type='Number', start_property='number',
+                      min_distance=3, max_distance=0,
+                      end_type='Unit', end_property='unit')
 
     def testChainConsecutiveMismatch(self):
         # A chain where link[1].start does not match link[0].end must raise ValueError.
@@ -67,8 +69,12 @@ class TestPhaseABC(unittest.TestCase):
                 self.relation_name = 'Test'
                 self.regex_patterns = {}
                 self.chain = [
-                    ChainLink('A', 'a', 0, 2, 'B', 'b'),
-                    ChainLink('X', 'x', 0, 2, 'C', 'c'),  # should be ('B', 'b', ...)
+                    ChainLink(start_type='A', start_property='a',
+                              min_distance=0, max_distance=2,
+                              end_type='B', end_property='b'),
+                    ChainLink(start_type='X', start_property='x',
+                              min_distance=0, max_distance=2,
+                              end_type='C', end_property='c'),  # should be ('B', 'b', ...)
                 ]
 
         with self.assertRaises(ValueError):
@@ -82,8 +88,12 @@ class TestPhaseABC(unittest.TestCase):
                 self.relation_name = 'Test'
                 self.regex_patterns = {}
                 self.chain = [
-                    ChainLink('A', 'a', 0, 2, 'B', 'b'),
-                    ChainLink('B', 'b', 0, 2, 'C', 'a'),  # 'a' already used for slot 0
+                    ChainLink(start_type='A', start_property='a',
+                              min_distance=0, max_distance=2,
+                              end_type='B', end_property='b'),
+                    ChainLink(start_type='B', start_property='b',
+                              min_distance=0, max_distance=2,
+                              end_type='C', end_property='a'),  # 'a' already used for slot 0
                 ]
 
         with self.assertRaises(ValueError):

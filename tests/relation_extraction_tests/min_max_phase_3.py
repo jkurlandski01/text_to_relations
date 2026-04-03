@@ -18,9 +18,19 @@ class MinMaxPhase_3(ExtractionPhaseABC):
 
         self.regex_patterns = {'AtLeast': at_least_rs, 'AtMost': at_most_rs}
         self.chain = [
-            ChainLink('AtLeast',         'at_least',   0, 3, 'Number',          'min_number'),
-            ChainLink('Number',          'min_number', 0, 2, 'Unit_of_Measure', 'min_unit'),
-            ChainLink('Unit_of_Measure', 'min_unit',   0, 5, 'AtMost',          'at_most'),
-            ChainLink('AtMost',          'at_most',    0, 3, 'Number',          'max_number'),
-            ChainLink('Number',          'max_number', 0, 2, 'Unit_of_Measure', 'max_unit'),
+            ChainLink(start_type='AtLeast', start_property='at_least',
+                      min_distance=0, max_distance=3,
+                      end_type='Number', end_property='min_number'),
+            ChainLink(start_type='Number', start_property='min_number',
+                      min_distance=0, max_distance=2,
+                      end_type='Unit_of_Measure', end_property='min_unit'),
+            ChainLink(start_type='Unit_of_Measure', start_property='min_unit',
+                      min_distance=0, max_distance=5,
+                      end_type='AtMost', end_property='at_most'),
+            ChainLink(start_type='AtMost', start_property='at_most',
+                      min_distance=0, max_distance=3,
+                      end_type='Number', end_property='max_number'),
+            ChainLink(start_type='Number', start_property='max_number',
+                      min_distance=0, max_distance=2,
+                      end_type='Unit_of_Measure', end_property='max_unit'),
         ]

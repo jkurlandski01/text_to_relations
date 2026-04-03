@@ -17,7 +17,13 @@ class MinMaxPhase_1(ExtractionPhaseABC):
 
         self.regex_patterns = {'RangeMarker': range_marker_rs}
         self.chain = [
-            ChainLink('RangeMarker', 'range_marker', 0, 3, 'Number',          'min_number'),
-            ChainLink('Number',      'min_number',   0, 2, 'Number',          'max_number'),
-            ChainLink('Number',      'max_number',   0, 2, 'Unit_of_Measure', 'unit'),
+            ChainLink(start_type='RangeMarker', start_property='range_marker',
+                      min_distance=0, max_distance=3,
+                      end_type='Number', end_property='min_number'),
+            ChainLink(start_type='Number', start_property='min_number',
+                      min_distance=0, max_distance=2,
+                      end_type='Number', end_property='max_number'),
+            ChainLink(start_type='Number', start_property='max_number',
+                      min_distance=0, max_distance=2,
+                      end_type='Unit_of_Measure', end_property='unit'),
         ]

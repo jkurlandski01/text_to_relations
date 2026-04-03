@@ -16,7 +16,13 @@ class MinMaxPhase_2(ExtractionPhaseABC):
 
         self.regex_patterns = {'ToMarker': to_marker_rs}
         self.chain = [
-            ChainLink('Number',   'min_number', 0, 3, 'ToMarker',        'to_marker'),
-            ChainLink('ToMarker', 'to_marker',  0, 2, 'Number',          'max_number'),
-            ChainLink('Number',   'max_number', 0, 2, 'Unit_of_Measure', 'unit'),
+            ChainLink(start_type='Number', start_property='min_number',
+                      min_distance=0, max_distance=3,
+                      end_type='ToMarker', end_property='to_marker'),
+            ChainLink(start_type='ToMarker', start_property='to_marker',
+                      min_distance=0, max_distance=2,
+                      end_type='Number', end_property='max_number'),
+            ChainLink(start_type='Number', start_property='max_number',
+                      min_distance=0, max_distance=2,
+                      end_type='Unit_of_Measure', end_property='unit'),
         ]

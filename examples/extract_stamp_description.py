@@ -52,12 +52,18 @@ class StampDescriptionPhase(ExtractionPhaseABC):
         self.chain = [
             # Look for a StampID entity followed by a Denomination entity
             # within four tokens...
-            ChainLink('StampID',      'StampID',      0, 4, 'Denomination', 'Denomination'),
+            ChainLink(start_type='StampID', start_property='StampID',
+                      min_distance=0, max_distance=4,
+                      end_type='Denomination', end_property='Denomination'),
             # ... which in turn is followed by a TypePhrase entity within
             # eight tokens...
-            ChainLink('Denomination', 'Denomination', 0, 8, 'TypePhrase',   'TypePhrase'),
+            ChainLink(start_type='Denomination', start_property='Denomination',
+                      min_distance=0, max_distance=8,
+                      end_type='TypePhrase', end_property='TypePhrase'),
             # ... followed by a Perforation entity within two tokens
-            ChainLink('TypePhrase',   'TypePhrase',   0, 2, 'Perforation',  'Perforation'),
+            ChainLink(start_type='TypePhrase', start_property='TypePhrase',
+                      min_distance=0, max_distance=2,
+                      end_type='Perforation', end_property='Perforation'),
         ]
 
 

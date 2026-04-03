@@ -26,8 +26,12 @@ class OneTwoThreePhase(ExtractionPhaseABC):
             'Three': RegexString(['3']),
         }
         self.chain = [
-            ChainLink('One', 'one', 0, 2, 'Two',   'two'),
-            ChainLink('Two', 'two', 0, 2, 'Three', 'three'),
+            ChainLink(start_type='One', start_property='one',
+                      min_distance=0, max_distance=2,
+                      end_type='Two', end_property='two'),
+            ChainLink(start_type='Two', start_property='two',
+                      min_distance=0, max_distance=2,
+                      end_type='Three', end_property='three'),
         ]
 
 
