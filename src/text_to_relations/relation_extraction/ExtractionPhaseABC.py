@@ -4,7 +4,7 @@ relations between previously-identified entities.
 """
 import re
 from abc import ABCMeta
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from text_to_relations.relation_extraction.TokenAnn import TokenAnn
 from text_to_relations.relation_extraction.Annotation import Annotation
@@ -79,9 +79,9 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
         self.verbose = verbose
 
         # Subclasses must assign all three of the following in their __init__.
-        self.relation_name = None
-        self.regex_patterns = None
-        self.chain = None
+        self.relation_name: Optional[str] = None
+        self.regex_patterns: Optional[Dict[str, object]] = None
+        self.chain: Optional[List[ChainLink]] = None
 
     def _validate(self):
         """
@@ -121,7 +121,7 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
                 )
             seen.add(prop)
 
-    def find_match(self, text: str, entity_annotations: List[Annotation] = None) -> List[Annotation]:
+    def find_match(self, text: str, entity_annotations: Optional[List[Annotation]] = None) -> List[Annotation]:
         """
         Process text input and return any extracted relation annotations.
 
@@ -138,13 +138,15 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
         Returns:
             List[Annotation]: newly created relation annotations.
         """
+        assert self.regex_patterns is not None
+        assert self.chain is not None
         return self.run_chained_loops(text, self.regex_patterns, self.chain,
                                       entity_annotations=entity_annotations)
 
     def run_chained_loops(self, text: str,
                           regex_patterns: Dict[str, object],
                           chain: List[ChainLink],
-                          entity_annotations: List[Annotation] = None) -> List[Annotation]:
+                          entity_annotations: Optional[List[Annotation]] = None) -> List[Annotation]:
         """
         Build annotations from regex_patterns, then run a chain of proximity
         loops and return the resulting relation annotations.
@@ -198,6 +200,7 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
             )
             loops.append(loop)
 
+        assert self.relation_name is not None
         return run_loop(
             annotation_view_str=annotation_view_str,
             doc=text,
