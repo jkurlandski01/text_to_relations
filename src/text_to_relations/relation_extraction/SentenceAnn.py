@@ -1,5 +1,4 @@
 from typing import List
-from typing_extensions import Self
 
 
 from text_to_relations.relation_extraction.Annotation import Annotation
@@ -24,7 +23,7 @@ class SentenceAnn(Annotation):
 
 
     @staticmethod
-    def text_to_SentenceAnns(input: str) -> List[Self]:
+    def text_to_SentenceAnns(input: str) -> List['SentenceAnn']:
         """
         Split the given input text into sentences, and create a SentenceAnn
         on each one.
@@ -32,7 +31,7 @@ class SentenceAnn(Annotation):
             input (str): the text to split
 
         Returns:
-            List[Self]: a list of SentenceAnn annotations created on the
+            List[SentenceAnn]: a list of SentenceAnn annotations created on the
                 given text
         """
         sentenceSpans = spacy_model(input).sents
@@ -42,10 +41,10 @@ class SentenceAnn(Annotation):
 
         result = []
         startSearchIdx = 0
-        for sentence in sentenceStrs:
-            startIdx = input.find(sentence, startSearchIdx)
-            endIdx = startIdx + len(sentence)
-            sentAnn = SentenceAnn(sentence.strip(), startIdx, endIdx)
+        for sent_str in sentenceStrs:
+            startIdx = input.find(sent_str, startSearchIdx)
+            endIdx = startIdx + len(sent_str)
+            sentAnn = SentenceAnn(sent_str.strip(), startIdx, endIdx)
             result.append(sentAnn)
             startSearchIdx = endIdx
 
