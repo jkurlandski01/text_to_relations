@@ -10,6 +10,7 @@
 
 #Don't track content of these folders
 #####################################
+.claude/
 __pycache__/
 # venv
 .venv
