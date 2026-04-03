@@ -1,6 +1,5 @@
 import re
-from typing import Dict, Collection, List
-from typing_extensions import Self
+from typing import Dict, Collection, List, Optional
 
 from text_to_relations.relation_extraction import StringUtils
 
@@ -10,7 +9,7 @@ class Annotation(object):
 
     def __init__(self, type: str, contents: str,
                  start_offset: int, end_offset: int,
-                 properties: Dict[str, object]=None):
+                 properties: Optional[Dict[str, object]] = None):
         """
 
         Args:
@@ -41,7 +40,7 @@ class Annotation(object):
         self.properties = properties
 
 
-    def to_dict(self) -> Dict[str, str]:
+    def to_dict(self) -> Dict[str, object]:
         result = {'type': self.type,
                   'start': self.start_offset,
                   'end': self.end_offset,
@@ -86,21 +85,21 @@ class Annotation(object):
         return hash(self.__repr__())
 
     @staticmethod
-    def sort(items: Collection[Self]) -> Collection[Self]:
+    def sort(items: Collection['Annotation']) -> Collection['Annotation']:
         """
         Sort the in-coming collection of Annotations by starting and
         ending offset.
         Args:
-            items (Collection[Self]):
+            items (Collection['Annotation']):
 
         Returns:
-            Collection[Self]:
+            Collection['Annotation']:
         """
         anns = sorted(items, key=lambda p: (p.start_offset, p.end_offset), reverse=False)
         return anns
 
     @staticmethod
-    def str_to_Annotation(annStr: str) -> Self:
+    def str_to_Annotation(annStr: str) -> 'Annotation':
         """
         Convert the output of __repr__ to an Annotation object.
         Assuming that the strings are in one of these two forms:
@@ -111,7 +110,7 @@ class Annotation(object):
             annStr (str):
 
         Returns:
-            Self:
+            'Annotation':
         """
         matches = re.findall(Annotation.regexQuote, annStr)
         # We use '[1:-1]' to chop off the quote at either end.
@@ -124,14 +123,14 @@ class Annotation(object):
 
 
     @staticmethod
-    def encloses(ann1: Self, ann2: Self) -> bool:
+    def encloses(ann1: 'Annotation', ann2: 'Annotation') -> bool:
         """
         Does ann1 "enclose" ann2? I.e., is ann2 entirely contained within the bounds of ann1?
         Determination is made with starting and ending offsets only--the annotations'
         normalizedContents properties are ignored.
         Args:
-            ann1 (Self):
-            ann2 (Self):
+            ann1 ('Annotation'):
+            ann2 ('Annotation'):
 
         Returns:
             bool:
@@ -142,16 +141,16 @@ class Annotation(object):
 
 
     @staticmethod
-    def get_enclosed(ann: Self, ann_list: List[Self]) -> List[Self]:
+    def get_enclosed(ann: 'Annotation', ann_list: List['Annotation']) -> List['Annotation']:
         """
         Return the subset of the annotations in the given list which are enclosed
         by the given annotation.
         Args:
-            ann (Self):
-            ann_list (List[Self]):
+            ann ('Annotation'):
+            ann_list (List['Annotation']):
 
         Returns:
-            List[Self]:
+            List['Annotation']:
         """
         result = []
         for annElement in ann_list:
