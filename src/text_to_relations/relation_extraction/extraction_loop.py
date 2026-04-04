@@ -179,11 +179,12 @@ def run_loop(annotation_view_str: str,
                             match_triples_list=match_triples_list,
                             new_annotations=new_annotations,
                             verbose=verbose)
-        if verbose: print(f"\nrun_loop result: {recursive_result}\n")
+        if verbose:
+            print(f"\nrun_loop result: {recursive_result}\n")
         if recursive_result is None or recursive_result == []:
             del match_triples_list[-1]
             continue
-        elif type(recursive_result) == Annotation:
+        if isinstance(recursive_result, Annotation):
             if loop_idx == 0:
                 new_annotations.append(recursive_result)
                 # This next step results in non-overlapping annotations, and allows
@@ -192,8 +193,7 @@ def run_loop(annotation_view_str: str,
                 match_triples_list = []
                 continue
             return recursive_result
-        else:
-            raise ValueError(f"Unexpected result: {recursive_result}")
+        raise ValueError(f"Unexpected result: {recursive_result}")
 
     # Only the top-level call (loop_idx == 0) should return the accumulated results list.
     # Intermediate loops return [] to signal "no match found" to their caller; returning
@@ -232,4 +232,3 @@ def get_sorted_annotations_for_matching(text: str,
     anns = Annotation.sort(anns)
 
     return anns
-
