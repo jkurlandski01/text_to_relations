@@ -16,9 +16,9 @@ class TokenAnn(Annotation):
     def __init__(self, start_offset, end_offset, contents):
         if contents in TokenAnn.kindExceptions:
             kind = 'word'
-        elif StringUtils.isAllPunc(contents):
+        elif StringUtils.is_all_punc(contents):
             kind = 'punc'
-        elif StringUtils.isAllWordChars(contents):
+        elif StringUtils.is_all_word_chars(contents):
             kind = 'word'
         else:
             kind = 'other'

@@ -33,7 +33,7 @@ class Annotation:
         self.end_offset = end_offset
 
         cleaned_contents = contents.replace('\n', ' ')
-        self.normalizedContents = StringUtils.removeMultipleSpaces(cleaned_contents).strip()
+        self.normalizedContents = StringUtils.remove_multiple_spaces(cleaned_contents).strip()
 
         if properties is None:
             properties = {}

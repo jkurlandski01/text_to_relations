@@ -2,37 +2,37 @@ import re
 
 import unicodedata
 
-regexMultipleSpaces = re.compile(r' +', re.IGNORECASE)
+regex_multiple_spaces = re.compile(r' +', re.IGNORECASE)
 
-def removeMultipleSpaces(inStr: str) -> str:
+def remove_multiple_spaces(in_str: str) -> str:
     """ Remove multiple consecutive spaces from a string. """
-    return regexMultipleSpaces.sub(' ', inStr)
+    return regex_multiple_spaces.sub(' ', in_str)
 
 
-def isAllPunc(inputString: str) -> bool:
+def is_all_punc(input_string: str) -> bool:
     """
     Is the given string all punctuation?
-    :param inputString:
+    :param input_string:
     :return: boolean
     """
-    bAllPunc = True
-    for char in inputString:
+    all_punc = True
+    for char in input_string:
         category = unicodedata.category(char)
         if category.startswith('P') or category == 'Sm':
             continue
-        bAllPunc = False
+        all_punc = False
         break
 
-    return bAllPunc
+    return all_punc
 
 
-def isAllWordChars(inputStr: str) -> bool:
+def is_all_word_chars(input_str: str) -> bool:
     """
     Does the given string consist only of word characters?
     :return:
     """
-    regexWordChar = re.compile(r'^\w+$')
+    regex_word_char = re.compile(r'^\w+$')
 
-    if re.match(regexWordChar, inputStr):
+    if re.match(regex_word_char, input_str):
         return True
     return False
