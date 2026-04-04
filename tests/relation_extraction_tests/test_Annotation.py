@@ -19,7 +19,7 @@ class TestAnnotation(unittest.TestCase):
 
     def testStringToAnnotation(self):
         annStr = "<'ShareQuantity'(normalizedContents='15,000,000'start='0', end='10')>"
-        actual = Annotation.str_to_Annotation(annStr)
+        actual = Annotation.str_to_annotation(annStr)
 
         expected = Annotation('ShareQuantity', '15,000,000', 0, 10)
         self.assertEqual(expected, actual)
@@ -27,7 +27,7 @@ class TestAnnotation(unittest.TestCase):
 
     def testStringToAnnotationDifferent(self):
         annStr = "<'ShareQuantity'(normalizedContents='15,000,000', start='0', end='10')>"
-        actual = Annotation.str_to_Annotation(annStr)
+        actual = Annotation.str_to_annotation(annStr)
 
         expected = Annotation('zShareQuantity', '15,000,000', 0, 10)
         self.assertNotEqual(expected, actual)

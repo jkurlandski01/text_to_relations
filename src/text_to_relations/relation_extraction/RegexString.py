@@ -2,7 +2,7 @@ import re
 
 from typing import List, Tuple, Union, cast
 
-class RegexString(object):
+class RegexString:
     """
     A class wrapped around a regular expression, offering functionality
     to create, concatenate and construct complex regex strings via an

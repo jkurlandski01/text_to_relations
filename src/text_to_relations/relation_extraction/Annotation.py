@@ -3,11 +3,11 @@ from typing import Dict, Collection, List, Optional
 
 from text_to_relations.relation_extraction import StringUtils
 
-class Annotation(object):
+class Annotation:
     """Represents a typed, offset-based annotation (entity mention) in a document."""
     regexQuote = r"['\"].*?['\"]"
 
-    def __init__(self, type: str, contents: str,
+    def __init__(self, ann_type: str, contents: str,
                  start_offset: int, end_offset: int,
                  properties: Optional[Dict[str, object]] = None):
         """
@@ -28,12 +28,12 @@ class Annotation(object):
             msg = "Start and end offset cannot be less than 0. Start: " + str(start_offset) + "; End: " + str(end_offset)
             raise ValueError(msg)
 
-        self.type = type
+        self.type = ann_type
         self.start_offset = start_offset
         self.end_offset = end_offset
 
-        cleanedContents = contents.replace('\n', ' ')
-        self.normalizedContents = StringUtils.removeMultipleSpaces(cleanedContents).strip()
+        cleaned_contents = contents.replace('\n', ' ')
+        self.normalizedContents = StringUtils.removeMultipleSpaces(cleaned_contents).strip()
 
         if properties is None:
             properties = {}
@@ -41,6 +41,7 @@ class Annotation(object):
 
 
     def to_dict(self) -> Dict[str, object]:
+        """Return a dict representation with type, start, end, and text keys."""
         result = {'type': self.type,
                   'start': self.start_offset,
                   'end': self.end_offset,
@@ -50,35 +51,30 @@ class Annotation(object):
 
     def __repr__(self):
         if self.properties == {}:
-            result = "<'%s'(normalizedContents='%s', start='%s', end='%s')>" \
-                     % (self.type, self.normalizedContents, self.start_offset, self.end_offset)
+            result = f"<'{self.type}'(normalizedContents='{self.normalizedContents}', start='{self.start_offset}', end='{self.end_offset}')>"
         else:
             features = ''
-            for featureName in self.properties:
-                features += featureName + "='" + self.properties[featureName] + "', "
+            for feature_name in self.properties:
+                features += feature_name + "='" + self.properties[feature_name] + "', "
             # Remove last comma-space.
             features = features[0:-2]
 
-            result = "<'%s'(normalizedContents='%s', start='%s', end='%s', %s)>" \
-                     % (self.type, self.normalizedContents, self.start_offset, self.end_offset, features)
+            result = f"<'{self.type}'(normalizedContents='{self.normalizedContents}', start='{self.start_offset}', end='{self.end_offset}', {features})>"
 
         return result
 
     def __eq__(self, other):
         if not isinstance(other, Annotation):
             return False
-        elif self is other:
+        if self is other:
             return True
-        else:
-            if self.properties != other.properties:
-                return False
-
-            if self.type == other.type and \
-                        self.start_offset == other.start_offset and \
-                        self.end_offset == other.end_offset and \
-                        self.normalizedContents == other.normalizedContents:
-                    return True
-
+        if self.properties != other.properties:
+            return False
+        if self.type == other.type and \
+                self.start_offset == other.start_offset and \
+                self.end_offset == other.end_offset and \
+                self.normalizedContents == other.normalizedContents:
+            return True
         return False
 
     def __hash__(self):
@@ -99,7 +95,7 @@ class Annotation(object):
         return anns
 
     @staticmethod
-    def str_to_Annotation(annStr: str) -> 'Annotation':
+    def str_to_annotation(ann_str: str) -> 'Annotation':
         """
         Convert the output of __repr__ to an Annotation object.
         Assuming that the strings are in one of these two forms:
@@ -107,18 +103,18 @@ class Annotation(object):
         - '<"AnnotationName"(normalizedContents="...", start="m", end="n")>'
 
         Args:
-            annStr (str):
+            ann_str (str):
 
         Returns:
             'Annotation':
         """
-        matches = re.findall(Annotation.regexQuote, annStr)
+        matches = re.findall(Annotation.regexQuote, ann_str)
         # We use '[1:-1]' to chop off the quote at either end.
-        aType = matches[0][1:-1]
+        a_type = matches[0][1:-1]
         contents = matches[1][1:-1]
         start = int(matches[2][1:-1])
         end = int(matches[3][1:-1])
-        ann = Annotation(aType, contents, start, end)
+        ann = Annotation(a_type, contents, start, end)
         return ann
 
 
@@ -153,9 +149,9 @@ class Annotation(object):
             List['Annotation']:
         """
         result = []
-        for annElement in ann_list:
-            if Annotation.encloses(ann, annElement):
-                result.append(annElement)
+        for ann_element in ann_list:
+            if Annotation.encloses(ann, ann_element):
+                result.append(ann_element)
 
         return result
 

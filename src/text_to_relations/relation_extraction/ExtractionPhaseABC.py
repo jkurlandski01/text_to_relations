@@ -324,7 +324,7 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
             complete_strs.append('<' + in_str)
         if verbose:
             print(f"complete_strs: {complete_strs}")
-        anns = [Annotation.str_to_Annotation(c_str) for c_str in complete_strs]
+        anns = [Annotation.str_to_annotation(c_str) for c_str in complete_strs]
         return anns
 
 
