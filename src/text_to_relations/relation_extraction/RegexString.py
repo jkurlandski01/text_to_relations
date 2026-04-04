@@ -237,7 +237,7 @@ class RegexString(object):
         readyForDistanceRangeWordRegex = r'(?:' + wordRegex + ')'
 
         interveningPunc = r'(?:\b\S+)?'
-        interveningPuncAndSpace = interveningPunc + '\s'
+        interveningPuncAndSpace = interveningPunc + r'\s'
 
         # Check input parameters.
         if not isinstance(rs1, RegexString):
@@ -273,14 +273,14 @@ class RegexString(object):
                 firstPart = rs1.get_regex_str()[0:leftParenIdx] + \
                             '(?:' + rs1.get_regex_str()[leftParenIdx:ending_paren_pos] + \
                             interveningPunc + ')?'
-                joinStrRegex = readyForDistanceRangeWordRegex + wordDistanceRegex + '\s'
+                joinStrRegex = readyForDistanceRangeWordRegex + wordDistanceRegex + r'\s'
         else:
             firstPart = rs1.get_regex_str() + interveningPunc
 
             if min_nbr_words == 0 and max_nbr_words == 0:
-                joinStrRegex = '\s'
+                joinStrRegex = r'\s'
             else:
-                joinStrRegex = readyForDistanceRangeWordRegex + wordDistanceRegex + '\s'
+                joinStrRegex = readyForDistanceRangeWordRegex + wordDistanceRegex + r'\s'
 
 
         # Create an empty/invalid RegexString object, and make it valid by editing
@@ -382,7 +382,7 @@ if __name__ == '__main__':
 
     # Stamp descriptions from https://www.mysticstamp.com/.
 
-    input = \
+    input_text = \
     """
     # 11A - 1853-55 3¢ George Washington, dull red, type II, imperf
 
@@ -398,7 +398,7 @@ if __name__ == '__main__':
 
     # 62B - 1861 10c Washington, dark green
     """
-    input = inspect.cleandoc(input)
+    input_text = inspect.cleandoc(input_text)
 
     type_markers = ['type', 'Type']
     type_rs = RegexString(type_markers, whole_word=True)
@@ -412,41 +412,41 @@ if __name__ == '__main__':
                                                             roman_nums_rs,
                                                             min_nbr_words=0,
                                                             max_nbr_words=0)
-    matchStrs = type_phrase_rs.get_match_triples(input)
+    matchStrs = type_phrase_rs.get_match_triples(input_text)
     print("\nType info found in the input:")
     print(matchStrs)
 
     cent_symbols = ['c', '¢']
     # Use `prepend` to look for one or two digits before the cent symbol.
-    cent_rs = RegexString(cent_symbols, prepend='\d\d?')
+    cent_rs = RegexString(cent_symbols, prepend=r'\d\d?')
     print(f"\nRegular expression for 'cent_rs': {cent_rs.get_regex_str()}")
-    matchStrs = cent_rs.get_match_triples(input)
+    matchStrs = cent_rs.get_match_triples(input_text)
     print("\nCents info found in the input:")
     print(matchStrs)
 
     perforation_markers = ['perf', 'imperforate', 'imperf']
     perforations_rs = RegexString(perforation_markers)
-    matchStrs = perforations_rs.get_match_triples(input)
+    matchStrs = perforations_rs.get_match_triples(input_text)
     print("\nPerforation info:")
     print(matchStrs)
 
     # But if the stamp is perforated we want to also extract the number which follows.
     imperforated_markers = ['imperforate', 'imperf']
     imperf_rs = RegexString(imperforated_markers)
-    matchStrs = imperf_rs.get_match_triples(input)
+    matchStrs = imperf_rs.get_match_triples(input_text)
     print("\nImperforated:")
     print(matchStrs)
 
     perforation_markers = ['perf']
-    perf_rs = RegexString(perforation_markers, append=' \d\d')
-    matchStrs = perf_rs.get_match_triples(input)
+    perf_rs = RegexString(perforation_markers, append=r' \d\d')
+    matchStrs = perf_rs.get_match_triples(input_text)
     print("\nPerforated sizes:")
     print(matchStrs)
 
     colors = ['black', 'blue', 'brown', 'green', 'orange', 'red']
 
     colors_rs = RegexString(colors, whole_word=True)
-    matchStrs = colors_rs.get_match_triples(input)
+    matchStrs = colors_rs.get_match_triples(input_text)
     print("\nColors alone:")
     print(matchStrs)
 
@@ -456,7 +456,7 @@ if __name__ == '__main__':
 
     inputList: List[Union[List[str], int]] = [color_qualifiers, 0, colors]
     color_phrase_rs = RegexString.build_regex_string(inputList)
-    matchStrs = color_phrase_rs.get_match_triples(input)
+    matchStrs = color_phrase_rs.get_match_triples(input_text)
     print("\nColor qualifiers + colors:")
     print(matchStrs)
 
@@ -470,20 +470,20 @@ if __name__ == '__main__':
                                                             colors_rs,
                                                             min_nbr_words=0,
                                                             max_nbr_words=0)
-    matchStrs = color_phrase_rs.get_match_triples(input)
+    matchStrs = color_phrase_rs.get_match_triples(input_text)
     print("\nOptional color qualifiers + colors found in the input:")
     print(matchStrs)
 
 
     id_symbols = ['#']
 
-    id_rs = RegexString(id_symbols, append='\s\d+')
-    matchStrs = id_rs.get_match_triples(input)
+    id_rs = RegexString(id_symbols, append=r'\s\d+')
+    matchStrs = id_rs.get_match_triples(input_text)
     print("\nStamp IDs:")
     print(matchStrs)
 
     # Not getting the optional letter.
-    id_rs = RegexString(id_symbols, append='\s\d+(?:\w+)?')
-    matchStrs = id_rs.get_match_triples(input)
+    id_rs = RegexString(id_symbols, append=r'\s\d+(?:\w+)?')
+    matchStrs = id_rs.get_match_triples(input_text)
     print("\nStamp IDs with letters found in the input:")
     print(matchStrs)
