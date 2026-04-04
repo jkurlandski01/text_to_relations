@@ -1,12 +1,13 @@
+from typing import Tuple, List, Union, Optional
+
 from text_to_relations.relation_extraction import StringUtils
 from text_to_relations.relation_extraction import SpacyUtils
 from text_to_relations.relation_extraction.Annotation import Annotation
-from typing import Tuple, List, Union, Optional
 
 
 class TokenAnn(Annotation):
-    # A class of objects representing word tokens which "know" their
-    # starting and ending offsets in a source document.
+    """A class of objects representing word tokens which "know" their
+    starting and ending offsets in a source document."""
 
     # Contractions and the possessive 's are considered word tokens despite the apostrophe punctuation
     # which they contain.
@@ -46,12 +47,12 @@ class TokenAnn(Annotation):
         Returns:
             str: a regular expression
         """
-        distanceToken = 'Token'
+        distance_token = 'Token'
 
         result = r"<'"
         result += str(first_ann)
         result += r"[^>]*>(?:<'"
-        result += distanceToken
+        result += distance_token
 
         if token_type is None:
             result += r"[^>]*>){"
@@ -60,8 +61,8 @@ class TokenAnn(Annotation):
             result += token_type
             result += r"'[^>]*>){"
 
-        minTs, maxTs = word_distance_range
-        result += str(minTs) + ',' + str(maxTs)
+        min_ts, max_ts = word_distance_range
+        result += str(min_ts) + ',' + str(max_ts)
         result += r"}<'"
         result += str(second_ann)
         result += r"[^>]*>"
@@ -88,17 +89,17 @@ class TokenAnn(Annotation):
         # For each token, we find the first instance in this string--and use
         # that to determine the starting position. We replace the found substring
         # with x's to avoid the problem of repeating tokens.
-        consumedStr = input_str
+        consumed_str = input_str
 
-        tokenStrs = SpacyUtils.tokenize(input_str)
+        token_strs = SpacyUtils.tokenize(input_str)
 
         # lastPos = 0
-        for tokenStr in tokenStrs:
-            startPosInInput = consumedStr.index(tokenStr)
-            xStr = 'x' * len(tokenStr)
-            consumedStr = consumedStr.replace(tokenStr, xStr, 1)
-            endPosInInput = startPosInInput + len(tokenStr)
-            token = TokenAnn(start_pos_in_doc + startPosInInput, start_pos_in_doc + endPosInInput, tokenStr)
+        for token_str in token_strs:
+            start_pos_in_input = consumed_str.index(token_str)
+            x_str = 'x' * len(token_str)
+            consumed_str = consumed_str.replace(token_str, x_str, 1)
+            end_pos_in_input = start_pos_in_input + len(token_str)
+            token = TokenAnn(start_pos_in_doc + start_pos_in_input, start_pos_in_doc + end_pos_in_input, token_str)
             result.append(token)
 
         return result
@@ -116,16 +117,16 @@ class TokenAnn(Annotation):
         Returns:
             List['TokenAnn']: a list of TokenAnn annotations created on the given text
         """
-        tokenStrs = SpacyUtils.tokenize(text_input)
+        token_strs = SpacyUtils.tokenize(text_input)
 
         result = []
-        startSearchIdx = 0
-        for token in tokenStrs:
-            startIdx = text_input.find(token, startSearchIdx)
-            endIdx = startIdx + len(token)
-            tokenAnn = TokenAnn(startIdx, endIdx, token.strip())
-            result.append(tokenAnn)
-            startSearchIdx = endIdx
+        start_search_idx = 0
+        for token in token_strs:
+            start_idx = text_input.find(token, start_search_idx)
+            end_idx = start_idx + len(token)
+            token_ann = TokenAnn(start_idx, end_idx, token.strip())
+            result.append(token_ann)
+            start_search_idx = end_idx
 
         return result
 
