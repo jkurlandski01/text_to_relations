@@ -11,7 +11,7 @@ class TestSentenceAnn(unittest.TestCase):
         textIn += "She loves me. "
         textIn += "She loves me not."
 
-        actual = SentenceAnn.text_to_SentenceAnns(textIn)
+        actual = SentenceAnn.text_to_sentence_anns(textIn)
         expected = [SentenceAnn("She loves me.", 0, 13),
                     SentenceAnn("She loves me not.", 14, 31),
                     SentenceAnn("She loves me.", 32, 45),
@@ -27,7 +27,7 @@ class TestSentenceAnn(unittest.TestCase):
 
         textIn = textIn1 + " " + textIn2
 
-        actual = SentenceAnn.text_to_SentenceAnns(textIn)
+        actual = SentenceAnn.text_to_sentence_anns(textIn)
         expected = [SentenceAnn(textIn1, 0, 190),
                     SentenceAnn(textIn2, 191, 323)]
         self.assertEqual(expected, actual)

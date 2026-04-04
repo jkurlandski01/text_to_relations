@@ -23,30 +23,30 @@ class SentenceAnn(Annotation):
 
 
     @staticmethod
-    def text_to_SentenceAnns(input: str) -> List['SentenceAnn']:
+    def text_to_sentence_anns(text: str) -> List['SentenceAnn']:
         """
         Split the given input text into sentences, and create a SentenceAnn
         on each one.
         Args:
-            input (str): the text to split
+            text (str): the text to split
 
         Returns:
             List[SentenceAnn]: a list of SentenceAnn annotations created on the
                 given text
         """
-        sentenceSpans = spacy_model(input).sents
-        sentenceStrs = []
-        for sentence in sentenceSpans:
-            sentenceStrs.append(sentence.text.strip())
+        sentence_spans = spacy_model(text).sents
+        sentence_strs = []
+        for sentence in sentence_spans:
+            sentence_strs.append(sentence.text.strip())
 
         result = []
-        startSearchIdx = 0
-        for sent_str in sentenceStrs:
-            startIdx = input.find(sent_str, startSearchIdx)
-            endIdx = startIdx + len(sent_str)
-            sentAnn = SentenceAnn(sent_str.strip(), startIdx, endIdx)
-            result.append(sentAnn)
-            startSearchIdx = endIdx
+        start_search_idx = 0
+        for sent_str in sentence_strs:
+            start_idx = text.find(sent_str, start_search_idx)
+            end_idx = start_idx + len(sent_str)
+            sent_ann = SentenceAnn(sent_str.strip(), start_idx, end_idx)
+            result.append(sent_ann)
+            start_search_idx = end_idx
 
         return result
 

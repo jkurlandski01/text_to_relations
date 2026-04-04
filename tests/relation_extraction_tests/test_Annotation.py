@@ -71,7 +71,7 @@ class TestAnnotation(unittest.TestCase):
         textIn = textIn1 + " " + textIn2
 
         # Get and verify the sentence annotations.
-        sentenceAnns = SentenceAnn.text_to_SentenceAnns(textIn)
+        sentenceAnns = SentenceAnn.text_to_sentence_anns(textIn)
         # The sentence splitter splits the text into three, not two.
         sentenceAnn1 = SentenceAnn(textIn1, 0, 172)
         sentenceAnn2 = SentenceAnn('Â', 173, 174)
