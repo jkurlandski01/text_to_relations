@@ -1,3 +1,6 @@
+"""
+RegexString: a wrapper around regular expressions for building and combining patterns.
+"""
 import re
 
 from typing import List, Tuple, Union, cast
@@ -72,7 +75,7 @@ class RegexString:
             if r'\b' in self.prepend:
                 msg += f"'prepend'. prepend = '{self.prepend}'."
                 raise ValueError(msg)
-            elif r'\b' in self.append:
+            if r'\b' in self.append:
                 msg += f"'append'. append = '{self.append}'."
                 raise ValueError(msg)
 
@@ -140,13 +143,14 @@ class RegexString:
         """
         return self.regex_str
 
-    def get_match_triples(self, input: str, case_insensitive: bool = False) -> List[Tuple]:
+    def get_match_triples(self, text: str, case_insensitive: bool = False) -> List[Tuple]:
         """
         Run re.finditer() on this regex.
-        Note that this function is likely to fail if you have created any RegexString objects where non-group capturing is False.
+        Note that this function is likely to fail if you have created any
+        RegexString objects where non-group capturing is False.
 
         Args:
-            input (str): text to run re.finditer() against.
+            text (str): text to run re.finditer() against.
             case_insensitive (bool): if True, matching ignores case and the
                 matched text in each triple preserves the original casing of
                 the input string. Defaults to False.
@@ -155,7 +159,8 @@ class RegexString:
             triples.
         """
         flags = re.IGNORECASE if case_insensitive else 0
-        match_triples = [(m.group(), m.start(), m.end()) for m in re.finditer(self.get_regex_str(), input, flags)]
+        match_triples = [(m.group(), m.start(), m.end())
+                         for m in re.finditer(self.get_regex_str(), text, flags)]
         return match_triples
 
     @staticmethod
@@ -184,21 +189,21 @@ class RegexString:
             raise ValueError("rs2 parameter must be a RegexString object.")
 
         if insert_opt_ws:
-            joinStrRegex = r'(?:\s)?'
+            join_str_regex = r'(?:\s)?'
         else:
-            joinStrRegex = ''  # In other words, no whitespace allowed.
+            join_str_regex = ''  # In other words, no whitespace allowed.
 
         # Create an empty/invalid RegexString object, and make it valid by editing
         # its regex_str property.
-        resultRegexString = RegexString([''])
-        resultRegexString.regex_str = rs1.regex_str + joinStrRegex + rs2.regex_str
+        result_regex_string = RegexString([''])
+        result_regex_string.regex_str = rs1.regex_str + join_str_regex + rs2.regex_str
 
         if rs2.optional:
-            resultRegexString.optional = True
+            result_regex_string.optional = True
         else:
-            resultRegexString.optional = False
+            result_regex_string.optional = False
 
-        return resultRegexString
+        return result_regex_string
 
 
     @staticmethod
@@ -233,11 +238,11 @@ class RegexString:
             RegexString: the new RegexString
         """
         # Constants.
-        wordRegex = r'\s\S+'
-        readyForDistanceRangeWordRegex = r'(?:' + wordRegex + ')'
+        word_regex = r'\s\S+'
+        ready_for_distance_range_word_regex = r'(?:' + word_regex + ')'
 
-        interveningPunc = r'(?:\b\S+)?'
-        interveningPuncAndSpace = interveningPunc + r'\s'
+        intervening_punc = r'(?:\b\S+)?'
+        intervening_punc_and_space = intervening_punc + r'\s'
 
         # Check input parameters.
         if not isinstance(rs1, RegexString):
@@ -249,7 +254,7 @@ class RegexString:
             raise ValueError("min_nbr_words cannot be greater than max_nbr_words.")
 
         # Set min/max word distance.
-        wordDistanceRegex = '{' + str(min_nbr_words) + ',' + str(max_nbr_words) + '}'
+        word_distance_regex = '{' + str(min_nbr_words) + ',' + str(max_nbr_words) + '}'
 
         if rs1.optional:
             ending_paren_pos = -1
@@ -257,43 +262,43 @@ class RegexString:
                 # Things get a little messy if both rs1.optional and rs1.whole_word.
                 ending_paren_pos = -3
                 # We don't have to worry about the \b for rs1 because
-                # `interveningPuncAndSpace` contains a \b.
+                # `intervening_punc_and_space` contains a \b.
 
             # (Assuming that it ends in '?'.)
             # Find the left parens which the last '?' pertains to
-            leftParenIdx = rs1.get_regex_str().rfind('(')
+            left_paren_idx = rs1.get_regex_str().rfind('(')
 
             if min_nbr_words == 0 and max_nbr_words == 0:
-                firstPart = rs1.get_regex_str()[0:leftParenIdx] + \
-                            '(?:' + rs1.get_regex_str()[leftParenIdx : ending_paren_pos] + \
-                            interveningPuncAndSpace + \
+                first_part = rs1.get_regex_str()[0:left_paren_idx] + \
+                            '(?:' + rs1.get_regex_str()[left_paren_idx : ending_paren_pos] + \
+                            intervening_punc_and_space + \
                             ')?'
-                joinStrRegex = ''
+                join_str_regex = ''
             else:
-                firstPart = rs1.get_regex_str()[0:leftParenIdx] + \
-                            '(?:' + rs1.get_regex_str()[leftParenIdx:ending_paren_pos] + \
-                            interveningPunc + ')?'
-                joinStrRegex = readyForDistanceRangeWordRegex + wordDistanceRegex + r'\s'
+                first_part = rs1.get_regex_str()[0:left_paren_idx] + \
+                            '(?:' + rs1.get_regex_str()[left_paren_idx:ending_paren_pos] + \
+                            intervening_punc + ')?'
+                join_str_regex = ready_for_distance_range_word_regex + word_distance_regex + r'\s'
         else:
-            firstPart = rs1.get_regex_str() + interveningPunc
+            first_part = rs1.get_regex_str() + intervening_punc
 
             if min_nbr_words == 0 and max_nbr_words == 0:
-                joinStrRegex = r'\s'
+                join_str_regex = r'\s'
             else:
-                joinStrRegex = readyForDistanceRangeWordRegex + wordDistanceRegex + r'\s'
+                join_str_regex = ready_for_distance_range_word_regex + word_distance_regex + r'\s'
 
 
         # Create an empty/invalid RegexString object, and make it valid by editing
         # its regex_str property.
-        resultRegexString = RegexString([''])
-        resultRegexString.regex_str = firstPart + joinStrRegex + rs2.regex_str
+        result_regex_string = RegexString([''])
+        result_regex_string.regex_str = first_part + join_str_regex + rs2.regex_str
 
         if rs2.optional:
-            resultRegexString.optional = True
+            result_regex_string.optional = True
         else:
-            resultRegexString.optional = False
+            result_regex_string.optional = False
 
-        return resultRegexString
+        return result_regex_string
 
 
     @staticmethod
@@ -343,24 +348,23 @@ class RegexString:
             msg += "phraseList3, ...'"
             raise ValueError(msg)
 
-        finalRegexStr = None
-        currRegexStr = RegexString(cast(List[str], input_list[0]))
-        currMaxDistance = cast(int, input_list[1])
+        final_regex_str = None
+        curr_regex_str = RegexString(cast(List[str], input_list[0]))
+        curr_max_distance = cast(int, input_list[1])
         idx = 2
         while idx < len(input_list):
-            nextRegexStr = RegexString(cast(List[str], input_list[idx]))
-            finalRegexStr = RegexString.concat_with_word_distances(currRegexStr,
-                                                                   nextRegexStr,
-                                                                   max_nbr_words=currMaxDistance)
+            next_regex_str = RegexString(cast(List[str], input_list[idx]))
+            final_regex_str = RegexString.concat_with_word_distances(
+                curr_regex_str, next_regex_str, max_nbr_words=curr_max_distance)
             if idx + 2 < len(input_list):
-                currRegexStr = finalRegexStr
-                currMaxDistance = cast(int, input_list[idx+1])
+                curr_regex_str = final_regex_str
+                curr_max_distance = cast(int, input_list[idx+1])
                 idx += 2
             else:
                 idx += 1
 
-        assert finalRegexStr is not None
-        return finalRegexStr
+        assert final_regex_str is not None
+        return final_regex_str
 
 
     def __repr__(self):
@@ -370,9 +374,9 @@ class RegexString:
     def __eq__(self, other):
         if type(self) != type(other):
             return False
-        elif self is other:
+        if self is other:
             return True
-        elif self.get_regex_str() == other.get_regex_str():
+        if self.get_regex_str() == other.get_regex_str():
             return True
         return False
 
@@ -412,53 +416,53 @@ if __name__ == '__main__':
                                                             roman_nums_rs,
                                                             min_nbr_words=0,
                                                             max_nbr_words=0)
-    matchStrs = type_phrase_rs.get_match_triples(input_text)
+    results = type_phrase_rs.get_match_triples(input_text)
     print("\nType info found in the input:")
-    print(matchStrs)
+    print(results)
 
     cent_symbols = ['c', '¢']
     # Use `prepend` to look for one or two digits before the cent symbol.
     cent_rs = RegexString(cent_symbols, prepend=r'\d\d?')
     print(f"\nRegular expression for 'cent_rs': {cent_rs.get_regex_str()}")
-    matchStrs = cent_rs.get_match_triples(input_text)
+    results = cent_rs.get_match_triples(input_text)
     print("\nCents info found in the input:")
-    print(matchStrs)
+    print(results)
 
     perforation_markers = ['perf', 'imperforate', 'imperf']
     perforations_rs = RegexString(perforation_markers)
-    matchStrs = perforations_rs.get_match_triples(input_text)
+    results = perforations_rs.get_match_triples(input_text)
     print("\nPerforation info:")
-    print(matchStrs)
+    print(results)
 
     # But if the stamp is perforated we want to also extract the number which follows.
     imperforated_markers = ['imperforate', 'imperf']
     imperf_rs = RegexString(imperforated_markers)
-    matchStrs = imperf_rs.get_match_triples(input_text)
+    results = imperf_rs.get_match_triples(input_text)
     print("\nImperforated:")
-    print(matchStrs)
+    print(results)
 
     perforation_markers = ['perf']
     perf_rs = RegexString(perforation_markers, append=r' \d\d')
-    matchStrs = perf_rs.get_match_triples(input_text)
+    results = perf_rs.get_match_triples(input_text)
     print("\nPerforated sizes:")
-    print(matchStrs)
+    print(results)
 
     colors = ['black', 'blue', 'brown', 'green', 'orange', 'red']
 
     colors_rs = RegexString(colors, whole_word=True)
-    matchStrs = colors_rs.get_match_triples(input_text)
+    results = colors_rs.get_match_triples(input_text)
     print("\nColors alone:")
-    print(matchStrs)
+    print(results)
 
     # Create the qualifiers.
     # Add colors to the qualifiers, so that we can ID, e.g. 'orange brown'.
     color_qualifiers = ['bright', 'dark', 'dull'] + colors
 
-    inputList: List[Union[List[str], int]] = [color_qualifiers, 0, colors]
-    color_phrase_rs = RegexString.build_regex_string(inputList)
-    matchStrs = color_phrase_rs.get_match_triples(input_text)
+    color_input_list: List[Union[List[str], int]] = [color_qualifiers, 0, colors]
+    color_phrase_rs = RegexString.build_regex_string(color_input_list)
+    results = color_phrase_rs.get_match_triples(input_text)
     print("\nColor qualifiers + colors:")
-    print(matchStrs)
+    print(results)
 
     # Not getting the colors not preceded by a qualifier.
     # Make the qualifier optional.
@@ -470,20 +474,20 @@ if __name__ == '__main__':
                                                             colors_rs,
                                                             min_nbr_words=0,
                                                             max_nbr_words=0)
-    matchStrs = color_phrase_rs.get_match_triples(input_text)
+    results = color_phrase_rs.get_match_triples(input_text)
     print("\nOptional color qualifiers + colors found in the input:")
-    print(matchStrs)
+    print(results)
 
 
     id_symbols = ['#']
 
     id_rs = RegexString(id_symbols, append=r'\s\d+')
-    matchStrs = id_rs.get_match_triples(input_text)
+    results = id_rs.get_match_triples(input_text)
     print("\nStamp IDs:")
-    print(matchStrs)
+    print(results)
 
     # Not getting the optional letter.
     id_rs = RegexString(id_symbols, append=r'\s\d+(?:\w+)?')
-    matchStrs = id_rs.get_match_triples(input_text)
+    results = id_rs.get_match_triples(input_text)
     print("\nStamp IDs with letters found in the input:")
-    print(matchStrs)
+    print(results)
