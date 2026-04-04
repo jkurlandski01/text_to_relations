@@ -164,6 +164,8 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
         Returns:
             List[Annotation]: newly created relation annotations.
         """
+        # Imported here rather than at the top of the file to avoid a circular import:
+        # extraction_loop imports ExtractionPhaseABC, so a top-level import would create a cycle.
         from text_to_relations.relation_extraction.extraction_loop import (
             ExtractionLoop, run_loop, get_sorted_annotations_for_matching)
 
@@ -181,7 +183,7 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
             # the same value under the same key, which is harmless.
             properties = {}
             for i, triple in enumerate(match_triples):
-                non_token_anns = [a for a in ExtractionPhaseABC.merged_representation_to_Annotations(triple[0])
+                non_token_anns = [a for a in ExtractionPhaseABC.merged_representation_to_annotations(triple[0])
                                   if a.type != 'Token']
                 if non_token_anns:
                     properties[chain[i].start_property] = non_token_anns[0].normalizedContents
@@ -190,7 +192,7 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
 
         loops = []
         for i, link in enumerate(chain):
-            is_last = (i == len(chain) - 1)
+            is_last = i == len(chain) - 1
             regex = TokenAnn.build_annotation_distance_regex(
                 link.start_type, (link.min_distance, link.max_distance), None, link.end_type)
             loop = ExtractionLoop(
@@ -246,56 +248,56 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
         contents = doc_contents.rstrip()
 
         # If this is empty after the process, something may be wrong.
-        unconsumedAnnotations = anns
+        unconsumed_annotations = anns
 
         result = ""
-        lastPos = 0
+        last_pos = 0
 
         # Strategy: Tokenize the doc and iterate through all the tokens. If a token
         # is covered by an annotation, write that annotation to the output and advance
-        # lastPos to the end of the annotation; otherwise, write the token to output
+        # last_pos to the end of the annotation; otherwise, write the token to output
         # and continue.
-        tokensObjs = TokenAnn.get_token_objects(contents, 0)
+        token_objs = TokenAnn.get_token_objects(contents, 0)
 
-        for tokenObj in tokensObjs:
+        for token_obj in token_objs:
 
-            if lastPos > tokenObj.start_offset:
+            if last_pos > token_obj.start_offset:
                 continue
 
-            tempAnns = unconsumedAnnotations
-            foundAnn = False
-            for ann in tempAnns:
-                if ann.start_offset <= tokenObj.start_offset:
-                    # Write the annotation and remove it from the unconsumedAnnotations.
-                    unconsumedAnnotations = unconsumedAnnotations[1:]
+            temp_anns = unconsumed_annotations
+            found_ann = False
+            for ann in temp_anns:
+                if ann.start_offset <= token_obj.start_offset:
+                    # Write the annotation and remove it from the unconsumed_annotations.
+                    unconsumed_annotations = unconsumed_annotations[1:]
                     result += str(ann)
                     if verbose:
                         print(str(ann))
-                    lastPos = ann.end_offset
-                    foundAnn = True
+                    last_pos = ann.end_offset
+                    found_ann = True
                 else:
                     break
 
-            if foundAnn:
+            if found_ann:
                 continue
 
             # This token occurs in the document before the next unconsumed annotation. Write it to
             # output.
-            result += str(tokenObj)
+            result += str(token_obj)
 
-            lastPos = tokenObj.end_offset
+            last_pos = token_obj.end_offset
 
         # Verify that all the annotations have been consumed.
-        if len(unconsumedAnnotations) > 0:
+        if len(unconsumed_annotations) > 0:
             msg = "Final annotations in the anns parameter not inserted into the merged document."
-            msg += f"  unconsumed annotations: {unconsumedAnnotations}"
+            msg += f"  unconsumed annotations: {unconsumed_annotations}"
             raise ValueError(msg)
 
         return result
 
 
     @staticmethod
-    def merged_representation_to_Annotations(rep: str,
+    def merged_representation_to_annotations(rep: str,
                                     verbose: bool=False) -> List[Annotation]:
         """
         Essentially reverses build_merged_representation(). From a merged representation,
@@ -317,9 +319,11 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
         for in_str in incomplete_strs:
             if not in_str:
                 continue
-            if verbose: print(f"in_str: {in_str}")
+            if verbose:
+                print(f"in_str: {in_str}")
             complete_strs.append('<' + in_str)
-        if verbose: print(f"complete_strs: {complete_strs}")
+        if verbose:
+            print(f"complete_strs: {complete_strs}")
         anns = [Annotation.str_to_Annotation(c_str) for c_str in complete_strs]
         return anns
 

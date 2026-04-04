@@ -150,9 +150,9 @@ def run_loop(annotation_view_str: str,
         if curr_loop.determine_new_annotation_properties:
             if verbose:
                 print(f"\n  Found final match. triple: {triple}")
-            m0_anns = ExtractionPhaseABC.merged_representation_to_Annotations(match_triples_list[0][0])
+            m0_anns = ExtractionPhaseABC.merged_representation_to_annotations(match_triples_list[0][0])
             start = m0_anns[0].start_offset
-            m_last_anns = ExtractionPhaseABC.merged_representation_to_Annotations(match_triples_list[-1][0])
+            m_last_anns = ExtractionPhaseABC.merged_representation_to_annotations(match_triples_list[-1][0])
             end = m_last_anns[-1].end_offset
             substr = doc[start:end]
             properties = curr_loop.determine_new_annotation_properties(match_triples_list)
