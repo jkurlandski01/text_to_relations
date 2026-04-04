@@ -1,8 +1,8 @@
 from typing import List
 
+import spacy
 
 from text_to_relations.relation_extraction.Annotation import Annotation
-import spacy
 
 spacy_model = spacy.load('en_core_web_lg', disable=["tagger", "ner", "lemmatizer"])
 spacy_model.add_pipe('sentencizer')
