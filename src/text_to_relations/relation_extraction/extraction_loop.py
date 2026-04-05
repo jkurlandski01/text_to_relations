@@ -137,7 +137,8 @@ def run_loop(annotation_view_str: str,
     # Recursive functionality begins here.
 
     # Create a list of (substring, start_offset, end_offset) triples for the current loop's regex string.
-    match_triples = [(m.group(), m.start(), m.end()) for m in re.finditer(curr_loop.regex_str, annotation_view_str)]
+    match_triples = [(m.group(), m.start(), m.end())
+                     for m in re.finditer(curr_loop.regex_str, annotation_view_str)]
 
     for triple in match_triples:
         match_triples_list.append(triple)
@@ -150,9 +151,11 @@ def run_loop(annotation_view_str: str,
         if curr_loop.determine_new_annotation_properties:
             if verbose:
                 print(f"\n  Found final match. triple: {triple}")
-            m0_anns = ExtractionPhaseABC.merged_representation_to_annotations(match_triples_list[0][0])
+            m0_anns = ExtractionPhaseABC.merged_representation_to_annotations(
+                match_triples_list[0][0])
             start = m0_anns[0].start_offset
-            m_last_anns = ExtractionPhaseABC.merged_representation_to_annotations(match_triples_list[-1][0])
+            m_last_anns = ExtractionPhaseABC.merged_representation_to_annotations(
+                match_triples_list[-1][0])
             end = m_last_anns[-1].end_offset
             substr = doc[start:end]
             properties = curr_loop.determine_new_annotation_properties(match_triples_list)

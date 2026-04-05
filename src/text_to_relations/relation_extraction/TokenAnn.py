@@ -9,8 +9,8 @@ class TokenAnn(Annotation):
     """A class of objects representing word tokens which "know" their
     starting and ending offsets in a source document."""
 
-    # Contractions and the possessive 's are considered word tokens despite the apostrophe punctuation
-    # which they contain.
+    # Contractions and the possessive 's are considered word tokens despite the
+    # apostrophe punctuation which they contain.
     kindExceptions = ["'s", "'ve", "'d", "'ll", "n't"]
 
     def __init__(self, start_offset, end_offset, contents):
@@ -38,10 +38,10 @@ class TokenAnn(Annotation):
 
         Args:
             first_ann (Annotation):
-            word_distance_range (Tuple[int, int]): a pair of integers, whose first element is a minimum token distance
-        and whose second element is a maximum token distance
-            token_kind (str): the Token.kind property necessary for a match; None if all Token objects
-        are to match
+            word_distance_range (Tuple[int, int]): a pair of integers, whose first element is a
+        minimum token distance and whose second element is a maximum token distance
+            token_kind (str): the Token.kind property necessary for a match; None if all Token
+        objects are to match
             second_ann (Annotation):
 
         Returns:
@@ -99,7 +99,8 @@ class TokenAnn(Annotation):
             x_str = 'x' * len(token_str)
             consumed_str = consumed_str.replace(token_str, x_str, 1)
             end_pos_in_input = start_pos_in_input + len(token_str)
-            token = TokenAnn(start_pos_in_doc + start_pos_in_input, start_pos_in_doc + end_pos_in_input, token_str)
+            token = TokenAnn(start_pos_in_doc + start_pos_in_input,
+                             start_pos_in_doc + end_pos_in_input, token_str)
             result.append(token)
 
         return result

@@ -118,11 +118,13 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
         for prop in all_props:
             if prop in seen:
                 raise ValueError(
-                    f"{type(self).__name__}: property name {prop!r} appears more than once in the chain"
+                    f"{type(self).__name__}: property name {prop!r} appears more than once "
+                    f"in the chain"
                 )
             seen.add(prop)
 
-    def find_match(self, text: str, entity_annotations: Optional[List[Annotation]] = None) -> List[Annotation]:
+    def find_match(self, text: str,
+                   entity_annotations: Optional[List[Annotation]] = None) -> List[Annotation]:
         """
         Process text input and return any extracted relation annotations.
 
@@ -170,7 +172,8 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
             ExtractionLoop, run_loop, get_sorted_annotations_for_matching)
 
         given_anns = list(entity_annotations) if entity_annotations else []
-        anns = get_sorted_annotations_for_matching(text=text, regex_strs=regex_patterns, given_anns=given_anns)
+        anns = get_sorted_annotations_for_matching(
+            text=text, regex_strs=regex_patterns, given_anns=given_anns)
         annotation_view_str = ExtractionPhaseABC.build_merged_representation(text, anns)
 
         def _determine_properties(match_triples):
@@ -183,7 +186,8 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
             # the same value under the same key, which is harmless.
             properties = {}
             for i, triple in enumerate(match_triples):
-                non_token_anns = [a for a in ExtractionPhaseABC.merged_representation_to_annotations(triple[0])
+                non_token_anns = [a for a in
+                                  ExtractionPhaseABC.merged_representation_to_annotations(triple[0])
                                   if a.type != 'Token']
                 if non_token_anns:
                     properties[chain[i].start_property] = non_token_anns[0].normalizedContents

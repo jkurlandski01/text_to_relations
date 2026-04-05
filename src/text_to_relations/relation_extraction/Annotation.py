@@ -21,11 +21,13 @@ class Annotation:
                 adding attributes. Defaults to None.
         """
         if start_offset > end_offset:
-            msg = "Start offset cannot be greater than end offset. Start: " + str(start_offset) + "; End: " + str(end_offset)
+            msg = ("Start offset cannot be greater than end offset. Start: "
+                   + str(start_offset) + "; End: " + str(end_offset))
             raise ValueError(msg)
 
         if start_offset < 0 or end_offset < 0:
-            msg = "Start and end offset cannot be less than 0. Start: " + str(start_offset) + "; End: " + str(end_offset)
+            msg = ("Start and end offset cannot be less than 0. Start: "
+                   + str(start_offset) + "; End: " + str(end_offset))
             raise ValueError(msg)
 
         self.type = ann_type
@@ -51,7 +53,8 @@ class Annotation:
 
     def __repr__(self):
         if self.properties == {}:
-            result = f"<'{self.type}'(normalizedContents='{self.normalizedContents}', start='{self.start_offset}', end='{self.end_offset}')>"
+            result = (f"<'{self.type}'(normalizedContents='{self.normalizedContents}', "
+                      f"start='{self.start_offset}', end='{self.end_offset}')>")
         else:
             features = ''
             for feature_name in self.properties:
@@ -59,7 +62,8 @@ class Annotation:
             # Remove last comma-space.
             features = features[0:-2]
 
-            result = f"<'{self.type}'(normalizedContents='{self.normalizedContents}', start='{self.start_offset}', end='{self.end_offset}', {features})>"
+            result = (f"<'{self.type}'(normalizedContents='{self.normalizedContents}', "
+                      f"start='{self.start_offset}', end='{self.end_offset}', {features})>")
 
         return result
 
