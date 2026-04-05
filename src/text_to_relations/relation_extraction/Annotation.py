@@ -35,8 +35,8 @@ class Annotation:
         self.end_offset = end_offset
 
         cleaned_contents = contents.replace('\n', ' ')
-        # contents with newlines replaced by spaces, multiple spaces collapsed, and whitespace stripped.
-        self.normalized_contents = StringUtils.remove_multiple_spaces(cleaned_contents).strip()
+        # Contents with newlines replaced by spaces, multiple spaces collapsed, and whitespace stripped.
+        self.text = StringUtils.remove_multiple_spaces(cleaned_contents).strip()
 
         if properties is None:
             properties = {}
@@ -48,13 +48,13 @@ class Annotation:
         result = {'type': self.type,
                   'start': self.start_offset,
                   'end': self.end_offset,
-                  'text': self.normalized_contents}
+                  'text': self.text}
         return result
 
 
     def __repr__(self):
         if self.properties == {}:
-            result = (f"<'{self.type}'(normalizedContents='{self.normalized_contents}', "
+            result = (f"<'{self.type}'(text='{self.text}', "
                       f"start='{self.start_offset}', end='{self.end_offset}')>")
         else:
             features = ''
@@ -63,7 +63,7 @@ class Annotation:
             # Remove last comma-space.
             features = features[0:-2]
 
-            result = (f"<'{self.type}'(normalizedContents='{self.normalized_contents}', "
+            result = (f"<'{self.type}'(text='{self.text}', "
                       f"start='{self.start_offset}', end='{self.end_offset}', {features})>")
 
         return result
@@ -78,7 +78,7 @@ class Annotation:
         if self.type == other.type and \
                 self.start_offset == other.start_offset and \
                 self.end_offset == other.end_offset and \
-                self.normalized_contents == other.normalized_contents:
+                self.text == other.text:
             return True
         return False
 
@@ -104,8 +104,8 @@ class Annotation:
         """
         Convert the output of __repr__ to an Annotation object.
         Assuming that the strings are in one of these two forms:
-        - "<'AnnotationName'(normalizedContents='...', start='m', end='n')>"
-        - '<"AnnotationName"(normalizedContents="...", start="m", end="n")>'
+        - "<'AnnotationName'(text='...', start='m', end='n')>"
+        - '<"AnnotationName"(text="...", start="m", end="n")>'
 
         Args:
             ann_str (str):
@@ -128,7 +128,7 @@ class Annotation:
         """
         Does ann1 "enclose" ann2? I.e., is ann2 entirely contained within the bounds of ann1?
         Determination is made with starting and ending offsets only--the annotations'
-        normalizedContents properties are ignored.
+        text properties are ignored.
         Args:
             ann1 ('Annotation'):
             ann2 ('Annotation'):

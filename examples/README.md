@@ -15,21 +15,21 @@ Calling the subclass constructor (e.g. `StampDescriptionPhase()`) creates an ins
 **The annotation-view string**: During processing, `run_chained_loops()` converts the raw text segment into a string held in the variable `annotation_view_str`: it is a flat string in which each recognized entity span is replaced by a structured tag, and every remaining token becomes a generic `Token` tag. `run_loop()` then applies its proximity regexes against this string rather than the original text. For the first stamp entry, the `annotation_view_str` looks like the following (formatted here one tag per line; the actual string is one continuous sequence):
 
 ```
-<'StampID'(normalizedContents='# 11A', start='0', end='5')>
-<'Token'(normalizedContents='-', start='6', end='7', kind='punc')>
-<'Token'(normalizedContents='1853', start='8', end='12', kind='word')>
-<'Token'(normalizedContents='-', start='12', end='13', kind='punc')>
-<'Token'(normalizedContents='55', start='13', end='15', kind='word')>
-<'Denomination'(normalizedContents='3¢', start='16', end='18')>
-<'Token'(normalizedContents='George', start='19', end='25', kind='word')>
-<'Token'(normalizedContents='Washington', start='26', end='36', kind='word')>
-<'Token'(normalizedContents=',', start='36', end='37', kind='punc')>
-<'Token'(normalizedContents='dull', start='38', end='42', kind='word')>
-<'Token'(normalizedContents='red', start='43', end='46', kind='word')>
-<'Token'(normalizedContents=',', start='46', end='47', kind='punc')>
-<'TypePhrase'(normalizedContents='type II', start='48', end='55')>
-<'Token'(normalizedContents=',', start='55', end='56', kind='punc')>
-<'Perforation'(normalizedContents='imperf', start='57', end='63')>
+<'StampID'(text='# 11A', start='0', end='5')>
+<'Token'(text='-', start='6', end='7', kind='punc')>
+<'Token'(text='1853', start='8', end='12', kind='word')>
+<'Token'(text='-', start='12', end='13', kind='punc')>
+<'Token'(text='55', start='13', end='15', kind='word')>
+<'Denomination'(text='3¢', start='16', end='18')>
+<'Token'(text='George', start='19', end='25', kind='word')>
+<'Token'(text='Washington', start='26', end='36', kind='word')>
+<'Token'(text=',', start='36', end='37', kind='punc')>
+<'Token'(text='dull', start='38', end='42', kind='word')>
+<'Token'(text='red', start='43', end='46', kind='word')>
+<'Token'(text=',', start='46', end='47', kind='punc')>
+<'TypePhrase'(text='type II', start='48', end='55')>
+<'Token'(text=',', start='55', end='56', kind='punc')>
+<'Perforation'(text='imperf', start='57', end='63')>
 ```
 
 <br>

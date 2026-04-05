@@ -190,8 +190,8 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
                                   ExtractionPhaseABC.merged_representation_to_annotations(triple[0])
                                   if a.type != 'Token']
                 if non_token_anns:
-                    properties[chain[i].start_property] = non_token_anns[0].normalized_contents
-                    properties[chain[i].end_property] = non_token_anns[-1].normalized_contents
+                    properties[chain[i].start_property] = non_token_anns[0].text
+                    properties[chain[i].end_property] = non_token_anns[-1].text
             return properties
 
         loops = []
@@ -309,9 +309,9 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
         Args:
             rep (str): merged representation, e.g. a string looking like this
                 (ignore the backslashes):
-                    <'CARDINAL'(normalized_contents='80', start='92', end='94')> \
-                    <'Token'(normalized_contents='to', start='95', end='97', kind='word')> \
-                    <'CARDINAL'(normalized_contents='90', start='98', end='100')>
+                    <'CARDINAL'(text='80', start='92', end='94')> \
+                    <'Token'(text='to', start='95', end='97', kind='word')> \
+                    <'CARDINAL'(text='90', start='98', end='100')>
             verbose (bool, optional): Defaults to False.
 
         Returns:

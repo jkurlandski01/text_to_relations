@@ -18,7 +18,7 @@ class TestAnnotation(unittest.TestCase):
             Annotation('ShareQuantity', 'xxx', 1, -5)
 
     def testStringToAnnotation(self):
-        annStr = "<'ShareQuantity'(normalizedContents='15,000,000'start='0', end='10')>"
+        annStr = "<'ShareQuantity'(text='15,000,000'start='0', end='10')>"
         actual = Annotation.str_to_annotation(annStr)
 
         expected = Annotation('ShareQuantity', '15,000,000', 0, 10)
@@ -26,7 +26,7 @@ class TestAnnotation(unittest.TestCase):
 
 
     def testStringToAnnotationDifferent(self):
-        annStr = "<'ShareQuantity'(normalizedContents='15,000,000', start='0', end='10')>"
+        annStr = "<'ShareQuantity'(text='15,000,000', start='0', end='10')>"
         actual = Annotation.str_to_annotation(annStr)
 
         expected = Annotation('zShareQuantity', '15,000,000', 0, 10)
@@ -44,17 +44,17 @@ class TestAnnotation(unittest.TestCase):
 
     def testAnnotationCreation(self):
         ann = Annotation('FreakyThing', 'freak out!', 0, 16)
-        expected = "<'FreakyThing'(normalizedContents='freak out!', start='0', end='16')>"
+        expected = "<'FreakyThing'(text='freak out!', start='0', end='16')>"
         self.assertEqual(expected, str(ann))
 
         features = {'kind': 'exclamation'}
         ann = Annotation('FreakyThing', 'freak out!', 0, 16, features)
-        expected = "<'FreakyThing'(normalizedContents='freak out!', start='0', end='16', kind='exclamation')>"
+        expected = "<'FreakyThing'(text='freak out!', start='0', end='16', kind='exclamation')>"
         self.assertEqual(expected, str(ann))
 
         features = {'kind': 'exclamation', 'type': 'Thing'}
         ann = Annotation('FreakyThing', 'freak out!', 0, 16, features)
-        expected = "<'FreakyThing'(normalizedContents='freak out!', start='0', end='16', " \
+        expected = "<'FreakyThing'(text='freak out!', start='0', end='16', " \
                    "kind='exclamation', type='Thing')>"
         self.assertEqual(expected, str(ann))
 

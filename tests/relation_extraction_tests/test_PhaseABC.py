@@ -104,57 +104,57 @@ class TestPhaseABC(unittest.TestCase):
 
         self.maxDiff = None
 
-        expected = "<'Token'(normalizedContents='SafestWay', start='0', end='9', kind='word')>"
-        expected += "<'Token'(normalizedContents=',', start='9', end='10', kind='punc')>"
-        expected += "<'Token'(normalizedContents='Inc.', start='11', end='15', kind='other')>"
-        expected += "<'Token'(normalizedContents='(', start='16', end='17', kind='punc')>"
-        expected += "<'Token'(normalizedContents='NASDAQ', start='17', end='23', kind='word')>"
-        expected += "<'Token'(normalizedContents=':', start='23', end='24', kind='punc')>"
-        expected += "<'Token'(normalizedContents='Â', start='24', end='25', kind='word')>"
-        expected += "<'Token'(normalizedContents='SFSY', start='26', end='30', kind='word')>"
-        expected += "<'Token'(normalizedContents=')', start='30', end='31', kind='punc')>"
-        expected += "<'Token'(normalizedContents=',', start='31', end='32', kind='punc')>"
-        expected += "<'Token'(normalizedContents='a', start='33', end='34', kind='word')>"
-        expected += "<'Token'(normalizedContents='precision', start='35', end='44', kind='word')>"
-        expected += "<'Token'(normalizedContents='medicine', start='45', end='53', kind='word')>"
-        expected += "<'Token'(normalizedContents='biotechnology', start='54', end='67', kind='word')>"
-        expected += "<'Token'(normalizedContents='company', start='68', end='75', kind='word')>"
-        expected += "<'Token'(normalizedContents=',', start='75', end='76', kind='punc')>"
-        expected += "<'Token'(normalizedContents='today', start='77', end='82', kind='word')>"
-        expected += "<'Token'(normalizedContents='announced', start='83', end='92', kind='word')>"
-        expected += "<'Token'(normalizedContents='the', start='93', end='96', kind='word')>"
-        expected += "<'Token'(normalizedContents='pricing', start='97', end='104', kind='word')>"
-        expected += "<'Token'(normalizedContents='of', start='105', end='107', kind='word')>"
-        expected += "<'Token'(normalizedContents='a', start='108', end='109', kind='word')>"
-        expected += "<'Token'(normalizedContents='public', start='110', end='116', kind='word')>"
-        expected += "<'Token'(normalizedContents='offering', start='117', end='125', kind='word')>"
-        expected += "<'Token'(normalizedContents='of', start='126', end='128', kind='word')>"
-        expected += "<'ShareQuantity'(normalizedContents='15,000,000', start='129', end='139')>"
-        expected += "<'Token'(normalizedContents='shares', start='140', end='146', kind='word')>"
-        expected += "<'Token'(normalizedContents='of', start='147', end='149', kind='word')>"
-        expected += "<'Token'(normalizedContents='its', start='150', end='153', kind='word')>"
-        expected += "<'Token'(normalizedContents='common', start='154', end='160', kind='word')>"
-        expected += "<'Token'(normalizedContents='stock', start='161', end='166', kind='word')>"
-        expected += "<'Token'(normalizedContents='(', start='167', end='168', kind='punc')>"
-        expected += "<'Token'(normalizedContents='or', start='168', end='170', kind='word')>"
-        expected += "<'Token'(normalizedContents='common', start='171', end='177', kind='word')>"
-        expected += "<'Token'(normalizedContents='stock', start='178', end='183', kind='word')>"
-        expected += "<'Token'(normalizedContents='equivalents', start='184', end='195', kind='word')>"
-        expected += "<'Token'(normalizedContents=')', start='195', end='196', kind='punc')>"
-        expected += "<'Token'(normalizedContents='and', start='197', end='200', kind='word')>"
-        expected += "<'Token'(normalizedContents='common', start='201', end='207', kind='word')>"
-        expected += "<'WarrantPurchase'(normalizedContents='warrants to purchase', start='208', end='228')>"
-        expected += "<'Token'(normalizedContents='up', start='229', end='231', kind='word')>"
-        expected += "<'Token'(normalizedContents='to', start='232', end='234', kind='word')>"
-        expected += "<'Token'(normalizedContents='an', start='235', end='237', kind='word')>"
-        expected += "<'Token'(normalizedContents='aggregate', start='238', end='247', kind='word')>"
-        expected += "<'Token'(normalizedContents='of', start='248', end='250', kind='word')>"
-        expected += "<'ShareQuantity'(normalizedContents='5,000,000', start='251', end='259')>"
-        expected += "<'Token'(normalizedContents='shares', start='261', end='267', kind='word')>"
-        expected += "<'Token'(normalizedContents='of', start='268', end='270', kind='word')>"
-        expected += "<'Token'(normalizedContents='common', start='271', end='277', kind='word')>"
-        expected += "<'Token'(normalizedContents='stock', start='278', end='283', kind='word')>"
-        expected += "<'Token'(normalizedContents='.', start='283', end='284', kind='punc')>"
+        expected = "<'Token'(text='SafestWay', start='0', end='9', kind='word')>"
+        expected += "<'Token'(text=',', start='9', end='10', kind='punc')>"
+        expected += "<'Token'(text='Inc.', start='11', end='15', kind='other')>"
+        expected += "<'Token'(text='(', start='16', end='17', kind='punc')>"
+        expected += "<'Token'(text='NASDAQ', start='17', end='23', kind='word')>"
+        expected += "<'Token'(text=':', start='23', end='24', kind='punc')>"
+        expected += "<'Token'(text='Â', start='24', end='25', kind='word')>"
+        expected += "<'Token'(text='SFSY', start='26', end='30', kind='word')>"
+        expected += "<'Token'(text=')', start='30', end='31', kind='punc')>"
+        expected += "<'Token'(text=',', start='31', end='32', kind='punc')>"
+        expected += "<'Token'(text='a', start='33', end='34', kind='word')>"
+        expected += "<'Token'(text='precision', start='35', end='44', kind='word')>"
+        expected += "<'Token'(text='medicine', start='45', end='53', kind='word')>"
+        expected += "<'Token'(text='biotechnology', start='54', end='67', kind='word')>"
+        expected += "<'Token'(text='company', start='68', end='75', kind='word')>"
+        expected += "<'Token'(text=',', start='75', end='76', kind='punc')>"
+        expected += "<'Token'(text='today', start='77', end='82', kind='word')>"
+        expected += "<'Token'(text='announced', start='83', end='92', kind='word')>"
+        expected += "<'Token'(text='the', start='93', end='96', kind='word')>"
+        expected += "<'Token'(text='pricing', start='97', end='104', kind='word')>"
+        expected += "<'Token'(text='of', start='105', end='107', kind='word')>"
+        expected += "<'Token'(text='a', start='108', end='109', kind='word')>"
+        expected += "<'Token'(text='public', start='110', end='116', kind='word')>"
+        expected += "<'Token'(text='offering', start='117', end='125', kind='word')>"
+        expected += "<'Token'(text='of', start='126', end='128', kind='word')>"
+        expected += "<'ShareQuantity'(text='15,000,000', start='129', end='139')>"
+        expected += "<'Token'(text='shares', start='140', end='146', kind='word')>"
+        expected += "<'Token'(text='of', start='147', end='149', kind='word')>"
+        expected += "<'Token'(text='its', start='150', end='153', kind='word')>"
+        expected += "<'Token'(text='common', start='154', end='160', kind='word')>"
+        expected += "<'Token'(text='stock', start='161', end='166', kind='word')>"
+        expected += "<'Token'(text='(', start='167', end='168', kind='punc')>"
+        expected += "<'Token'(text='or', start='168', end='170', kind='word')>"
+        expected += "<'Token'(text='common', start='171', end='177', kind='word')>"
+        expected += "<'Token'(text='stock', start='178', end='183', kind='word')>"
+        expected += "<'Token'(text='equivalents', start='184', end='195', kind='word')>"
+        expected += "<'Token'(text=')', start='195', end='196', kind='punc')>"
+        expected += "<'Token'(text='and', start='197', end='200', kind='word')>"
+        expected += "<'Token'(text='common', start='201', end='207', kind='word')>"
+        expected += "<'WarrantPurchase'(text='warrants to purchase', start='208', end='228')>"
+        expected += "<'Token'(text='up', start='229', end='231', kind='word')>"
+        expected += "<'Token'(text='to', start='232', end='234', kind='word')>"
+        expected += "<'Token'(text='an', start='235', end='237', kind='word')>"
+        expected += "<'Token'(text='aggregate', start='238', end='247', kind='word')>"
+        expected += "<'Token'(text='of', start='248', end='250', kind='word')>"
+        expected += "<'ShareQuantity'(text='5,000,000', start='251', end='259')>"
+        expected += "<'Token'(text='shares', start='261', end='267', kind='word')>"
+        expected += "<'Token'(text='of', start='268', end='270', kind='word')>"
+        expected += "<'Token'(text='common', start='271', end='277', kind='word')>"
+        expected += "<'Token'(text='stock', start='278', end='283', kind='word')>"
+        expected += "<'Token'(text='.', start='283', end='284', kind='punc')>"
 
         inputStr = "SafestWay, Inc. (NASDAQ:Â SFSY), a precision medicine biotechnology company, " + \
                    "today announced the pricing of a public offering of 15,000,000 shares of its common " + \
@@ -187,21 +187,21 @@ class TestPhaseABC(unittest.TestCase):
     def testBuildMergedInput2(self):
         # Test build_merged_representation( ) where annotations begin and end the test document.
 
-        expected = "<'ShareQuantity'(normalizedContents='15,000,000', start='0', end='10')>"
-        expected += "<'Token'(normalizedContents='shares', start='11', end='17', kind='word')>"
-        expected += "<'Token'(normalizedContents='of', start='18', end='20', kind='word')>"
-        expected += "<'Token'(normalizedContents='its', start='21', end='24', kind='word')>"
-        expected += "<'Token'(normalizedContents='common', start='25', end='31', kind='word')>"
-        expected += "<'Token'(normalizedContents='stock', start='32', end='37', kind='word')>"
-        expected += "<'Token'(normalizedContents='(', start='38', end='39', kind='punc')>"
-        expected += "<'Token'(normalizedContents='or', start='39', end='41', kind='word')>"
-        expected += "<'Token'(normalizedContents='common', start='42', end='48', kind='word')>"
-        expected += "<'Token'(normalizedContents='stock', start='49', end='54', kind='word')>"
-        expected += "<'Token'(normalizedContents='equivalents', start='55', end='66', kind='word')>"
-        expected += "<'Token'(normalizedContents=')', start='66', end='67', kind='punc')>"
-        expected += "<'Token'(normalizedContents='and', start='68', end='71', kind='word')>"
-        expected += "<'Token'(normalizedContents='common', start='72', end='78', kind='word')>"
-        expected += "<'WarrantPurchase'(normalizedContents='warrants to purchase', start='79', end='99')>"
+        expected = "<'ShareQuantity'(text='15,000,000', start='0', end='10')>"
+        expected += "<'Token'(text='shares', start='11', end='17', kind='word')>"
+        expected += "<'Token'(text='of', start='18', end='20', kind='word')>"
+        expected += "<'Token'(text='its', start='21', end='24', kind='word')>"
+        expected += "<'Token'(text='common', start='25', end='31', kind='word')>"
+        expected += "<'Token'(text='stock', start='32', end='37', kind='word')>"
+        expected += "<'Token'(text='(', start='38', end='39', kind='punc')>"
+        expected += "<'Token'(text='or', start='39', end='41', kind='word')>"
+        expected += "<'Token'(text='common', start='42', end='48', kind='word')>"
+        expected += "<'Token'(text='stock', start='49', end='54', kind='word')>"
+        expected += "<'Token'(text='equivalents', start='55', end='66', kind='word')>"
+        expected += "<'Token'(text=')', start='66', end='67', kind='punc')>"
+        expected += "<'Token'(text='and', start='68', end='71', kind='word')>"
+        expected += "<'Token'(text='common', start='72', end='78', kind='word')>"
+        expected += "<'WarrantPurchase'(text='warrants to purchase', start='79', end='99')>"
 
         inputStr = "15,000,000 shares of its common " + \
                    "stock (or common stock equivalents) and common warrants to purchase"
@@ -235,37 +235,37 @@ class TestPhaseABC(unittest.TestCase):
         # Use as input a doc which at one time resulted in the unconsumed annotations
         # value error (due to the annotations' being within parentheses).
 
-        expected = "<'Token'(normalizedContents='Millennial', start='2', end='12', kind='word')>"
-        expected += "<'Token'(normalizedContents='(', start='13', end='14', kind='punc')>"
-        expected += "<'Token'(normalizedContents='NASDAQ', start='14', end='20', kind='word')>"
-        expected += "<'Token'(normalizedContents=':', start='20', end='21', kind='punc')>"
-        expected += "<'Token'(normalizedContents='MILL', start='21', end='25', kind='word')>"
-        expected += "<'Token'(normalizedContents=')', start='25', end='26', kind='punc')>"
-        expected += "<'Token'(normalizedContents='today', start='27', end='32', kind='word')>"
-        expected += "<'Token'(normalizedContents='announced', start='33', end='42', kind='word')>"
-        expected += "<'Token'(normalizedContents='a', start='43', end='44', kind='word')>"
-        expected += "<'Token'(normalizedContents='public', start='45', end='51', kind='word')>"
-        expected += "<'Token'(normalizedContents='offering', start='52', end='60', kind='word')>"
-        expected += "<'Token'(normalizedContents='of', start='61', end='63', kind='word')>"
-        expected += "<'ShareQuantity'(normalizedContents='25,000,000', start='64', end='74')>"
-        expected += "<'Token'(normalizedContents='shares', start='75', end='81', kind='word')>"
-        expected += "<'Token'(normalizedContents='of', start='82', end='84', kind='word')>"
-        expected += "<'Token'(normalizedContents='common', start='85', end='91', kind='word')>"
-        expected += "<'Token'(normalizedContents='stock', start='92', end='97', kind='word')>"
-        expected += "<'Token'(normalizedContents='by', start='98', end='100', kind='word')>"
-        expected += "<'Token'(normalizedContents='Riverstone', start='101', end='111', kind='word')>"
-        expected += "<'Token'(normalizedContents='VI', start='112', end='114', kind='word')>"
-        expected += "<'Token'(normalizedContents='(', start='115', end='116', kind='punc')>"
-        expected += "<'ShareQuantity'(normalizedContents='15,000,000', start='116', end='126')>"
-        expected += "<'Token'(normalizedContents='shares', start='127', end='133', kind='word')>"
-        expected += "<'Token'(normalizedContents=')', start='133', end='134', kind='punc')>"
-        expected += "<'Token'(normalizedContents='and', start='135', end='138', kind='word')>"
-        expected += "<'Token'(normalizedContents='Millennial', start='139', end='149', kind='word')>"
-        expected += "<'Token'(normalizedContents='(', start='150', end='151', kind='punc')>"
-        expected += "<'ShareQuantity'(normalizedContents='10,000,000', start='151', end='161')>"
-        expected += "<'Token'(normalizedContents='shares', start='162', end='168', kind='word')>"
-        expected += "<'Token'(normalizedContents=')', start='168', end='169', kind='punc')>"
-        expected += "<'Token'(normalizedContents='.', start='169', end='170', kind='punc')>"
+        expected = "<'Token'(text='Millennial', start='2', end='12', kind='word')>"
+        expected += "<'Token'(text='(', start='13', end='14', kind='punc')>"
+        expected += "<'Token'(text='NASDAQ', start='14', end='20', kind='word')>"
+        expected += "<'Token'(text=':', start='20', end='21', kind='punc')>"
+        expected += "<'Token'(text='MILL', start='21', end='25', kind='word')>"
+        expected += "<'Token'(text=')', start='25', end='26', kind='punc')>"
+        expected += "<'Token'(text='today', start='27', end='32', kind='word')>"
+        expected += "<'Token'(text='announced', start='33', end='42', kind='word')>"
+        expected += "<'Token'(text='a', start='43', end='44', kind='word')>"
+        expected += "<'Token'(text='public', start='45', end='51', kind='word')>"
+        expected += "<'Token'(text='offering', start='52', end='60', kind='word')>"
+        expected += "<'Token'(text='of', start='61', end='63', kind='word')>"
+        expected += "<'ShareQuantity'(text='25,000,000', start='64', end='74')>"
+        expected += "<'Token'(text='shares', start='75', end='81', kind='word')>"
+        expected += "<'Token'(text='of', start='82', end='84', kind='word')>"
+        expected += "<'Token'(text='common', start='85', end='91', kind='word')>"
+        expected += "<'Token'(text='stock', start='92', end='97', kind='word')>"
+        expected += "<'Token'(text='by', start='98', end='100', kind='word')>"
+        expected += "<'Token'(text='Riverstone', start='101', end='111', kind='word')>"
+        expected += "<'Token'(text='VI', start='112', end='114', kind='word')>"
+        expected += "<'Token'(text='(', start='115', end='116', kind='punc')>"
+        expected += "<'ShareQuantity'(text='15,000,000', start='116', end='126')>"
+        expected += "<'Token'(text='shares', start='127', end='133', kind='word')>"
+        expected += "<'Token'(text=')', start='133', end='134', kind='punc')>"
+        expected += "<'Token'(text='and', start='135', end='138', kind='word')>"
+        expected += "<'Token'(text='Millennial', start='139', end='149', kind='word')>"
+        expected += "<'Token'(text='(', start='150', end='151', kind='punc')>"
+        expected += "<'ShareQuantity'(text='10,000,000', start='151', end='161')>"
+        expected += "<'Token'(text='shares', start='162', end='168', kind='word')>"
+        expected += "<'Token'(text=')', start='168', end='169', kind='punc')>"
+        expected += "<'Token'(text='.', start='169', end='170', kind='punc')>"
 
 
         inputStr = "  Millennial (NASDAQ:MILL) today announced a "
@@ -287,24 +287,24 @@ class TestPhaseABC(unittest.TestCase):
 
         actualObjs = TokenAnn.get_token_objects(docStr[0:2], 0)
         actual = [str(x) for x in actualObjs]
-        expected = ["<'Token'(normalizedContents='My', start='0', end='2', kind='word')>"]
+        expected = ["<'Token'(text='My', start='0', end='2', kind='word')>"]
         self.assertEqual(expected, actual)
 
         actualObjs = TokenAnn.get_token_objects(docStr[0:16], 0)
         actual = [str(x) for x in actualObjs]
-        expected = ["<'Token'(normalizedContents='My', start='0', end='2', kind='word')>",
-                    "<'Token'(normalizedContents='friend', start='3', end='9', kind='word')>",
-                    "<'Token'(normalizedContents='(', start='10', end='11', kind='punc')>",
-                    "<'Token'(normalizedContents='i.e.', start='11', end='15', kind='other')>",
-                    "<'Token'(normalizedContents=',', start='15', end='16', kind='punc')>"]
+        expected = ["<'Token'(text='My', start='0', end='2', kind='word')>",
+                    "<'Token'(text='friend', start='3', end='9', kind='word')>",
+                    "<'Token'(text='(', start='10', end='11', kind='punc')>",
+                    "<'Token'(text='i.e.', start='11', end='15', kind='other')>",
+                    "<'Token'(text=',', start='15', end='16', kind='punc')>"]
         self.assertEqual(expected, actual)
 
         # Start the input string with a space.
         actualObjs = TokenAnn.get_token_objects(docStr[9:16], 9)
         actual = [str(x) for x in actualObjs]
-        expected = ["<'Token'(normalizedContents='(', start='10', end='11', kind='punc')>",
-                    "<'Token'(normalizedContents='i.e.', start='11', end='15', kind='other')>",
-                    "<'Token'(normalizedContents=',', start='15', end='16', kind='punc')>"]
+        expected = ["<'Token'(text='(', start='10', end='11', kind='punc')>",
+                    "<'Token'(text='i.e.', start='11', end='15', kind='other')>",
+                    "<'Token'(text=',', start='15', end='16', kind='punc')>"]
         self.assertEqual(expected, actual)
 
 
@@ -314,15 +314,15 @@ class TestPhaseABC(unittest.TestCase):
         actualObjs = TokenAnn.get_token_objects(docStr, 0)
 
         actual = [str(x) for x in actualObjs]
-        expected = ["<'Token'(normalizedContents='SafestWay', start='0', end='9', kind='word')>",
-                    "<'Token'(normalizedContents=',', start='9', end='10', kind='punc')>",
-                    "<'Token'(normalizedContents='Inc.', start='11', end='15', kind='other')>",
-                    "<'Token'(normalizedContents='(', start='16', end='17', kind='punc')>",
-                    "<'Token'(normalizedContents='NASDAQ', start='17', end='23', kind='word')>",
-                    "<'Token'(normalizedContents=':', start='23', end='24', kind='punc')>",
-                    "<'Token'(normalizedContents='Â', start='24', end='25', kind='word')>",
-                    "<'Token'(normalizedContents='SFSY', start='26', end='30', kind='word')>",
-                    "<'Token'(normalizedContents=')', start='30', end='31', kind='punc')>",
-                    "<'Token'(normalizedContents=',', start='31', end='32', kind='punc')>"]
+        expected = ["<'Token'(text='SafestWay', start='0', end='9', kind='word')>",
+                    "<'Token'(text=',', start='9', end='10', kind='punc')>",
+                    "<'Token'(text='Inc.', start='11', end='15', kind='other')>",
+                    "<'Token'(text='(', start='16', end='17', kind='punc')>",
+                    "<'Token'(text='NASDAQ', start='17', end='23', kind='word')>",
+                    "<'Token'(text=':', start='23', end='24', kind='punc')>",
+                    "<'Token'(text='Â', start='24', end='25', kind='word')>",
+                    "<'Token'(text='SFSY', start='26', end='30', kind='word')>",
+                    "<'Token'(text=')', start='30', end='31', kind='punc')>",
+                    "<'Token'(text=',', start='31', end='32', kind='punc')>"]
 
         self.assertEqual(expected, actual)

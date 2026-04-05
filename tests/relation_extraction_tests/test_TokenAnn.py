@@ -8,20 +8,20 @@ class TestTokenAnn(unittest.TestCase):
 
     def testInit(self):
         token = TokenAnn(0, 3, 'whoo')
-        self.assertEqual('whoo', token.normalized_contents)
+        self.assertEqual('whoo', token.text)
         self.assertEqual('word', token.properties['kind'])
 
         token = TokenAnn(0, 3, '?')
-        self.assertEqual('?', token.normalized_contents)
+        self.assertEqual('?', token.text)
         self.assertEqual('punc', token.properties['kind'])
 
         token = TokenAnn(0, 3, "'a")
-        self.assertEqual("'a", token.normalized_contents)
+        self.assertEqual("'a", token.text)
         self.assertEqual('other', token.properties['kind'])
 
         # Test exceptions.
         token = TokenAnn(0, 3, "'s")
-        self.assertEqual("'s", token.normalized_contents)
+        self.assertEqual("'s", token.text)
         self.assertEqual('word', token.properties['kind'])
 
 
@@ -51,23 +51,23 @@ class TestTokenAnn(unittest.TestCase):
         # Note that there is a helper method in Token to do this for you--build_annotation_distance_regex().
 
         # 3 words between annotations.
-        inputStr = "<'Token'(start='0', end='125', normalizedContents='zzz', kind='word')>"
-        inputStr += "<'WarrantPurchase'(start='126', end='144', normalizedContents='Option to Purchase')>"
-        inputStr += "<'Token'(start='145', end='148', normalizedContents='zzz', kind='word')>"
-        inputStr += "<'Token'(start='200', end='210', normalizedContents='zzz', kind='word')>"
-        inputStr += "<'Token'(start='333', end='334', normalizedContents='zzz', kind='word')>"
-        inputStr += "<'ShareQuantity'(start='569', end='578', normalizedContents='9,947,500')>"
-        inputStr += "<'Token'(start='579', end='582', normalizedContents='zzz', kind='word')>"
+        inputStr = "<'Token'(start='0', end='125', text='zzz', kind='word')>"
+        inputStr += "<'WarrantPurchase'(start='126', end='144', text='Option to Purchase')>"
+        inputStr += "<'Token'(start='145', end='148', text='zzz', kind='word')>"
+        inputStr += "<'Token'(start='200', end='210', text='zzz', kind='word')>"
+        inputStr += "<'Token'(start='333', end='334', text='zzz', kind='word')>"
+        inputStr += "<'ShareQuantity'(start='569', end='578', text='9,947,500')>"
+        inputStr += "<'Token'(start='579', end='582', text='zzz', kind='word')>"
 
         # Literal match on 'word' property.
         testRegex = r"<'WarrantPurchase[^>]*>(?:<'Token'[^>]*kind='word'[^>]*>){0,3}<'ShareQuantity[^>]*>"
 
         match_strs = re.findall(testRegex, inputStr)
-        expected = ["<'WarrantPurchase'(start='126', end='144', normalizedContents='Option to Purchase')>"
-                    "<'Token'(start='145', end='148', normalizedContents='zzz', kind='word')>"
-                    "<'Token'(start='200', end='210', normalizedContents='zzz', kind='word')>"
-                    "<'Token'(start='333', end='334', normalizedContents='zzz', kind='word')>"
-                    "<'ShareQuantity'(start='569', end='578', normalizedContents='9,947,500')>"]
+        expected = ["<'WarrantPurchase'(start='126', end='144', text='Option to Purchase')>"
+                    "<'Token'(start='145', end='148', text='zzz', kind='word')>"
+                    "<'Token'(start='200', end='210', text='zzz', kind='word')>"
+                    "<'Token'(start='333', end='334', text='zzz', kind='word')>"
+                    "<'ShareQuantity'(start='569', end='578', text='9,947,500')>"]
         self.assertEqual(expected, match_strs)
 
         # Match on any kind. Expected output is the same as above.
@@ -95,19 +95,19 @@ class TestTokenAnn(unittest.TestCase):
 
     def testBuildAnnotationDistanceRegex(self):
         # 3 words between annotations.
-        inputStr = "<'Token'(start='0', end='125', normalizedContents='zzz', kind='word')>"
-        inputStr += "<'WarrantPurchase'(start='126', end='144', normalizedContents='Option to Purchase')>"
-        inputStr += "<'Token'(start='145', end='148', normalizedContents='zzz', kind='word')>"
-        inputStr += "<'Token'(start='200', end='210', normalizedContents='zzz', kind='word')>"
-        inputStr += "<'Token'(start='333', end='334', normalizedContents='zzz', kind='word')>"
-        inputStr += "<'ShareQuantity'(start='569', end='578', normalizedContents='9,947,500')>"
-        inputStr += "<'Token'(start='579', end='582', normalizedContents='zzz', kind='word')>"
+        inputStr = "<'Token'(start='0', end='125', text='zzz', kind='word')>"
+        inputStr += "<'WarrantPurchase'(start='126', end='144', text='Option to Purchase')>"
+        inputStr += "<'Token'(start='145', end='148', text='zzz', kind='word')>"
+        inputStr += "<'Token'(start='200', end='210', text='zzz', kind='word')>"
+        inputStr += "<'Token'(start='333', end='334', text='zzz', kind='word')>"
+        inputStr += "<'ShareQuantity'(start='569', end='578', text='9,947,500')>"
+        inputStr += "<'Token'(start='579', end='582', text='zzz', kind='word')>"
 
-        expected = ["<'WarrantPurchase'(start='126', end='144', normalizedContents='Option to Purchase')>"
-                    "<'Token'(start='145', end='148', normalizedContents='zzz', kind='word')>"
-                    "<'Token'(start='200', end='210', normalizedContents='zzz', kind='word')>"
-                    "<'Token'(start='333', end='334', normalizedContents='zzz', kind='word')>"
-                    "<'ShareQuantity'(start='569', end='578', normalizedContents='9,947,500')>"]
+        expected = ["<'WarrantPurchase'(start='126', end='144', text='Option to Purchase')>"
+                    "<'Token'(start='145', end='148', text='zzz', kind='word')>"
+                    "<'Token'(start='200', end='210', text='zzz', kind='word')>"
+                    "<'Token'(start='333', end='334', text='zzz', kind='word')>"
+                    "<'ShareQuantity'(start='569', end='578', text='9,947,500')>"]
 
         # Use build_annotation_distance_regex() to match any Token.
         testRegex = TokenAnn.build_annotation_distance_regex("WarrantPurchase", (0, 3), None, "ShareQuantity")
@@ -131,13 +131,13 @@ class TestTokenAnn(unittest.TestCase):
         # Verify that we fail to match on the wrong kind of token.
 
         # 1 word token, 1 punc token, 1 word token.
-        inputStr = "<'Token'(start='0', end='125', normalizedContents='zzz', kind='word')>"
-        inputStr += "<'WarrantPurchase'(start='126', end='144', normalizedContents='Option to Purchase')>"
-        inputStr += "<'Token'(start='145', end='148', normalizedContents='zzz', kind='word')>"
-        inputStr += "<'Token'(start='200', end='210', normalizedContents='zzz', kind='punc')>"
-        inputStr += "<'Token'(start='333', end='334', normalizedContents='zzz', kind='word')>"
-        inputStr += "<'ShareQuantity'(start='569', end='578', normalizedContents='9,947,500')>"
-        inputStr += "<'Token'(start='579', end='582', normalizedContents='zzz', kind='word')>"
+        inputStr = "<'Token'(start='0', end='125', text='zzz', kind='word')>"
+        inputStr += "<'WarrantPurchase'(start='126', end='144', text='Option to Purchase')>"
+        inputStr += "<'Token'(start='145', end='148', text='zzz', kind='word')>"
+        inputStr += "<'Token'(start='200', end='210', text='zzz', kind='punc')>"
+        inputStr += "<'Token'(start='333', end='334', text='zzz', kind='word')>"
+        inputStr += "<'ShareQuantity'(start='569', end='578', text='9,947,500')>"
+        inputStr += "<'Token'(start='579', end='582', text='zzz', kind='word')>"
 
         testRegex = TokenAnn.build_annotation_distance_regex("WarrantPurchase", (0, 10), "word", "ShareQuantity")
 
