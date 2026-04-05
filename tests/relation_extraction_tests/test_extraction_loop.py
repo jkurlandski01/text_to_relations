@@ -119,6 +119,6 @@ class TestExtractionLoop(unittest.TestCase):
         # Verify that passing a RegexString object (instead of a str) raises a
         # ValueError with a message pointing to .get_regex_str().
         regex_1_str = TokenAnn.build_annotation_distance_regex("One", (0, 2), None, "Two")
-        regex_1 = RegexString.regex_to_RegexString(regex_1_str)
+        regex_1 = RegexString.from_regex(regex_1_str)
         with self.assertRaises(ValueError):
             ExtractionLoop(regex_str=regex_1, last_ann_str="Two")

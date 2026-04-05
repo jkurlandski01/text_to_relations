@@ -302,7 +302,7 @@ class RegexString:
 
 
     @staticmethod
-    def regex_to_RegexString(regex: str) -> 'RegexString':
+    def from_regex(regex: str) -> 'RegexString':
         """
         Build a RegexString object from the given regular
         expression.

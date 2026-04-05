@@ -15,7 +15,7 @@ def _make_phase(verbose: bool = False) -> SimpleExtractionPhase:
         type_markers_rs, roman_nums_rs, min_nbr_words=0, max_nbr_words=0)
     imperf_rs = RegexString(['imperforate', 'imperf'])
     perf_sized_rs = RegexString(['perf'], append=r'\s\d+')
-    perf_combined_rs = RegexString.regex_to_RegexString(
+    perf_combined_rs = RegexString.from_regex(
         f'(?:{imperf_rs.get_regex_str()}|{perf_sized_rs.get_regex_str()})')
 
     return SimpleExtractionPhase(

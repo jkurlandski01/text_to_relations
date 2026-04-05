@@ -322,7 +322,7 @@ type_phrase_rs   = RegexString.concat_with_word_distances(
 
 imperf_rs        = RegexString(['imperforate', 'imperf'])
 perf_sized_rs    = RegexString(['perf'], append=r'\s\d+')
-perf_combined_rs = RegexString.regex_to_RegexString(
+perf_combined_rs = RegexString.from_regex(
     f'(?:{imperf_rs.get_regex_str()}|{perf_sized_rs.get_regex_str()})')
 
 regex_patterns = {

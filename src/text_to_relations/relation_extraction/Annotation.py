@@ -35,7 +35,8 @@ class Annotation:
         self.end_offset = end_offset
 
         cleaned_contents = contents.replace('\n', ' ')
-        self.normalizedContents = StringUtils.remove_multiple_spaces(cleaned_contents).strip()
+        # contents with newlines replaced by spaces, multiple spaces collapsed, and whitespace stripped.
+        self.normalized_contents = StringUtils.remove_multiple_spaces(cleaned_contents).strip()
 
         if properties is None:
             properties = {}
@@ -47,13 +48,13 @@ class Annotation:
         result = {'type': self.type,
                   'start': self.start_offset,
                   'end': self.end_offset,
-                  'text': self.normalizedContents}
+                  'text': self.normalized_contents}
         return result
 
 
     def __repr__(self):
         if self.properties == {}:
-            result = (f"<'{self.type}'(normalizedContents='{self.normalizedContents}', "
+            result = (f"<'{self.type}'(normalizedContents='{self.normalized_contents}', "
                       f"start='{self.start_offset}', end='{self.end_offset}')>")
         else:
             features = ''
@@ -62,7 +63,7 @@ class Annotation:
             # Remove last comma-space.
             features = features[0:-2]
 
-            result = (f"<'{self.type}'(normalizedContents='{self.normalizedContents}', "
+            result = (f"<'{self.type}'(normalizedContents='{self.normalized_contents}', "
                       f"start='{self.start_offset}', end='{self.end_offset}', {features})>")
 
         return result
@@ -77,7 +78,7 @@ class Annotation:
         if self.type == other.type and \
                 self.start_offset == other.start_offset and \
                 self.end_offset == other.end_offset and \
-                self.normalizedContents == other.normalizedContents:
+                self.normalized_contents == other.normalized_contents:
             return True
         return False
 

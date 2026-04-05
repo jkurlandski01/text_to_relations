@@ -21,7 +21,7 @@ class TestMinMax(unittest.TestCase):
         entities = []
 
         # Write rules for two types of entities--Number and Unit_of_Measurement.
-        number_rs = RegexString.regex_to_RegexString('(\d+)')
+        number_rs = RegexString.from_regex('(\d+)')
         matches = number_rs.get_match_triples(text)
         for match in matches:
             entity_dict = {
@@ -67,7 +67,7 @@ class TestMinMax(unittest.TestCase):
         entities = []
 
         # Write rules for two types of entities--Number and Unit_of_Measurement.
-        number_rs = RegexString.regex_to_RegexString('(\d+)')
+        number_rs = RegexString.from_regex('(\d+)')
         matches = number_rs.get_match_triples(text)
         for match in matches:
             entity_dict = {
@@ -115,7 +115,7 @@ class TestMinMax(unittest.TestCase):
         entities = []
 
         # Write rules for two types of entities--Number and Unit_of_Measurement.
-        number_rs = RegexString.regex_to_RegexString('(\d+)')
+        number_rs = RegexString.from_regex('(\d+)')
         matches = number_rs.get_match_triples(text)
         for match in matches:
             entity_dict = {
@@ -160,7 +160,7 @@ class TestMinMaxProperties(unittest.TestCase):
 
     def _make_entity_annotations(self, text, number_pattern=r'(\d+)', uom_words=None):
         anns = []
-        number_rs = RegexString.regex_to_RegexString(number_pattern)
+        number_rs = RegexString.from_regex(number_pattern)
         for match in number_rs.get_match_triples(text):
             anns.append(Annotation('Number', match[0], match[1], match[2]))
         if uom_words:

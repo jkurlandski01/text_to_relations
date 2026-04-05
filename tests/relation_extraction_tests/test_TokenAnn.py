@@ -8,20 +8,20 @@ class TestTokenAnn(unittest.TestCase):
 
     def testInit(self):
         token = TokenAnn(0, 3, 'whoo')
-        self.assertEqual('whoo', token.normalizedContents)
+        self.assertEqual('whoo', token.normalized_contents)
         self.assertEqual('word', token.properties['kind'])
 
         token = TokenAnn(0, 3, '?')
-        self.assertEqual('?', token.normalizedContents)
+        self.assertEqual('?', token.normalized_contents)
         self.assertEqual('punc', token.properties['kind'])
 
         token = TokenAnn(0, 3, "'a")
-        self.assertEqual("'a", token.normalizedContents)
+        self.assertEqual("'a", token.normalized_contents)
         self.assertEqual('other', token.properties['kind'])
 
         # Test exceptions.
         token = TokenAnn(0, 3, "'s")
-        self.assertEqual("'s", token.normalizedContents)
+        self.assertEqual("'s", token.normalized_contents)
         self.assertEqual('word', token.properties['kind'])
 
 

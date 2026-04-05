@@ -121,7 +121,7 @@ if __name__ == '__main__':
     entities = []
 
     # Write rules for two types of entities--Number and Unit_of_Measurement.
-    number_rs = RegexString.regex_to_RegexString('(\d+)')
+    number_rs = RegexString.from_regex('(\d+)')
     matches = number_rs.get_match_triples(text)
     print("\nNumbers and offsets:")
     for match in matches:
