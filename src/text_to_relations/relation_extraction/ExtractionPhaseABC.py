@@ -149,7 +149,8 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
     def run_chained_loops(self, text: str,
                           regex_patterns: Dict[str, RegexString],
                           chain: List[ChainLink],
-                          entity_annotations: Optional[List[Annotation]] = None) -> List[Annotation]:
+                          entity_annotations: Optional[List[Annotation]] = None
+                          ) -> List[Annotation]:
         """
         Build annotations from regex_patterns, then run a chain of proximity
         loops and return the resulting relation annotations.

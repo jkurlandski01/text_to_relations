@@ -136,7 +136,8 @@ def run_loop(annotation_view_str: str,
 
     # Recursive functionality begins here.
 
-    # Create a list of (substring, start_offset, end_offset) triples for the current loop's regex string.
+    # Create a list of (substring, start_offset, end_offset) triples for the
+    # current loop's regex string.
     match_triples = [(m.group(), m.start(), m.end())
                      for m in re.finditer(curr_loop.regex_str, annotation_view_str)]
 

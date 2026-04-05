@@ -35,7 +35,8 @@ class Annotation:
         self.end_offset = end_offset
 
         cleaned_contents = contents.replace('\n', ' ')
-        # Contents with newlines replaced by spaces, multiple spaces collapsed, and whitespace stripped.
+        # Contents with newlines replaced by spaces, multiple spaces collapsed,
+        # and whitespace stripped.
         self.text = StringUtils.remove_multiple_spaces(cleaned_contents).strip()
 
         if properties is None:
