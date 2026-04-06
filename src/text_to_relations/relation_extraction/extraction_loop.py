@@ -57,8 +57,7 @@ class ExtractionLoop():
         self.regex_str = regex_str
         self.last_ann_str = last_ann_str
         self.determine_new_annotation_properties = determine_new_annotation_properties
-        self.verbose = verbose
-        self.result = None
+        self.verbose = verbose  # Currently unused.
 
 
 def run_loop(annotation_view_str: str,

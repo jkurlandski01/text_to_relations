@@ -93,7 +93,6 @@ class TokenAnn(Annotation):
 
         token_strs = SpacyUtils.tokenize(input_str)
 
-        # lastPos = 0
         for token_str in token_strs:
             start_pos_in_input = consumed_str.index(token_str)
             x_str = 'x' * len(token_str)
