@@ -13,7 +13,7 @@ class Annotation:
         """
 
         Args:
-            type (str): annotation (entity) type, e.g. Person, Currency, River
+            ann_type (str): annotation (entity) type, e.g. Person, Currency, River
             contents (str): the mention in the doc, e.g. 'John Smith', 'Euros', 'Amazon'
             start_offset (int):
             end_offset (int):
