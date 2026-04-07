@@ -304,10 +304,36 @@ class RegexString:
     @staticmethod
     def from_regex(regex: str) -> 'RegexString':
         """
-        Build a RegexString object from the given regular
-        expression.
+        Build a RegexString object from a hand-written regular expression.
+
+        Use this when the normal RegexString constructor cannot express the
+        pattern you need — for example, to OR two already-built RegexString
+        objects together:
+
+            rs = RegexString.from_regex(
+                f'(?:{rs1.get_regex_str()}|{rs2.get_regex_str()})')
+
+        The returned object is safe to use with:
+        - get_regex_str()
+        - get_match_triples()
+        - as a value in the regex_patterns dict passed to SimpleExtractionPhase
+
+        All of the above only consult the underlying regex string.
+
+        Warning: do not pass the returned object into concat() or
+        concat_with_word_distances(). Those methods read the object's
+        attributes (optional, whole_word) to make structural decisions about
+        the regex string. Because from_regex() cannot derive those attributes
+        from the hand-written regex, they could be wrong, and the concat
+        methods could produce incorrect results.
+
+        Not applicable: build_regex_string() constructs its own RegexString
+        objects internally and does not accept a RegexString as input, so it
+        is neither safe nor unsafe — it simply cannot be called with a
+        from_regex() object.
+
         Args:
-            regex (str):
+            regex (str): a regular expression string.
 
         Returns:
             RegexString:
