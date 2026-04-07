@@ -21,14 +21,12 @@ class Annotation:
                 adding attributes. Defaults to None.
         """
         if start_offset > end_offset:
-            msg = ("Start offset cannot be greater than end offset. Start: "
-                   + str(start_offset) + "; End: " + str(end_offset))
-            raise ValueError(msg)
+            raise ValueError(
+                f"Start offset cannot be greater than end offset. Start: {start_offset}; End: {end_offset}")
 
         if start_offset < 0 or end_offset < 0:
-            msg = ("Start and end offset cannot be less than 0. Start: "
-                   + str(start_offset) + "; End: " + str(end_offset))
-            raise ValueError(msg)
+            raise ValueError(
+                f"Start and end offset cannot be less than 0. Start: {start_offset}; End: {end_offset}")
 
         self.type = ann_type
         self.start_offset = start_offset

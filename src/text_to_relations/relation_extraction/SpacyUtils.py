@@ -40,7 +40,7 @@ def tokenize(input_str: str) -> List[str]:
     # Tokenize with a light-weight Spacy doc.
     lightweight_doc = lightSpacyEnglishModel(input_str)
 
-    # Bug 2: Spacy outputs strings of whitespace as tokens. Strip these out here.)
+    # Bug 2: Spacy outputs strings of whitespace as tokens. Strip these out here.
     return [str(x) for x in lightweight_doc if str(x).strip() != '']
 
 
