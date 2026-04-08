@@ -60,6 +60,40 @@ print(color_phrase.get_match_triples(text))
 
 The key classes — `RegexString`, `Annotation`, `TokenAnn`, `SentenceAnn`, and `ExtractionPhaseABC` — are all importable directly from `text_to_relations`.
 
+## For Experienced Regex Users
+
+If you are comfortable writing raw regular expressions, `RegexString` may not add much value for entity recognition. The constructor escapes all match strings via `re.escape()`, which means regex metacharacters are treated as literals--so patterns like `\d+` cannot be expressed through the normal constructor. The `from_regex()` factory method exists as a work-around for this case, letting you plug a hand-written regex directly into the pipeline:
+
+```python
+number_rs = RegexString.from_regex(r'(\d+)')
+```
+
+Where the framework pays off for everyone, including experienced regex users, is **relation extraction**. Consider linking a stamp ID to its denomination when they appear within four tokens of each other. In raw regex:
+
+```python
+import re
+pattern = r'(#\s\d+(?:\w+)?)(?:\s\S+){0,4}\s(\d\d?(?:c|¢))'
+matches = re.findall(pattern, text)
+# matches is a list of (stamp_id, denomination) tuples -- but unlabeled,
+# unfiltered, and with no structure beyond what re.findall() provides
+```
+
+With the framework:
+
+```python
+chain = [
+    ChainLink(start_type='StampID', start_property='StampID',
+              min_distance=0, max_distance=4,
+              end_type='Denomination', end_property='Denomination'),
+]
+phase = SimpleExtractionPhase(relation_name='StampDescription',
+                               regex_patterns=regex_patterns, chain=chain)
+results = phase.find_match(text)
+# results is a list of Annotation objects with labeled properties
+```
+
+Extending the raw regex approach to four entities — each pair with its own distance constraint — means chaining the pattern into one long, nearly unreadable expression, and then writing additional code to label, filter, and structure the output. With the framework, each new entity is one more dict entry and one more `ChainLink`, each self-contained and labeled — complexity grows linearly and readably. For a full four-entity example, see `examples/extract_stamp_description.py`.
+
 ## Further Reading
 
 For a full walkthrough, including entity recognition and relation extraction examples, see [TUTORIAL.md](TUTORIAL.md).
