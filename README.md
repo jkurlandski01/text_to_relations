@@ -62,10 +62,23 @@ The key classes — `RegexString`, `Annotation`, `TokenAnn`, `SentenceAnn`, and 
 
 ## For Experienced Regex Users
 
-If you are comfortable writing raw regular expressions, `RegexString` may not add much value for entity recognition. The constructor escapes all match strings via `re.escape()`, which means regex metacharacters are treated as literals--so patterns like `\d+` cannot be expressed through the normal constructor. The `from_regex()` factory method exists as a work-around for this case, letting you plug a hand-written regex directly into the pipeline:
+If you are comfortable writing raw regular expressions, `RegexString` may not add much value for entity recognition on its own. But see comments on **relation extraction**, below.
+
+By default the constructor escapes all match strings via `re.escape()`, so metacharacters like `\d+` are treated as literals. Pass `escape=False` to use regex syntax directly in `match_strs` while still getting all the constructor features — `whole_word`, `optional`, `prepend`, `append`, and the OR-ing machinery:
 
 ```python
-number_rs = RegexString.from_regex(r'(\d+)')
+number_rs = RegexString([r'\d+'], escape=False)
+digits_or_lower = RegexString([r'\d+', r'[a-z]+'], escape=False)
+number_word = RegexString([r'\d+'], escape=False, whole_word=True)
+```
+
+When `escape=False`, items are inserted into the alternation in the order you supply them. Put more-specific patterns before less-specific ones to avoid prefix-match shadowing (e.g. `[r'\d{2}', r'\d']`, not `[r'\d', r'\d{2}']`).
+
+Use `from_regex()` only when you need to pass a *complete* hand-written regex that cannot be expressed as a list of alternates — for example, when combining two already-built `RegexString` objects:
+
+```python
+perf_combined_rs = RegexString.from_regex(
+    f'(?:{imperf_rs.get_regex_str()}|{perf_sized_rs.get_regex_str()})')
 ```
 
 Where the framework pays off for everyone, including experienced regex users, is **relation extraction**. Consider linking a stamp ID to its denomination when they appear within four tokens of each other. In raw regex:

@@ -21,7 +21,7 @@ class TestMinMax(unittest.TestCase):
         entities = []
 
         # Write rules for two types of entities--Number and Unit_of_Measurement.
-        number_rs = RegexString.from_regex('(\d+)')
+        number_rs = RegexString([r'\d+'], escape=False)
         matches = number_rs.get_match_triples(text)
         for match in matches:
             entity_dict = {
@@ -67,7 +67,7 @@ class TestMinMax(unittest.TestCase):
         entities = []
 
         # Write rules for two types of entities--Number and Unit_of_Measurement.
-        number_rs = RegexString.from_regex('(\d+)')
+        number_rs = RegexString([r'\d+'], escape=False)
         matches = number_rs.get_match_triples(text)
         for match in matches:
             entity_dict = {
@@ -115,7 +115,7 @@ class TestMinMax(unittest.TestCase):
         entities = []
 
         # Write rules for two types of entities--Number and Unit_of_Measurement.
-        number_rs = RegexString.from_regex('(\d+)')
+        number_rs = RegexString([r'\d+'], escape=False)
         matches = number_rs.get_match_triples(text)
         for match in matches:
             entity_dict = {

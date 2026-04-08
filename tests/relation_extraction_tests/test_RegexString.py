@@ -252,3 +252,69 @@ class TestRegexString(unittest.TestCase):
         triples = rs.get_match_triples(inputStr)
         self.assertEqual([('[20]', 25, 29)], triples)
 
+
+class TestEscapeFalse(unittest.TestCase):
+    """Tests for escape=False, which allows regex metacharacters in match_strs."""
+
+    def test_single_item_not_escaped(self):
+        # Verify that escape=False inserts the item verbatim, not re.escape()'d.
+        rs = RegexString([r'\d+'], escape=False)
+        self.assertEqual(r'\d+', rs.get_regex_str())
+
+    def test_single_item_matches(self):
+        rs = RegexString([r'\d+'], escape=False)
+        triples = rs.get_match_triples('abc 123 def 45')
+        self.assertEqual([('123', 4, 7), ('45', 12, 14)], triples)
+
+    def test_multiple_items_ored(self):
+        # Multiple patterns are OR'd together; caller controls order.
+        rs = RegexString([r'\d+', r'[a-z]+'], escape=False)
+        self.assertEqual(r'(?:\d+|[a-z]+)', rs.get_regex_str())
+        triples = rs.get_match_triples('abc 123')
+        self.assertEqual([('abc', 0, 3), ('123', 4, 7)], triples)
+
+    def test_whole_word_true(self):
+        # whole_word=True wraps the pattern in \b...\b.
+        rs = RegexString([r'\d+'], escape=False, whole_word=True)
+        self.assertEqual(r'\b\d+\b', rs.get_regex_str())
+        # Digits adjacent to letters should not match.
+        triples = rs.get_match_triples('abc123 456 78xyz')
+        self.assertEqual([('456', 7, 10)], triples)
+
+    def test_whole_word_false(self):
+        rs = RegexString([r'\d+'], escape=False, whole_word=False)
+        triples = rs.get_match_triples('abc123 456 78xyz')
+        self.assertEqual([('123', 3, 6), ('456', 7, 10), ('78', 11, 13)], triples)
+
+    def test_optional_single_item(self):
+        rs = RegexString([r'\d+'], escape=False, optional=True, append=r'px')
+        self.assertEqual(r'(?:\d+)?px', rs.get_regex_str())
+        triples = rs.get_match_triples('12px and px')
+        self.assertEqual([('12px', 0, 4), ('px', 9, 11)], triples)
+
+    def test_with_prepend_append(self):
+        # Two items are OR'd together; escape=False leaves them unescaped.
+        rs = RegexString(['c', '¢'], escape=False, prepend=r'\d\d?')
+        self.assertEqual(r'\d\d?(?:c|¢)', rs.get_regex_str())
+        triples = rs.get_match_triples('3¢ and 12c')
+        self.assertEqual([('3¢', 0, 2), ('12c', 7, 10)], triples)
+
+    def test_escape_true_vs_false(self):
+        # escape=True (default) treats the item as a literal.
+        rs_escaped = RegexString([r'\d+'])
+        self.assertEqual(r'\\d\+', rs_escaped.get_regex_str())
+        triples = rs_escaped.get_match_triples(r'\d+')
+        self.assertEqual([(r'\d+', 0, 3)], triples)
+
+        # escape=False treats the item as a regex pattern.
+        rs_raw = RegexString([r'\d+'], escape=False)
+        self.assertEqual(r'\d+', rs_raw.get_regex_str())
+        triples = rs_raw.get_match_triples('123')
+        self.assertEqual([('123', 0, 3)], triples)
+
+    def test_no_length_sort_applied(self):
+        # When escape=False, items are not reordered; caller order is preserved.
+        # Passing shorter pattern first; verify it stays first in the alternation.
+        rs = RegexString([r'\d', r'\d{2}'], escape=False)
+        self.assertEqual(r'(?:\d|\d{2})', rs.get_regex_str())
+

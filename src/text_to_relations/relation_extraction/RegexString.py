@@ -16,17 +16,20 @@ class RegexString:
                  whole_word: bool=False,
                  optional: bool=False,
                  non_capturing: bool=True,
-                 prepend: str='', append: str=''):
+                 prepend: str='', 
+                 append: str='',
+                 escape: bool=True):
         """
 
         Args:
-            match_strs (List[str]): a collection of plain strings to match
-                literally; if there is more than one element, each element is
-                OR'd together. Items are automatically escaped via re.escape(),
-                so regex metacharacters (e.g. '(', '[', '.') are treated as
-                literals. Use prepend/append or concat() for regex syntax.
-                If you need to use regex metacharacters directly in a pattern
-                (e.g. '\d+'), use from_regex() instead.
+            match_strs (List[str]): a collection of strings to match; if there
+                is more than one element, each element is OR'd together. By
+                default, items are automatically escaped via re.escape() so
+                regex metacharacters (e.g. '(', '[', '.') are treated as
+                literals. Set escape=False to use regex metacharacters directly
+                (e.g. r'\\d+', r'\\w+'). When escape=False, caller is responsible
+                for ordering items correctly in the alternation (no
+                length-based sort is applied).
                 For case-insensitive matching, lowercase all items here and
                 also lowercase the input string before calling
                 get_match_triples().
@@ -43,17 +46,34 @@ class RegexString:
                 Defaults to ''.
             append (str, optional): regex string to append to the OR'd list.
                 Defaults to ''.
+            escape (bool, optional): if True (the default), each item in
+                match_strs is escaped via re.escape() so metacharacters are
+                treated as literals. Set to False to use regex syntax directly
+                in match_strs items (e.g. r'\\d+', r'[A-Z]+'). When False,
+                items are inserted into the alternation in the order given;
+                put more-specific patterns before less-specific ones to avoid
+                prefix-match shadowing (e.g. [r'\\d{2}', r'\\d'] not
+                [r'\\d', r'\\d{2}']). Defaults to True.
         """
         # If match_strs is a string, the user has made an error.
         if isinstance(match_strs, str):
             raise ValueError("match_strs parameter must be a list. You passed in a string.")
+
+        self.escape = escape
 
         # If passed a list of regex's re.findall() will take the first match found
         # even if a longer match is possible. E.g. if `text` contains "18" and we call
         # re.findall("(1|18)", text), only "1" will be found. Here we fix this
         # by sorting on string length descending on all strings, not bothering to
         # first check whether they are substrings.
-        match_strs.sort(key=len, reverse=True)
+        # TODO: Investigate whether this sort is actually necessary. The hypothesis
+        # is that it matters only when escape=True and whole_word=False--i.e., for
+        # literal strings where one item is a prefix of another and there is no word
+        # boundary to force the longer match. When escape=False the items are regex
+        # patterns and length is not a reliable proxy for specificity, so the caller
+        # must order them explicitly.
+        if escape:
+            match_strs.sort(key=len, reverse=True)
         self.match_strs = match_strs
 
         self.whole_word = whole_word
@@ -107,7 +127,7 @@ class RegexString:
                 result += '?:'
 
             for item in self.match_strs:
-                result += re.escape(item) + '|'
+                result += (item if not self.escape else re.escape(item)) + '|'
             # Remove last pipe.
             result = result[0:-1]
 
@@ -117,16 +137,17 @@ class RegexString:
                 result += '?'
         else:
             # There is only one item to put into the regex.
+            item_str = self.match_strs[0] if not self.escape else re.escape(self.match_strs[0])
             if self.optional:
                 # Make the item optional.
                 result += '('
                 if self.non_capturing:
                     result += '?:'
-                result += re.escape(self.match_strs[0])
+                result += item_str
                 result += ')?'
             else:
                 # The item is required.
-                result += re.escape(self.match_strs[0])
+                result += item_str
                 if not self.non_capturing:
                     result = '(' + result + ')'
 
@@ -308,38 +329,22 @@ class RegexString:
         """
         Build a RegexString object from a hand-written regular expression.
 
-        Use this when the normal RegexString constructor cannot express the
-        pattern you need. Two common cases:
+        Use this when you need to OR two already-built RegexString objects
+        together:
 
-        1. Your pattern contains regex metacharacters. The constructor escapes
-           all match strings via re.escape(), so passing '\d+' would match the
-           literal string '\d+', not digits. Use from_regex() instead:
+            perf_rs = RegexString.from_regex(
+                f'(?:{imperf_rs.get_regex_str()}|{perf_sized_rs.get_regex_str()})')
 
-               number_rs = RegexString.from_regex(r'(\d+)')
+        If your pattern uses regex metacharacters (e.g. r'\\d+') and you also
+        want constructor features such as whole_word, optional, or concat()
+        support, use escape=False on the constructor instead:
 
-        2. You need to OR two already-built RegexString objects together:
+            number_rs = RegexString([r'\\d+'], escape=False, whole_word=True)
 
-               rs = RegexString.from_regex(
-                   f'(?:{rs1.get_regex_str()}|{rs2.get_regex_str()})')
-
-        The returned object is safe to use with:
-        - get_regex_str()
-        - get_match_triples()
-        - as a value in the regex_patterns dict passed to SimpleExtractionPhase
-
-        All of the above only consult the underlying regex string.
-
-        Warning: do not pass the returned object into concat() or
-        concat_with_word_distances(). Those methods read the object's
-        attributes (optional, whole_word) to make structural decisions about
-        the regex string. Because from_regex() cannot derive those attributes
-        from the hand-written regex, they could be wrong, and the concat
-        methods could produce incorrect results.
-
-        Not applicable: build_regex_string() constructs its own RegexString
-        objects internally and does not accept a RegexString as input, so it
-        is neither safe nor unsafe — it simply cannot be called with a
-        from_regex() object.
+        The returned object is safe to use with get_regex_str(),
+        get_match_triples(), and as a value in the regex_patterns dict passed
+        to SimpleExtractionPhase. Avoid passing it into concat() or
+        concat_with_word_distances().
 
         Args:
             regex (str): a regular expression string.
