@@ -1,6 +1,6 @@
 [project]
 name = "text_to_relations"
-version = "0.0.5"
+version = "0.1.0"
 authors = [
   { name="Jerry Kurlandski", email="jkurlandski@gmail.com" },
 ]
@@ -26,7 +26,7 @@ Issues = "https://github.com/jkurlandski01/text_to_relations/issues"
 Changelog = "https://github.com/jkurlandski01/text_to_relations/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
-dev = ["build", "twine"]
+dev = ["build", "twine", "mypy", "pylint"]
 
 [build-system]
 requires = ["setuptools>=61.0"]
