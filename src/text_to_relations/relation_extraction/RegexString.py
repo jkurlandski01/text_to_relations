@@ -25,6 +25,8 @@ class RegexString:
                 OR'd together. Items are automatically escaped via re.escape(),
                 so regex metacharacters (e.g. '(', '[', '.') are treated as
                 literals. Use prepend/append or concat() for regex syntax.
+                If you need to use regex metacharacters directly in a pattern
+                (e.g. '\d+'), use from_regex() instead.
                 For case-insensitive matching, lowercase all items here and
                 also lowercase the input string before calling
                 get_match_triples().
@@ -307,11 +309,18 @@ class RegexString:
         Build a RegexString object from a hand-written regular expression.
 
         Use this when the normal RegexString constructor cannot express the
-        pattern you need — for example, to OR two already-built RegexString
-        objects together:
+        pattern you need. Two common cases:
 
-            rs = RegexString.from_regex(
-                f'(?:{rs1.get_regex_str()}|{rs2.get_regex_str()})')
+        1. Your pattern contains regex metacharacters. The constructor escapes
+           all match strings via re.escape(), so passing '\d+' would match the
+           literal string '\d+', not digits. Use from_regex() instead:
+
+               number_rs = RegexString.from_regex(r'(\d+)')
+
+        2. You need to OR two already-built RegexString objects together:
+
+               rs = RegexString.from_regex(
+                   f'(?:{rs1.get_regex_str()}|{rs2.get_regex_str()})')
 
         The returned object is safe to use with:
         - get_regex_str()
