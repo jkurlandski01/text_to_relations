@@ -141,10 +141,9 @@ class TestRegexString(unittest.TestCase):
 
 
     def testMatchStringsWithCollection(self):
-        """ Test that match_strs items are treated as plain strings.
-        Previously, regex syntax could be embedded in match_strs items; this is
-        no longer supported as items are now escaped via re.escape(). Use
-        prepend/append or concat() for regex syntax in patterns. """
+        """ Test that match_strs items are treated as plain strings by default.
+        Items are escaped via re.escape(). Use prepend/append, concat(), or
+        escape=False for regex syntax in patterns. """
         inputStr = 'I saw a monkey. The monkey was sad.'
         inputStr += 'It made me sad to see a sad monkey. It made me weep to see a weeping monkey.'
         inputStr = inputStr.lower()
@@ -252,6 +251,21 @@ class TestRegexString(unittest.TestCase):
         triples = rs.get_match_triples(inputStr)
         self.assertEqual([('[20]', 25, 29)], triples)
 
+    def test_length_sort_ensures_longer_match_wins(self):
+        """Verify that the length-based sort causes the longer literal to match
+        when input contains a string that starts with a shorter alternative."""
+        # '18' starts with '1', so without sorting '1' would shadow '18'.
+        rs = RegexString(['1', '18'])
+        self.assertEqual('(?:18|1)', rs.get_regex_str())
+        triples = rs.get_match_triples('18')
+        self.assertEqual([('18', 0, 2)], triples)
+
+        # With escape=False the sort is still applied, so '18' still sorts first.
+        rs_escape_false = RegexString(['1', '18'], escape=False)
+        self.assertEqual('(?:18|1)', rs_escape_false.get_regex_str())
+        triples = rs_escape_false.get_match_triples('18')
+        self.assertEqual([('18', 0, 2)], triples)
+
 
 class TestEscapeFalse(unittest.TestCase):
     """Tests for escape=False, which allows regex metacharacters in match_strs."""
@@ -267,9 +281,8 @@ class TestEscapeFalse(unittest.TestCase):
         self.assertEqual([('123', 4, 7), ('45', 12, 14)], triples)
 
     def test_multiple_items_ored(self):
-        # Multiple patterns are OR'd together; caller controls order.
         rs = RegexString([r'\d+', r'[a-z]+'], escape=False)
-        self.assertEqual(r'(?:\d+|[a-z]+)', rs.get_regex_str())
+        self.assertEqual(r'(?:[a-z]+|\d+)', rs.get_regex_str())
         triples = rs.get_match_triples('abc 123')
         self.assertEqual([('abc', 0, 3), ('123', 4, 7)], triples)
 
@@ -312,9 +325,8 @@ class TestEscapeFalse(unittest.TestCase):
         triples = rs_raw.get_match_triples('123')
         self.assertEqual([('123', 0, 3)], triples)
 
-    def test_no_length_sort_applied(self):
-        # When escape=False, items are not reordered; caller order is preserved.
-        # Passing shorter pattern first; verify it stays first in the alternation.
+    def test_length_sort_applied_regardless_of_escape(self):
+        # Sort is applied even when escape=False; longer pattern sorts first.
         rs = RegexString([r'\d', r'\d{2}'], escape=False)
-        self.assertEqual(r'(?:\d|\d{2})', rs.get_regex_str())
+        self.assertEqual(r'(?:\d{2}|\d)', rs.get_regex_str())
 

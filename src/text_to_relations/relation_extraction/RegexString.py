@@ -16,7 +16,7 @@ class RegexString:
                  whole_word: bool=False,
                  optional: bool=False,
                  non_capturing: bool=True,
-                 prepend: str='', 
+                 prepend: str='',
                  append: str='',
                  escape: bool=True):
         """
@@ -27,9 +27,9 @@ class RegexString:
                 default, items are automatically escaped via re.escape() so
                 regex metacharacters (e.g. '(', '[', '.') are treated as
                 literals. Set escape=False to use regex metacharacters directly
-                (e.g. r'\\d+', r'\\w+'). When escape=False, caller is responsible
-                for ordering items correctly in the alternation (no
-                length-based sort is applied).
+                (e.g. r'\\d+', r'\\w+'). Items are always sorted by length
+                descending so that longer patterns take precedence in the
+                alternation.
                 For case-insensitive matching, lowercase all items here and
                 also lowercase the input string before calling
                 get_match_triples().
@@ -49,11 +49,8 @@ class RegexString:
             escape (bool, optional): if True (the default), each item in
                 match_strs is escaped via re.escape() so metacharacters are
                 treated as literals. Set to False to use regex syntax directly
-                in match_strs items (e.g. r'\\d+', r'[A-Z]+'). When False,
-                items are inserted into the alternation in the order given;
-                put more-specific patterns before less-specific ones to avoid
-                prefix-match shadowing (e.g. [r'\\d{2}', r'\\d'] not
-                [r'\\d', r'\\d{2}']). Defaults to True.
+                in match_strs items (e.g. r'\\d+', r'[A-Z]+'). Defaults to
+                True.
         """
         # If match_strs is a string, the user has made an error.
         if isinstance(match_strs, str):
@@ -61,19 +58,12 @@ class RegexString:
 
         self.escape = escape
 
-        # If passed a list of regex's re.findall() will take the first match found
+        # The regex engine takes the first matching alternative in an alternation,
         # even if a longer match is possible. E.g. if `text` contains "18" and we call
-        # re.findall("(1|18)", text), only "1" will be found. Here we fix this
+        # re.finditer("(1|18)", text), only "1" will be found. Here we fix this
         # by sorting on string length descending on all strings, not bothering to
         # first check whether they are substrings.
-        # TODO: Investigate whether this sort is actually necessary. The hypothesis
-        # is that it matters only when escape=True and whole_word=False--i.e., for
-        # literal strings where one item is a prefix of another and there is no word
-        # boundary to force the longer match. When escape=False the items are regex
-        # patterns and length is not a reliable proxy for specificity, so the caller
-        # must order them explicitly.
-        if escape:
-            match_strs.sort(key=len, reverse=True)
+        match_strs.sort(key=len, reverse=True)
         self.match_strs = match_strs
 
         self.whole_word = whole_word

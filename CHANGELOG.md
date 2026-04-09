@@ -2,6 +2,10 @@
 
 ## 0.1.0
 
+- Add `escape` parameter to `RegexString.__init__()`. When `escape=False`, items in `match_strs` are inserted into the regex pattern verbatim rather than being passed through `re.escape()`, allowing regex metacharacters such as `\d+` and `[A-Z]+` directly in match strings. All other constructor features (`whole_word`, `optional`, `prepend`, `append`, `concat()`) work normally with `escape=False`.
+
+---
+
 - Add `SimpleExtractionPhase`: a concrete subclass of `ExtractionPhaseABC` that accepts `relation_name`, `regex_patterns`, and `chain` as constructor arguments, so callers that need no custom behaviour can avoid defining a subclass.
 - Add `ChainLink` class with `start_property` and `end_property` fields, so each step in a proximity chain maps matched annotations to named attributes in the extracted relation.
 - Add automatic validation of `ExtractionPhaseABC` subclasses at construction time: required fields must be set, chain links must be continuous, and property names must be unique across the chain.

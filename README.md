@@ -72,7 +72,6 @@ digits_or_lower = RegexString([r'\d+', r'[a-z]+'], escape=False)
 number_word = RegexString([r'\d+'], escape=False, whole_word=True)
 ```
 
-When `escape=False`, items are inserted into the alternation in the order you supply them. Put more-specific patterns before less-specific ones to avoid prefix-match shadowing (e.g. `[r'\d{2}', r'\d']`, not `[r'\d', r'\d{2}']`).
 
 Use `from_regex()` only when you need to pass a *complete* hand-written regex that cannot be expressed as a list of alternates — for example, when combining two already-built `RegexString` objects:
 
