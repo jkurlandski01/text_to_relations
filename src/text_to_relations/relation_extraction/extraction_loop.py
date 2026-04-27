@@ -137,8 +137,16 @@ def run_loop(annotation_view_str: str,
 
     # Create a list of (substring, start_offset, end_offset) triples for the
     # current loop's regex string.
-    match_triples = [(m.group(), m.start(), m.end())
-                     for m in re.finditer(curr_loop.regex_str, annotation_view_str)]
+    # For recursive calls (loop_idx > 0), annotation_view_str starts at the exact
+    # annotation where the previous loop ended. Requiring m.start() == 0 ensures
+    # the next loop's match begins at that same annotation, not a later one of the
+    # same type that happens to be closer to the chain's final target.
+    all_matches = re.finditer(curr_loop.regex_str, annotation_view_str)
+    if loop_idx == 0:
+        match_triples = [(m.group(), m.start(), m.end()) for m in all_matches]
+    else:
+        match_triples = [(m.group(), m.start(), m.end()) for m in all_matches
+                         if m.start() == 0]
 
     for triple in match_triples:
         match_triples_list.append(triple)
