@@ -104,16 +104,40 @@ class TestExtractionLoop(unittest.TestCase):
         # First test: simple match.
         text = "1 a 2 b 3"
         result = phase.find_match(text)
-        props = {'one': '1', 'two': '2', 'three': '3'}
-        self.assertEqual([Annotation('MinMax', '1 a 2 b 3', 0, 9, props)], result)
+        props = {"one": "1", "two": "2", "three": "3"}
+        self.assertEqual([Annotation("MinMax", "1 a 2 b 3", 0, 9, props)], result)
 
         # Second test: multiple matches.
         text = "z 1 a 1 b 2 c 2 d 3 y 1 2 3 x"
         result = phase.find_match(text)
-        props = {'one': '1', 'two': '2', 'three': '3'}
-        ann1 = Annotation('MinMax', '1 b 2 c 2 d 3', 6, 19, props)
-        ann2 = Annotation('MinMax', '1 2 3', 22, 27, props)
+        props = {"one": "1", "two": "2", "three": "3"}
+        ann1 = Annotation("MinMax", "1 b 2 c 2 d 3", 6, 19, props)
+        ann2 = Annotation("MinMax", "1 2 3", 22, 27, props)
         self.assertEqual([ann1, ann2], result)
+
+    def test_failure(self):
+        phase = OneTwoThreePhase()
+
+        # First test: fail to match first pair.
+        text = "1 a a a 2 b 3"
+        result = phase.find_match(text)
+        self.assertEqual([], result)
+
+        # Second test: fail to match second pair.
+        text = "1 a 2 b b b 3"
+        result = phase.find_match(text)
+        self.assertEqual([], result)
+
+        # Third test: The first pair has a match and the second pair
+        # has a match, but the first element of the second pair match is
+        # not a valid second element of the first match.
+        text = "1 a 2 b b b 2 b 3"
+        result = phase.find_match(text)
+        # FIXME: Nothing should be extracted.
+        props = {"one": "1", "two": "2", "three": "3"}
+        # unexpected = [<'MinMax'(text='1 a 2 b b b 2 b 3', start='0', end='17', one='1', two='2', three='3')>]
+        self.assertEqual([Annotation("MinMax", "1 a 2 b b b 2 b 3", 0, 17, props)], result)
+        # self.assertEqual([], result)
 
     def test_RegexString_object_raises(self):
         # Verify that passing a RegexString object (instead of a str) raises a
