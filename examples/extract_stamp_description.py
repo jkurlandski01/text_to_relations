@@ -71,7 +71,7 @@ if __name__ == '__main__':
                   end_type='Perforation', end_property='Perforation'),
     ]
 
-    # Step 3: Instantiate and run.
+    # Step 3: Instantiate the extraction phase.
     phase = SimpleExtractionPhase(
         relation_name='StampDescription',
         regex_patterns=regex_patterns,
@@ -97,6 +97,7 @@ if __name__ == '__main__':
     """
     input_text = inspect.cleandoc(input_text)
 
+    # Step 4: Run the extraction phase on each paragraph.
     paragraphs = [e.strip() for e in re.split(r'\n\s*\n', input_text) if e.strip()]
     results = []
     for par in paragraphs:
