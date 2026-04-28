@@ -1,8 +1,9 @@
 import unittest
+import inspect
 
 from text_to_relations.relation_extraction.RegexString import RegexString
 from text_to_relations.relation_extraction.Annotation import Annotation
-from text_to_relations.relation_extraction.ExtractionPhaseABC import ExtractionPhaseABC, ChainLink
+from text_to_relations.relation_extraction.ExtractionPhaseABC import ExtractionPhaseABC, ChainLink, SimpleExtractionPhase
 from text_to_relations.relation_extraction.TokenAnn import TokenAnn
 from text_to_relations.relation_extraction.extraction_loop import ExtractionLoop, run_loop, get_sorted_annotations_for_matching
 
@@ -141,3 +142,138 @@ class TestExtractionLoop(unittest.TestCase):
         regex_1 = RegexString.from_regex(regex_1_str)
         with self.assertRaises(ValueError):
             ExtractionLoop(regex_str=regex_1, last_ann_str="Two")
+
+    def test_consecutive_identical_annotations(self):
+        # FIXME: working here
+
+        text = "lower limit of 87 ft-lb Foot-pounds "
+        text += "to upper limit of 92 ft-lb Foot-pounds."
+
+        # inputStr = "<'UNIT_OF_MEASUREMENT'(text='ft-lb', start='214', end='219')><'UNIT_OF_MEASUREMENT'(text='Foot', start='220', end='224')><'Token'(text='-', start='224', end='225', kind='punc')><'Token'(text='pounds', start='225', end='231', kind='word')><'Token'(text='(', start='232', end='233', kind='punc')><'Token'(text='Torque', start='233', end='239', kind='word')><'Token'(text=')', start='239', end='240', kind='punc')><'Token'(text='to', start='241', end='243', kind='word')><'AtMost'(text='upper limit', start='244', end='255')><'Token'(text='of', start='256', end='258', kind='word')><'CARDINAL'(text='92', start='259', end='261')><'UNIT_OF_MEASUREMENT'(text='ft-lb', start='262', end='267')><'UNIT_OF_MEASUREMENT'(text='Foot', start='268', end='272')><'Token'(text='-', start='272', end='273', kind='punc')><'Token'(text='pounds', start='273', end='279', kind='word')><'Token'(text='(', start='280', end='281', kind='punc')><'Token'(text='Torque', start='281', end='287', kind='word')><'Token'(text=')', start='287', end='288', kind='punc')><'Token'(text='.', start='288', end='289', kind='punc')>"
+        inputStr = """
+            <'AtLeast'(text='lower limit', start='196', end='207')>
+            <'Token'(text='of', start='208', end='210', kind='word')>
+            <'CARDINAL'(text='87', start='211', end='213')>
+            <'UNIT_OF_MEASUREMENT'(text='ft-lb', start='214', end='219')>
+            <'UNIT_OF_MEASUREMENT'(text='Foot', start='220', end='224')>
+            <'Token'(text='-', start='224', end='225', kind='punc')>
+            <'Token'(text='pounds', start='225', end='231', kind='word')>
+            <'Token'(text='(', start='232', end='233', kind='punc')>
+            <'Token'(text='Torque', start='233', end='239', kind='word')>
+            <'Token'(text=')', start='239', end='240', kind='punc')>
+            <'Token'(text='to', start='241', end='243', kind='word')>
+            <'AtMost'(text='upper limit', start='244', end='255')>
+            <'Token'(text='of', start='256', end='258', kind='word')>
+        """
+        at_least_strs = ["at least", "lower limit", "minimum of", "no less than"]
+        at_least_regex_str = RegexString(at_least_strs)
+        at_most_strs = ["at most", "upper limit", "maximum of", "no more than"]
+        at_most_regex_str = RegexString(at_most_strs)
+        regex_patterns = {
+            "AtLeast": at_least_regex_str,
+            "AtMost": at_most_regex_str,
+        }
+
+        # <'CARDINAL'(text='87', start='211', end='213')>
+        # <'UNIT_OF_MEASUREMENT'(text='ft-lb', start='214', end='219')>
+        # <'UNIT_OF_MEASUREMENT'(text='Foot', start='220', end='224')>
+        card1 = TokenAnn(211, 213, "87")
+        card1.properties["kind"] = "CARDINAL"
+        uom1 = TokenAnn(214, 219, "ft-lb")
+        uom1.properties["kind"] = "UNIT_OF_MEASUREMENT"
+        # uom2 = TokenAnn(220, 224, "Foot")
+        # uom2.properties["kind"] = "UNIT_OF_MEASUREMENT"
+
+        entity_annotations = [
+            card1,
+            uom1,
+            # uom2
+        ]
+
+        # Remove whitespace at the start of each line.
+        inputStr = inspect.cleandoc(inputStr)
+        # Replace consecutive whitespace with a single space char.
+        inputStr = " ".join(inputStr.split())
+
+        # Define the allowable distance between entities for
+        # extractions of this particular relation.
+        chain = [
+            ChainLink(
+                start_type="AtLeast",
+                start_property="AtLeast",
+                min_distance=0,
+                max_distance=3,
+                end_type="CARDINAL",
+                end_property="min",
+            ),
+            ChainLink(
+                start_type="CARDINAL",
+                start_property="min",
+                min_distance=0,
+                max_distance=2,
+                end_type="UNIT_OF_MEASUREMENT",
+                end_property="unit_of_measure",
+            ),
+            # ChainLink(
+            #     start_type="UNIT_OF_MEASUREMENT",
+            #     start_property="unit_of_measure",
+            #     min_distance=0,
+            #     max_distance=10,
+            #     end_type="AtMost",
+            #     end_property="AtMost",
+            # ),
+            # ChainLink(
+            #     start_type="AtMost",
+            #     start_property="AtMost",
+            #     min_distance=0,
+            #     max_distance=3,
+            #     end_type="CARDINAL",
+            #     end_property="max",
+            # ),
+            # ChainLink(
+            #     start_type="CARDINAL",
+            #     start_property="max",
+            #     min_distance=0,
+            #     max_distance=2,
+            #     # FIXME: assuming that this uom is the same as the preceding.
+            #     end_type="UNIT_OF_MEASUREMENT",
+            #     end_property="UNIT_OF_MEASUREMENT_2",
+            # ),
+        ]
+
+        # Create the phase.
+        phase = SimpleExtractionPhase(
+            relation_name="MinMax",
+            regex_patterns=regex_patterns,
+            chain=chain,
+            verbose=False,
+        )
+
+        relations = phase.find_match(text, entity_annotations=entity_annotations)
+
+        print(f"{relations=}")
+        self.assertEqual("hi", relations)
+
+        # expected = [
+        #     "<'UNIT_OF_MEASUREMENT'(text='ft-lb', start='214', end='219')>"
+        #     "<'UNIT_OF_MEASUREMENT'(text='Foot', start='220', end='224')>"
+        #     "<'Token'(text='-', start='224', end='225', kind='punc')>"
+        #     "<'Token'(text=')', start='239', end='240', kind='punc')>"
+        #     "<'Token'(text='to', start='241', end='243', kind='word')>"
+        #     "<'AtMost'(text='upper limit', start='244', end='255')>"
+        # ]
+
+        # # Use build_annotation_distance_regex() to match any Token.
+        # testRegex = TokenAnn.build_annotation_distance_regex(
+        #     "UNIT_OF_MEASUREMENT", (0, 10), None, "AtMost"
+        # )
+
+        # expectedRegex = (
+        #     # FIXME: doesn't work: r"<'UNIT_OF_MEASUREMENT[^>]*>(?:<'[^>]+>){0,10}<'AtMost[^>]*>"
+        #     r"<'UNIT_OF_MEASUREMENT[^>]*>(?:<'Token[^>]*>){0,10}<'AtMost[^>]*>"
+        # )
+        # self.assertEqual(expectedRegex, testRegex)
+
+        # match_strs = re.findall(testRegex, inputStr)
+        # print(f"{match_strs=}")
+        # self.assertEqual(expected, match_strs)
