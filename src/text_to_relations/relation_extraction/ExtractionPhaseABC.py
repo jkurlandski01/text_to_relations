@@ -67,10 +67,10 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
         """
         super().__init_subclass__(**kwargs)
         original_init = cls.__init__
-        def new_init(self, *args, **kwargs):
+        def __init__(self, *args, **kwargs):
             original_init(self, *args, **kwargs)
             self._validate()
-        cls.__init__ = new_init
+        cls.__init__ = __init__
 
     def __init__(self, verbose: bool = False):
         """
