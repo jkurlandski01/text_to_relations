@@ -37,6 +37,13 @@ This installs the runtime dependencies declared in `pyproject.toml` (e.g. `spacy
 python -m unittest
 ```
 
+### Linting and Type Checking
+
+```bash
+pylint src/ tests/ examples/
+mypy src/ tests/ examples/
+```
+
 ### Build
 
 Run the following, which cleans old builds from `dist/` before building:

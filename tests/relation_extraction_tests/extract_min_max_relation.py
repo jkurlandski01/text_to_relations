@@ -3,7 +3,7 @@ Convert entity information into specific pre-determined relations
 between those entities.
 """
 
-from typing import Dict, List
+from typing import Any, Dict, List
 import inspect
 
 from text_to_relations.relation_extraction.RegexString import RegexString
@@ -82,14 +82,14 @@ def entities_to_annotations(entities: List[Dict[str, str]]) -> List[Annotation]:
         start = entity['start']
         end = entity['end']
         text = entity['text']
-        ann = Annotation(type, text, start, end)
+        ann = Annotation(type, text, int(start), int(end))
 
         annotations.append(ann)
 
     return annotations
 
-def entities_to_relations(input_dict: Dict[str, object],
-                          verbose: bool=False) -> List[Dict[str, str]]:
+def entities_to_relations(input_dict: Dict[str, Any],
+                          verbose: bool=False) -> List[Dict[str, object]]:
     input_text = input_dict["text"]
 
     annotations = entities_to_annotations(input_dict["entities"])

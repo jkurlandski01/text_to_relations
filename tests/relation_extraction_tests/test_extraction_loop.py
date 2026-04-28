@@ -114,7 +114,7 @@ class TestExtractionLoop(unittest.TestCase):
         ann2 = Annotation("MinMax", "1 2 3", 22, 27, props)
         self.assertEqual([ann2], result)
 
-    def test_failure(self):
+    def test_failures(self):
         phase = OneTwoThreePhase()
 
         # First test: fail to match first pair.
