@@ -44,6 +44,47 @@ pylint src/ tests/ examples/
 mypy src/ tests/ examples/
 ```
 
+### Debugging Chain Extraction
+
+Pass `verbose=True` to any `ExtractionPhaseABC` subclass or to `run_loop()` directly to print a trace of the matching process.
+
+Each line is indented by two spaces per loop level, so you can see the recursion depth at a glance. A typical successful trace looks like this:
+
+```
+Loop 0 [AtLeast→CARDINAL, tokens=0..3] — [AtLeast, Token, CARDINAL, UNIT_OF_MEASUREMENT, ...]
+  match: ['AtLeast', 'Token', 'CARDINAL']
+
+  Loop 1 [CARDINAL→UNIT_OF_MEASUREMENT, tokens=0..2] — [CARDINAL, UNIT_OF_MEASUREMENT, Token, ...]
+    match: ['CARDINAL', 'UNIT_OF_MEASUREMENT']
+    SUCCESS → <'MinMax'(text='lower limit of 87 ft-lb', ...)>
+```
+
+A failing trace where a chain partially matches but cannot complete:
+
+```
+Loop 0 [AtLeast→CARDINAL, tokens=0..3] — [AtLeast, Token, CARDINAL, UNIT_OF_MEASUREMENT, ...]
+  match: ['AtLeast', 'Token', 'CARDINAL']
+
+  Loop 1 [CARDINAL→UNIT_OF_MEASUREMENT, tokens=0..2] — [CARDINAL, Token, Token, AtMost, ...]
+    NO MATCH
+  ^ backtracking
+  NO MATCH
+```
+
+**Reading the output:**
+
+- The header line `Loop N [A→B, tokens=min..max]` shows which chain step is running and the allowed gap size.
+- The annotation list after `—` shows what types are visible from the current search position (truncated to 20).
+- `match: [...]` shows the annotation types consumed by this loop's regex.
+- `^ backtracking` means the recursive call from the line above returned no result; the current loop will try its next candidate match if one exists.
+- `NO MATCH` means this loop exhausted all candidates without success.
+- `SUCCESS →` shows the final `Annotation` that was built.
+
+**Common failure patterns:**
+
+- Loop 0 finds a `match` but the next loop immediately shows `NO MATCH` — the gap between the two annotation types is larger than `max_distance` allows.
+- The annotation list at a deeper loop level doesn't contain the expected endpoint type at all — an upstream match consumed the wrong annotation, leaving the remainder without a valid target.
+
 ### Build
 
 Run the following, which cleans old builds from `dist/` before building:

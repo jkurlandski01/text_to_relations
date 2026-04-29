@@ -105,7 +105,10 @@ def run_loop(annotation_view_str: str,
         match_triples_list (List[Tuple]): matches found thus far for the loops processed
             thus far
         new_annotations (List[Tuple]): matches successfully found thus far
-        verbose (bool, optional): Defaults to False.
+        verbose (bool, optional): If True, prints an indented trace of each
+            loop's search, the annotation types found, matches attempted,
+            backtracking steps, and final outcome. See DEVELOPING.md for a
+            guide to reading the trace. Defaults to False.
 
     Raises:
         ValueError: For invalid input or unexpected results.
