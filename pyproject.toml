@@ -1,6 +1,6 @@
 [project]
 name = "text_to_relations"
-version = "0.1.1"
+version = "0.1.2"
 authors = [
   { name="Jerry Kurlandski", email="jkurlandski@gmail.com" },
 ]

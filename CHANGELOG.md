@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.1.2
+
+### Breaking changes
+
+- **`run_loop()`** `loops_in_process` parameter removed. It was dead code — accumulated on every recursive call but never read. Any caller passing it by keyword must remove that argument.
+
+### Bug fixes
+
+- `TokenAnn.get_token_objects()` returned wrong token offsets when a token consisted entirely of the character `'x'`. Fixed by using `str.find()` with an advancing search index instead of the x-replacement approach.
+
+---
+
+## 0.1.1
+
+### Bug fixes
+
+- `run_loop()` chain-enforcement fix: recursive calls now require `m.start() == 0`, ensuring the bridging annotation instance is the same one that ended the previous chain hop rather than a later annotation of the same type.
+- `RegexString.__init__()`: `match_strs` is now sorted by length descending regardless of the `escape` setting. Previously the sort was skipped when `escape=False`, which could produce incorrect alternations for regex patterns where one is a prefix of another.
+
+---
+
 ## 0.1.0
 
 - Add `escape` parameter to `RegexString.__init__()`. When `escape=False`, items in `match_strs` are inserted into the regex pattern verbatim rather than being passed through `re.escape()`, allowing regex metacharacters such as `\d+` and `[A-Z]+` directly in match strings. All other constructor features (`whole_word`, `optional`, `prepend`, `append`, `concat()`) work normally with `escape=False`.
