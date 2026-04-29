@@ -326,3 +326,15 @@ class TestPhaseABC(unittest.TestCase):
                     "<'Token'(text=',', start='31', end='32', kind='punc')>"]
 
         self.assertEqual(expected, actual)
+
+
+    def testGetTokenObjects_repeated_x_token(self):
+        # Fixes a bug in the original implementation of 
+        # get_token_objects().
+        docStr = "x x"
+
+        actualObjs = TokenAnn.get_token_objects(docStr, 0)
+        actual = [str(x) for x in actualObjs]
+        expected = ["<'Token'(text='x', start='0', end='1', kind='word')>",
+                    "<'Token'(text='x', start='2', end='3', kind='word')>"]
+        self.assertEqual(expected, actual)

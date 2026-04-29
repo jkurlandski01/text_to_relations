@@ -74,30 +74,30 @@ class TokenAnn(Annotation):
     def get_token_objects(input_str: str,
                           start_pos_in_doc: int) -> List['TokenAnn']:
         """
-        Create TokenAnn objects on the given substring of a longer document.
+        Tokenize a substring of a larger document, returning TokenAnn objects
+        whose offsets are relative to the full document rather than the substring.
+
+        Use this instead of text_to_token_anns when input_str is a slice of a
+        longer document and the caller needs offsets that are valid in that
+        document. start_pos_in_doc is added to each token's local offset to
+        produce the document-level position.
+
         Args:
             input_str (str): a substring of some document
-            start_pos_in_doc (int): the starting offset of inputStr in the
-                source document
+            start_pos_in_doc (int): character offset of input_str within the
+                source document; added to each token's local offset
 
         Returns:
-            List['TokenAnn']: a list of TokenAnn objects
+            List['TokenAnn']: TokenAnn objects with offsets relative to the
+                source document
         """
         result = []
-
-        # This is how we track the starting and ending position of each token.
-        # For each token, we find the first instance in this string--and use
-        # that to determine the starting position. We replace the found substring
-        # with x's to avoid the problem of repeating tokens.
-        consumed_str = input_str
-
         token_strs = SpacyUtils.tokenize(input_str)
-
+        start_search_idx = 0
         for token_str in token_strs:
-            start_pos_in_input = consumed_str.index(token_str)
-            x_str = 'x' * len(token_str)
-            consumed_str = consumed_str.replace(token_str, x_str, 1)
+            start_pos_in_input = input_str.find(token_str, start_search_idx)
             end_pos_in_input = start_pos_in_input + len(token_str)
+            start_search_idx = end_pos_in_input
             token = TokenAnn(start_pos_in_doc + start_pos_in_input,
                              start_pos_in_doc + end_pos_in_input, token_str)
             result.append(token)
