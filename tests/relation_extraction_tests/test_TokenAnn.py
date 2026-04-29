@@ -175,7 +175,6 @@ class TestTokenAnn(unittest.TestCase):
         self.assertEqual(expectedRegex, testRegex)
 
         match_strs = re.findall(testRegex, inputStr)
-        print(f"{match_strs=}")
         self.assertEqual(expected, match_strs)
 
     def testConsecutiveIdenticalAnnotations2(self):
@@ -210,5 +209,4 @@ class TestTokenAnn(unittest.TestCase):
         self.assertEqual(expectedRegex, testRegex)
 
         match_strs = re.findall(testRegex, inputStr)
-        print(f"{match_strs=}")
         self.assertEqual(expected, match_strs)

@@ -10,7 +10,8 @@ produce a result.
 import inspect
 
 from text_to_relations.relation_extraction.RegexString import RegexString
-from text_to_relations.relation_extraction.ExtractionPhaseABC import SimpleExtractionPhase, ChainLink
+from text_to_relations.relation_extraction.ExtractionPhaseABC import (
+    SimpleExtractionPhase, ChainLink)
 
 
 if __name__ == '__main__':

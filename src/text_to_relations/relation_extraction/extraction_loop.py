@@ -75,7 +75,6 @@ def run_loop(annotation_view_str: str,
              relation_name: str,
              curr_loop: ExtractionLoop,
              loop_idx: int,
-             loops_in_process: List[ExtractionLoop],
              loop_list: List[ExtractionLoop],
              match_triples_list: List[Tuple],
              new_annotations: List[Annotation],
@@ -98,9 +97,7 @@ def run_loop(annotation_view_str: str,
         relation_name (str): type name assigned to each successfully extracted
             relation Annotation (e.g. 'MinMax').
         curr_loop (ExtractionLoop): loop being processed
-        loop_idx (int): which loopin loops_in_process we are processing
-        loops_in_process (List[ExtractionLoop]): the loops which have been processed
-            successfully to get this far in the recursion
+        loop_idx (int): index into loop_list indicating which loop is currently being processed
         loop_list (List[ExtractionLoop]): all the loops which have been set up
         match_triples_list (List[Tuple]): matches found thus far for the loops processed
             thus far
@@ -186,7 +183,6 @@ def run_loop(annotation_view_str: str,
         last_ann_st_offset = annotation_view_str[0 : match_end_offset].rfind(ptrn)
         text_substring = annotation_view_str[last_ann_st_offset : ]
 
-        loops_in_process.append(curr_loop)
         new_idx = loop_idx + 1
         next_loop = loop_list[new_idx]
 
@@ -195,7 +191,6 @@ def run_loop(annotation_view_str: str,
                             relation_name=relation_name,
                             curr_loop=next_loop,
                             loop_idx=new_idx,
-                            loops_in_process=loops_in_process,
                             loop_list=loop_list,
                             match_triples_list=match_triples_list,
                             new_annotations=new_annotations,

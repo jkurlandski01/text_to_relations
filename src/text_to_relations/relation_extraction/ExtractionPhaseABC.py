@@ -218,7 +218,6 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
             relation_name=self.relation_name,
             curr_loop=loops[0],
             loop_idx=0,
-            loops_in_process=[],
             loop_list=loops,
             match_triples_list=[],
             new_annotations=[],

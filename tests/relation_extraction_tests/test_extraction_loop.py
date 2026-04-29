@@ -60,7 +60,6 @@ class TestExtractionLoop(unittest.TestCase):
                                 verbose=False)
 
         loop_list = [loop_1, loop_2]
-        loops_in_process = []
 
         with self.assertRaises(ValueError):
             run_loop(annotation_view_str=annotation_view_str,
@@ -68,7 +67,6 @@ class TestExtractionLoop(unittest.TestCase):
                 relation_name='MinMax',
                 curr_loop=loop_1,
                 loop_idx=0,
-                loops_in_process=loops_in_process,
                 loop_list=loop_list,
                 match_triples_list=[],
                 new_annotations=[],
@@ -85,7 +83,6 @@ class TestExtractionLoop(unittest.TestCase):
                 relation_name='MinMax',
                 curr_loop=loop_1,
                 loop_idx=0,
-                loops_in_process=loops_in_process,
                 loop_list=loop_list,
                 match_triples_list=[],
                 new_annotations=[],
