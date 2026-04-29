@@ -144,27 +144,8 @@ class TestExtractionLoop(unittest.TestCase):
             ExtractionLoop(regex_str=regex_1, last_ann_str="Two")
 
     def test_consecutive_identical_annotations(self):
-        # FIXME: working here
+        text = "lower limit of 87 ft-lb Foot-pounds to upper limit of 92 ft-lb Foot-pounds."
 
-        text = "lower limit of 87 ft-lb Foot-pounds "
-        text += "to upper limit of 92 ft-lb Foot-pounds."
-
-        # inputStr = "<'UNIT_OF_MEASUREMENT'(text='ft-lb', start='214', end='219')><'UNIT_OF_MEASUREMENT'(text='Foot', start='220', end='224')><'Token'(text='-', start='224', end='225', kind='punc')><'Token'(text='pounds', start='225', end='231', kind='word')><'Token'(text='(', start='232', end='233', kind='punc')><'Token'(text='Torque', start='233', end='239', kind='word')><'Token'(text=')', start='239', end='240', kind='punc')><'Token'(text='to', start='241', end='243', kind='word')><'AtMost'(text='upper limit', start='244', end='255')><'Token'(text='of', start='256', end='258', kind='word')><'CARDINAL'(text='92', start='259', end='261')><'UNIT_OF_MEASUREMENT'(text='ft-lb', start='262', end='267')><'UNIT_OF_MEASUREMENT'(text='Foot', start='268', end='272')><'Token'(text='-', start='272', end='273', kind='punc')><'Token'(text='pounds', start='273', end='279', kind='word')><'Token'(text='(', start='280', end='281', kind='punc')><'Token'(text='Torque', start='281', end='287', kind='word')><'Token'(text=')', start='287', end='288', kind='punc')><'Token'(text='.', start='288', end='289', kind='punc')>"
-        inputStr = """
-            <'AtLeast'(text='lower limit', start='196', end='207')>
-            <'Token'(text='of', start='208', end='210', kind='word')>
-            <'CARDINAL'(text='87', start='211', end='213')>
-            <'UNIT_OF_MEASUREMENT'(text='ft-lb', start='214', end='219')>
-            <'UNIT_OF_MEASUREMENT'(text='Foot', start='220', end='224')>
-            <'Token'(text='-', start='224', end='225', kind='punc')>
-            <'Token'(text='pounds', start='225', end='231', kind='word')>
-            <'Token'(text='(', start='232', end='233', kind='punc')>
-            <'Token'(text='Torque', start='233', end='239', kind='word')>
-            <'Token'(text=')', start='239', end='240', kind='punc')>
-            <'Token'(text='to', start='241', end='243', kind='word')>
-            <'AtMost'(text='upper limit', start='244', end='255')>
-            <'Token'(text='of', start='256', end='258', kind='word')>
-        """
         at_least_strs = ["at least", "lower limit", "minimum of", "no less than"]
         at_least_regex_str = RegexString(at_least_strs)
         at_most_strs = ["at most", "upper limit", "maximum of", "no more than"]
@@ -174,26 +155,18 @@ class TestExtractionLoop(unittest.TestCase):
             "AtMost": at_most_regex_str,
         }
 
-        # <'CARDINAL'(text='87', start='211', end='213')>
-        # <'UNIT_OF_MEASUREMENT'(text='ft-lb', start='214', end='219')>
-        # <'UNIT_OF_MEASUREMENT'(text='Foot', start='220', end='224')>
-        card1 = TokenAnn(211, 213, "87")
-        card1.properties["kind"] = "CARDINAL"
-        uom1 = TokenAnn(214, 219, "ft-lb")
-        uom1.properties["kind"] = "UNIT_OF_MEASUREMENT"
-        # uom2 = TokenAnn(220, 224, "Foot")
-        # uom2.properties["kind"] = "UNIT_OF_MEASUREMENT"
-
+        card1 = Annotation("CARDINAL", "87", 15, 17)
+        uom1  = Annotation("UNIT_OF_MEASUREMENT", "ft-lb", 18, 23)
+        uom2  = Annotation("UNIT_OF_MEASUREMENT", "Foot", 24, 28)
+        card2 = Annotation("CARDINAL", "92", 54, 56)
+        uom3  = Annotation("UNIT_OF_MEASUREMENT", "ft-lb", 57, 62)
         entity_annotations = [
             card1,
             uom1,
-            # uom2
+            uom2,
+            card2,
+            uom3
         ]
-
-        # Remove whitespace at the start of each line.
-        inputStr = inspect.cleandoc(inputStr)
-        # Replace consecutive whitespace with a single space char.
-        inputStr = " ".join(inputStr.split())
 
         # Define the allowable distance between entities for
         # extractions of this particular relation.
@@ -214,31 +187,32 @@ class TestExtractionLoop(unittest.TestCase):
                 end_type="UNIT_OF_MEASUREMENT",
                 end_property="unit_of_measure",
             ),
-            # ChainLink(
-            #     start_type="UNIT_OF_MEASUREMENT",
-            #     start_property="unit_of_measure",
-            #     min_distance=0,
-            #     max_distance=10,
-            #     end_type="AtMost",
-            #     end_property="AtMost",
-            # ),
-            # ChainLink(
-            #     start_type="AtMost",
-            #     start_property="AtMost",
-            #     min_distance=0,
-            #     max_distance=3,
-            #     end_type="CARDINAL",
-            #     end_property="max",
-            # ),
-            # ChainLink(
-            #     start_type="CARDINAL",
-            #     start_property="max",
-            #     min_distance=0,
-            #     max_distance=2,
-            #     # FIXME: assuming that this uom is the same as the preceding.
-            #     end_type="UNIT_OF_MEASUREMENT",
-            #     end_property="UNIT_OF_MEASUREMENT_2",
-            # ),
+            ChainLink(
+                start_type="UNIT_OF_MEASUREMENT",
+                start_property="unit_of_measure",
+                min_distance=0,
+                max_distance=10,
+                end_type="AtMost",
+                end_property="AtMost",
+            ),
+            ChainLink(
+                start_type="AtMost",
+                start_property="AtMost",
+                min_distance=0,
+                max_distance=3,
+                end_type="CARDINAL",
+                end_property="max",
+            ),
+            ChainLink(
+                start_type="CARDINAL",
+                start_property="max",
+                min_distance=0,
+                max_distance=2,
+                # We could have set 'unit_of_measure' to the
+                # preceding UOM just as well.
+                end_type="UNIT_OF_MEASUREMENT",
+                end_property="UNIT_OF_MEASUREMENT_2",
+            ),
         ]
 
         # Create the phase.
@@ -251,29 +225,17 @@ class TestExtractionLoop(unittest.TestCase):
 
         relations = phase.find_match(text, entity_annotations=entity_annotations)
 
-        print(f"{relations=}")
-        self.assertEqual("hi", relations)
-
-        # expected = [
-        #     "<'UNIT_OF_MEASUREMENT'(text='ft-lb', start='214', end='219')>"
-        #     "<'UNIT_OF_MEASUREMENT'(text='Foot', start='220', end='224')>"
-        #     "<'Token'(text='-', start='224', end='225', kind='punc')>"
-        #     "<'Token'(text=')', start='239', end='240', kind='punc')>"
-        #     "<'Token'(text='to', start='241', end='243', kind='word')>"
-        #     "<'AtMost'(text='upper limit', start='244', end='255')>"
-        # ]
-
-        # # Use build_annotation_distance_regex() to match any Token.
-        # testRegex = TokenAnn.build_annotation_distance_regex(
-        #     "UNIT_OF_MEASUREMENT", (0, 10), None, "AtMost"
-        # )
-
-        # expectedRegex = (
-        #     # FIXME: doesn't work: r"<'UNIT_OF_MEASUREMENT[^>]*>(?:<'[^>]+>){0,10}<'AtMost[^>]*>"
-        #     r"<'UNIT_OF_MEASUREMENT[^>]*>(?:<'Token[^>]*>){0,10}<'AtMost[^>]*>"
-        # )
-        # self.assertEqual(expectedRegex, testRegex)
-
-        # match_strs = re.findall(testRegex, inputStr)
-        # print(f"{match_strs=}")
-        # self.assertEqual(expected, match_strs)
+        minmax = Annotation(
+            "MinMax",
+            "lower limit of 87 ft-lb Foot-pounds to upper limit of 92 ft-lb",
+            0, 62,
+            {
+                "AtLeast": "lower limit",
+                "min": "87",
+                "unit_of_measure": "ft-lb",
+                "AtMost": "upper limit",
+                "max": "92",
+                "UNIT_OF_MEASUREMENT_2": "ft-lb",
+            }
+        )
+        self.assertEqual([minmax], relations)

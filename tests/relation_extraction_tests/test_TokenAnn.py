@@ -110,7 +110,7 @@ class TestTokenAnn(unittest.TestCase):
         # Use build_annotation_distance_regex() to match any Token.
         testRegex = TokenAnn.build_annotation_distance_regex("WarrantPurchase", (0, 3), None, "ShareQuantity")
 
-        expectedRegex = r"<'WarrantPurchase[^>]*>(?:<'Token[^>]*>){0,3}<'ShareQuantity[^>]*>"
+        expectedRegex = r"<'WarrantPurchase[^>]*>(?:<'[^>]*>){0,3}?<'ShareQuantity[^>]*>"
         self.assertEqual(expectedRegex, testRegex)
 
         match_strs = re.findall(testRegex, inputStr)
@@ -119,7 +119,7 @@ class TestTokenAnn(unittest.TestCase):
         # Use strToAnnDistanceRegex() to match on kind.
         testRegex = TokenAnn.build_annotation_distance_regex("WarrantPurchase", (0, 3), "word", "ShareQuantity")
 
-        expectedRegex = r"<'WarrantPurchase[^>]*>(?:<'Token'[^>]*kind='word'[^>]*>){0,3}<'ShareQuantity[^>]*>"
+        expectedRegex = r"<'WarrantPurchase[^>]*>(?:<'Token'[^>]*kind='word'[^>]*>){0,3}?<'ShareQuantity[^>]*>"
         self.assertEqual(expectedRegex, testRegex)
 
         match_strs = re.findall(testRegex, inputStr)
@@ -143,7 +143,6 @@ class TestTokenAnn(unittest.TestCase):
         self.assertEqual(expected, match_strs)
 
     def testConsecutiveIdenticalAnnotations(self):
-        # FIXME: working here
         # 3 words between annotations.
         inputStr = "<'Token'(start='0', end='125', text='zzz', kind='word')>"
         inputStr += (
@@ -171,7 +170,7 @@ class TestTokenAnn(unittest.TestCase):
         )
 
         expectedRegex = (
-            r"<'WarrantPurchase[^>]*>(?:<'Token[^>]*>){0,3}<'ShareQuantity[^>]*>"
+            r"<'WarrantPurchase[^>]*>(?:<'[^>]*>){0,3}?<'ShareQuantity[^>]*>"
         )
         self.assertEqual(expectedRegex, testRegex)
 
@@ -180,25 +179,18 @@ class TestTokenAnn(unittest.TestCase):
         self.assertEqual(expected, match_strs)
 
     def testConsecutiveIdenticalAnnotations2(self):
-        # FIXME: working here
-
-        # inputStr = "<'UNIT_OF_MEASUREMENT'(text='ft-lb', start='214', end='219')><'UNIT_OF_MEASUREMENT'(text='Foot', start='220', end='224')><'Token'(text='-', start='224', end='225', kind='punc')><'Token'(text='pounds', start='225', end='231', kind='word')><'Token'(text='(', start='232', end='233', kind='punc')><'Token'(text='Torque', start='233', end='239', kind='word')><'Token'(text=')', start='239', end='240', kind='punc')><'Token'(text='to', start='241', end='243', kind='word')><'AtMost'(text='upper limit', start='244', end='255')><'Token'(text='of', start='256', end='258', kind='word')><'CARDINAL'(text='92', start='259', end='261')><'UNIT_OF_MEASUREMENT'(text='ft-lb', start='262', end='267')><'UNIT_OF_MEASUREMENT'(text='Foot', start='268', end='272')><'Token'(text='-', start='272', end='273', kind='punc')><'Token'(text='pounds', start='273', end='279', kind='word')><'Token'(text='(', start='280', end='281', kind='punc')><'Token'(text='Torque', start='281', end='287', kind='word')><'Token'(text=')', start='287', end='288', kind='punc')><'Token'(text='.', start='288', end='289', kind='punc')>"
         inputStr = """
             <'UNIT_OF_MEASUREMENT'(text='ft-lb', start='214', end='219')>
             <'UNIT_OF_MEASUREMENT'(text='Foot', start='220', end='224')>
             <'Token'(text='-', start='224', end='225', kind='punc')>
-            <'Token'(text='pounds', start='225', end='231', kind='word')>
-            <'Token'(text='(', start='232', end='233', kind='punc')>
             <'Token'(text=')', start='239', end='240', kind='punc')>
             <'Token'(text='to', start='241', end='243', kind='word')>
             <'AtMost'(text='upper limit', start='244', end='255')>
             <'Token'(text='of', start='256', end='258', kind='word')>
         """
 
-        # Remove whitespace at the start of each line.
         inputStr = inspect.cleandoc(inputStr)
-        # Replace consecutive whitespace with a single space char.
-        inputStr = " ".join(inputStr.split())
+        inputStr = inputStr.replace('\n', '')
 
         expected = [
             "<'UNIT_OF_MEASUREMENT'(text='ft-lb', start='214', end='219')>"
@@ -214,13 +206,9 @@ class TestTokenAnn(unittest.TestCase):
             "UNIT_OF_MEASUREMENT", (0, 10), None, "AtMost"
         )
 
-        expectedRegex = (
-            # FIXME: doesn't work: r"<'UNIT_OF_MEASUREMENT[^>]*>(?:<'[^>]+>){0,10}<'AtMost[^>]*>"
-            r"<'UNIT_OF_MEASUREMENT[^>]*>(?:<'Token[^>]*>){0,10}<'AtMost[^>]*>"
-        )
+        expectedRegex = r"<'UNIT_OF_MEASUREMENT[^>]*>(?:<'[^>]*>){0,10}?<'AtMost[^>]*>"
         self.assertEqual(expectedRegex, testRegex)
 
         match_strs = re.findall(testRegex, inputStr)
         print(f"{match_strs=}")
         self.assertEqual(expected, match_strs)
-

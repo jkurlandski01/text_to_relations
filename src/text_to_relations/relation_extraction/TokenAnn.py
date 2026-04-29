@@ -36,34 +36,34 @@ class TokenAnn(Annotation):
         Build a string regular expression that specifies the token distance between two annotations
         necessary for a match.
 
+        The gap quantifier is non-greedy, so the regex matches the shortest possible span between
+        first_ann and second_ann. This prevents gap annotations of the same type as second_ann from
+        being consumed as gap items instead of serving as the endpoint.
+
         Args:
             first_ann (Annotation):
             word_distance_range (Tuple[int, int]): a pair of integers, whose first element is a
         minimum token distance and whose second element is a maximum token distance
-            token_kind (str): the Token.kind property necessary for a match; None if all Token
-        objects are to match
+            token_type (str): the Token.kind property necessary for a match; None to allow any
+        annotation type in the gap
             second_ann (Annotation):
 
         Returns:
             str: a regular expression
         """
-        distance_token = 'Token'
-
         result = r"<'"
         result += str(first_ann)
-        result += r"[^>]*>(?:<'"
-        result += distance_token
 
         if token_type is None:
-            result += r"[^>]*>){"
+            result += r"[^>]*>(?:<'[^>]*>){"          # fix: any annotation type in gap
         else:
-            result += r"'[^>]*kind='"
+            result += r"[^>]*>(?:<'Token'[^>]*kind='"
             result += token_type
             result += r"'[^>]*>){"
 
         min_ts, max_ts = word_distance_range
         result += str(min_ts) + ',' + str(max_ts)
-        result += r"}<'"
+        result += r"}?<'"
         result += str(second_ann)
         result += r"[^>]*>"
 

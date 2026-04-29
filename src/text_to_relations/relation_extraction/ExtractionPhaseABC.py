@@ -204,6 +204,9 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
                 regex_str=regex,
                 last_ann_str=link.end_type,
                 determine_new_annotation_properties=_determine_properties if is_last else None,
+                start_ann_str=link.start_type,
+                min_distance=link.min_distance,
+                max_distance=link.max_distance,
                 verbose=self.verbose
             )
             loops.append(loop)

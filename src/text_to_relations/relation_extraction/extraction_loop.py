@@ -33,6 +33,9 @@ class ExtractionLoop():
                  regex_str: str,
                  last_ann_str: str,
                  determine_new_annotation_properties: Optional[Callable]=None,
+                 start_ann_str: Optional[str]=None,
+                 min_distance: Optional[int]=None,
+                 max_distance: Optional[int]=None,
                  verbose: bool = False
                  ):
         """
@@ -44,6 +47,10 @@ class ExtractionLoop():
             determine_new_annotation_properties (Callable, optional): A function that
                 produces the properties dict for the new Annotation. Must be None for
                 all loops except the last, and non-None for the last loop.
+            start_ann_str (str, optional): annotation type that begins this loop's match.
+                Used only for verbose output.
+            min_distance (int, optional): minimum token gap. Used only for verbose output.
+            max_distance (int, optional): maximum token gap. Used only for verbose output.
             verbose (bool, optional): Defaults to False.
 
         Raises:
@@ -57,6 +64,9 @@ class ExtractionLoop():
         self.regex_str = regex_str
         self.last_ann_str = last_ann_str
         self.determine_new_annotation_properties = determine_new_annotation_properties
+        self.start_ann_str = start_ann_str
+        self.min_distance = min_distance
+        self.max_distance = max_distance
         self.verbose = verbose  # Currently unused.
 
 
@@ -102,12 +112,17 @@ def run_loop(annotation_view_str: str,
     Returns:
         Union[List[Annotation], Annotation, None]: A new match found or [] or None.
     """
+    indent = "  " * loop_idx
+
     if verbose:
-        print("Entering run_loop()")
-        print(f"  annotation_view_str: {annotation_view_str}")
-        print(f"  curr_loop.regex_str: {curr_loop.regex_str}")
-        print(f"  curr_loop.last_ann_str: {curr_loop.last_ann_str}")
-        print(f"  new_annotations: {new_annotations}")
+        types = re.findall(r"<'([^']+)", annotation_view_str)
+        types_str = "[" + ", ".join(types[:20]) + (", ..." if len(types) > 20 else "") + "]"
+        if curr_loop.start_ann_str is not None and curr_loop.min_distance is not None:
+            header = (f"{curr_loop.start_ann_str}→{curr_loop.last_ann_str}, "
+                      f"tokens={curr_loop.min_distance}..{curr_loop.max_distance}")
+        else:
+            header = f"→{curr_loop.last_ann_str}"
+        print(f"\n{indent}Loop {loop_idx} [{header}] — {types_str}")
 
     # Check loop_list to verify that only the last item has a non-None
     # determine_new_annotation_properties function.
@@ -128,11 +143,6 @@ def run_loop(annotation_view_str: str,
                 msg += f"{loop.determine_new_annotation_properties}() function."
                 raise ValueError(msg)
 
-    if verbose:
-        print("  Printing the match_triples list:")
-        for trip in match_triples_list:
-            print(f"    trip: {trip}")
-
     # Recursive functionality begins here.
 
     # Create a list of (substring, start_offset, end_offset) triples for the
@@ -151,14 +161,10 @@ def run_loop(annotation_view_str: str,
     for triple in match_triples:
         match_triples_list.append(triple)
         if verbose:
-            print(f"\nFound match. triple: {triple}")
-            print("  Printing the match_triples list:")
-            for trip in match_triples_list:
-                print(f"    trip: {trip}")
+            match_types = re.findall(r"<'([^']+)", triple[0])
+            print(f"{indent}  match: {match_types}")
 
         if curr_loop.determine_new_annotation_properties:
-            if verbose:
-                print(f"\n  Found final match. triple: {triple}")
             m0_anns = ExtractionPhaseABC.merged_representation_to_annotations(
                 match_triples_list[0][0])
             start = m0_anns[0].start_offset
@@ -169,7 +175,7 @@ def run_loop(annotation_view_str: str,
             properties = curr_loop.determine_new_annotation_properties(match_triples_list)
             result = Annotation(relation_name, substr, start, end, properties)
             if verbose:
-                print(f"  New annotation created: {result}")
+                print(f"{indent}  SUCCESS → {result}")
             return result
 
         match_end_offset = triple[2]
@@ -191,9 +197,9 @@ def run_loop(annotation_view_str: str,
                             match_triples_list=match_triples_list,
                             new_annotations=new_annotations,
                             verbose=verbose)
-        if verbose:
-            print(f"\nrun_loop result: {recursive_result}\n")
         if recursive_result is None or recursive_result == []:
+            if verbose:
+                print(f"{indent}  ^ backtracking")
             del match_triples_list[-1]
             continue
         if isinstance(recursive_result, Annotation):
@@ -211,6 +217,8 @@ def run_loop(annotation_view_str: str,
     # Intermediate loops return [] to signal "no match found" to their caller; returning
     # new_annotations from an intermediate loop would pass the shared results list up the
     # call stack, where it would be mistaken for an unexpected result type and raise ValueError.
+    if verbose and (loop_idx > 0 or not new_annotations):
+        print(f"{indent}  NO MATCH")
     return new_annotations if loop_idx == 0 else []
 
 def get_sorted_annotations_for_matching(text: str,
