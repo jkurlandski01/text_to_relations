@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.3
+
+### Breaking changes
+
+- **`find_match()`** now accepts `entity_annotations` as `Optional[List[Dict]]` (was `Optional[List[Annotation]]`). Each dict must have keys `'type'`, `'text'`, `'start'`, and `'end'`.
+- **`find_match()`** now returns `List[Dict]` (was `List[Annotation]`). Each dict has keys `'type'`, `'text'`, `'start'`, `'end'` plus one key per extracted property. The `Annotation` class is no longer part of the public API.
+
+---
+
 ## 0.1.2
 
 ### Breaking changes
