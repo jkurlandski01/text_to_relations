@@ -45,13 +45,21 @@ def update_annotation_list(prev_anns: List[Annotation],
 
 
 
+def _anns_to_dicts(anns: List[Annotation]) -> List[Dict]:
+    return [a.to_dict() for a in anns]
+
+
+def _dicts_to_anns(dicts: List[Dict]) -> List[Annotation]:
+    return [Annotation(d['type'], d['text'], d['start'], d['end']) for d in dicts]
+
+
 def run_extraction_phases(input: str,
                           anns: List[Annotation],
                           verbose: bool=False) -> List[Annotation]:
     if verbose: print(f"\nEntering run_extraction_phases(). anns: {anns}\n")
 
     phase_1 = MinMaxPhase_1(verbose=verbose)
-    minmax_anns_1 = phase_1.find_match(input, anns)
+    minmax_anns_1 = _dicts_to_anns(phase_1.find_match(input, _anns_to_dicts(anns)))
     if verbose:
         msg = f"\nReturned to run_extraction_phases(). minmax_anns: {minmax_anns_1}"
         print(msg)
@@ -63,36 +71,24 @@ def run_extraction_phases(input: str,
     if verbose: print(f"  Filtered anns_2 annotations: {anns_2}\n")
 
     phase_2 = MinMaxPhase_2(verbose=verbose)
-    minmax_anns_2 = phase_2.find_match(input, anns_2)
+    minmax_anns_2 = _dicts_to_anns(phase_2.find_match(input, _anns_to_dicts(anns_2)))
 
     anns_3 = update_annotation_list(prev_anns=anns_2, new_anns=minmax_anns_2)
 
     phase_3 = MinMaxPhase_3(verbose=verbose)
-    minmax_anns_3 = phase_3.find_match(input, anns_3)
+    minmax_anns_3 = _dicts_to_anns(phase_3.find_match(input, _anns_to_dicts(anns_3)))
 
     result = minmax_anns_1 + minmax_anns_2 + minmax_anns_3
     return Annotation.sort(result)
 
 
 
-def entities_to_annotations(entities: List[Dict[str, str]]) -> List[Annotation]:
-    annotations = []
-    for entity in entities:
-        type = entity['type']
-        start = entity['start']
-        end = entity['end']
-        text = entity['text']
-        ann = Annotation(type, text, int(start), int(end))
-
-        annotations.append(ann)
-
-    return annotations
-
 def entities_to_relations(input_dict: Dict[str, Any],
                           verbose: bool=False) -> List[Dict[str, object]]:
     input_text = input_dict["text"]
 
-    annotations = entities_to_annotations(input_dict["entities"])
+    annotations = [Annotation(e['type'], e['text'], int(e['start']), int(e['end']))
+                   for e in input_dict["entities"]]
     if verbose: print(f"Annotations created: {annotations}")
 
     new_anns = run_extraction_phases(input_text, annotations, verbose=verbose)

@@ -4,7 +4,6 @@ import re
 import unittest
 
 from text_to_relations.relation_extraction.RegexString import RegexString
-from text_to_relations.relation_extraction.Annotation import Annotation
 from text_to_relations.relation_extraction.ExtractionPhaseABC import SimpleExtractionPhase, ChainLink
 from tests.relation_extraction_tests.extract_min_max_relation import entities_to_relations
 from tests.relation_extraction_tests.min_max_phase_1 import MinMaxPhase_1
@@ -163,11 +162,11 @@ class TestMinMaxProperties(unittest.TestCase):
         anns = []
         number_rs = RegexString.from_regex(number_pattern)
         for match in number_rs.get_match_triples(text):
-            anns.append(Annotation('Number', match[0], match[1], match[2]))
+            anns.append({'type': 'Number', 'text': match[0], 'start': match[1], 'end': match[2]})
         if uom_words:
             uom_rs = RegexString(uom_words)
             for match in uom_rs.get_match_triples(text):
-                anns.append(Annotation('Unit_of_Measure', match[0], match[1], match[2]))
+                anns.append({'type': 'Unit_of_Measure', 'text': match[0], 'start': match[1], 'end': match[2]})
         return anns
 
     def test_phase3_min_number_not_overwritten(self):
@@ -180,9 +179,8 @@ class TestMinMaxProperties(unittest.TestCase):
         results = phase.find_match(text, anns)
 
         self.assertEqual(len(results), 1)
-        props = results[0].properties
-        self.assertEqual(props['min_number'], '15')
-        self.assertEqual(props['max_number'], '20')
+        self.assertEqual(results[0]['min_number'], '15')
+        self.assertEqual(results[0]['max_number'], '20')
 
     def test_phase1_both_numbers_in_properties(self):
         # MinMaxPhase_1 chain: Range -> Number -> Number -> Unit_of_Measure
@@ -194,9 +192,8 @@ class TestMinMaxProperties(unittest.TestCase):
         results = phase.find_match(text, anns)
 
         self.assertEqual(len(results), 1)
-        props = results[0].properties
-        self.assertEqual(props['min_number'], '170')
-        self.assertEqual(props['max_number'], '220')
+        self.assertEqual(results[0]['min_number'], '170')
+        self.assertEqual(results[0]['max_number'], '220')
 
     def test_unsorted_entity_annotations_two_uom(self):
         # Chain: Range -> Number -> Unit_of_Measure -> Number -> Unit_of_Measure
@@ -228,17 +225,16 @@ class TestMinMaxProperties(unittest.TestCase):
 
         # Deliberately pass in reverse text order: second pair first.
         entity_annotations = [
-            Annotation('Number', '200', 23, 26),
-            Annotation('Unit_of_Measure', 'pounds', 27, 33),
-            Annotation('Number', '170', 8, 11),
-            Annotation('Unit_of_Measure', 'pounds', 12, 18),
+            {'type': 'Number', 'text': '200', 'start': 23, 'end': 26},
+            {'type': 'Unit_of_Measure', 'text': 'pounds', 'start': 27, 'end': 33},
+            {'type': 'Number', 'text': '170', 'start': 8, 'end': 11},
+            {'type': 'Unit_of_Measure', 'text': 'pounds', 'start': 12, 'end': 18},
         ]
 
         results = phase.find_match(text, entity_annotations)
 
         self.assertEqual(len(results), 1)
-        props = results[0].properties
-        self.assertEqual(props['min_number'], '170')
-        self.assertEqual(props['min_unit'], 'pounds')
-        self.assertEqual(props['max_number'], '200')
-        self.assertEqual(props['max_unit'], 'pounds')
+        self.assertEqual(results[0]['min_number'], '170')
+        self.assertEqual(results[0]['min_unit'], 'pounds')
+        self.assertEqual(results[0]['max_number'], '200')
+        self.assertEqual(results[0]['max_unit'], 'pounds')

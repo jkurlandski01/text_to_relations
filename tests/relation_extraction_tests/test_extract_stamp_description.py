@@ -50,12 +50,11 @@ class TestStampDescriptionPhase(unittest.TestCase):
         results = phase.find_match(text)
 
         self.assertEqual(1, len(results))
-        self.assertEqual('StampDescription', results[0].type)
-        p = results[0].properties
-        self.assertEqual('# 11A', p['StampID'])
-        self.assertEqual('3¢', p['Denomination'])
-        self.assertEqual('type II', p['TypePhrase'])
-        self.assertEqual('imperf', p['Perforation'])
+        self.assertEqual('StampDescription', results[0]['type'])
+        self.assertEqual('# 11A', results[0]['StampID'])
+        self.assertEqual('3¢', results[0]['Denomination'])
+        self.assertEqual('type II', results[0]['TypePhrase'])
+        self.assertEqual('imperf', results[0]['Perforation'])
 
     def test_missing_type_phrase(self):
         # An entry missing TypePhrase should produce no result.
@@ -118,23 +117,20 @@ class TestStampDescriptionPhase(unittest.TestCase):
 
         self.assertEqual(3, len(results))
 
-        p = results[0].properties
-        self.assertEqual('# 11A', p['StampID'])
-        self.assertEqual('3¢', p['Denomination'])
-        self.assertEqual('type II', p['TypePhrase'])
-        self.assertEqual('imperf', p['Perforation'])
+        self.assertEqual('# 11A', results[0]['StampID'])
+        self.assertEqual('3¢', results[0]['Denomination'])
+        self.assertEqual('type II', results[0]['TypePhrase'])
+        self.assertEqual('imperf', results[0]['Perforation'])
 
-        p = results[1].properties
-        self.assertEqual('# 12', p['StampID'])
-        self.assertEqual('5c', p['Denomination'])
-        self.assertEqual('type I', p['TypePhrase'])
-        self.assertEqual('imperforate', p['Perforation'])
+        self.assertEqual('# 12', results[1]['StampID'])
+        self.assertEqual('5c', results[1]['Denomination'])
+        self.assertEqual('type I', results[1]['TypePhrase'])
+        self.assertEqual('imperforate', results[1]['Perforation'])
 
-        p = results[2].properties
-        self.assertEqual('# 18', p['StampID'])
-        self.assertEqual('1c', p['Denomination'])
-        self.assertEqual('type I', p['TypePhrase'])
-        self.assertEqual('perf 15', p['Perforation'])
+        self.assertEqual('# 18', results[2]['StampID'])
+        self.assertEqual('1c', results[2]['Denomination'])
+        self.assertEqual('type I', results[2]['TypePhrase'])
+        self.assertEqual('perf 15', results[2]['Perforation'])
 
     def test_find_match_requires_instance_vars(self):
         # A subclass that does not set relation_name, regex_patterns, and chain

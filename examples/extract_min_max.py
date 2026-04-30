@@ -12,7 +12,6 @@ a NER model or a gazetteer rather than the simple regex matching shown here.
 import inspect
 import argparse
 
-from text_to_relations.relation_extraction.Annotation import Annotation
 from text_to_relations.relation_extraction.RegexString import RegexString
 from text_to_relations.relation_extraction.ExtractionPhaseABC import ExtractionPhaseABC, ChainLink
 
@@ -59,28 +58,28 @@ if __name__ == '__main__':
         He visited the gym within the range of 3 to 5 times per week.
     """)
 
-    # Step 1: Detect Number and Unit_of_Measure entities externally and wrap
-    # them in Annotation objects for the library.  There is no need to sort
-    # the list before passing it to find_match() -- the library sorts internally.
+    # Step 1: Detect Number and Unit_of_Measure entities externally and
+    # represent them as plain dicts.  There is no need to sort the list
+    # before passing it to find_match() -- the library sorts internally.
     number_rs = RegexString([r'\d+'], escape=False)
     uom_rs = RegexString(['pounds', 'times'])
 
     entity_annotations = []
     for text, start, end in number_rs.get_match_triples(input_text):
-        entity_annotations.append(Annotation('Number', text, start, end))
+        entity_annotations.append({'type': 'Number', 'text': text, 'start': start, 'end': end})
     for text, start, end in uom_rs.get_match_triples(input_text):
-        entity_annotations.append(Annotation('Unit_of_Measure', text, start, end))
+        entity_annotations.append({'type': 'Unit_of_Measure', 'text': text, 'start': start, 'end': end})
 
-    # Step 2: Instantiate the extraction phase and run it, passing in the
-    # externally-produced annotations alongside the phase's own regex patterns.
+    # Step 2: Instantiate the extraction phase and run it.
+    # find_match() returns List[Dict].  Each dict has keys 'type', 'text',
+    # 'start', 'end', plus one key per extracted property.
     phase = MinMaxPhase(verbose=verbose)
     results = phase.find_match(input_text, entity_annotations=entity_annotations)
 
     print(f'\n{len(results)} MinMax relation(s) found:\n')
-    for ann in results:
-        p = ann.properties
-        print(f"  range_phrase='{p['range_phrase']}', min='{p['min_number']}', "
-              f"max='{p['max_number']}', unit='{p['unit']}'")
+    for rel in results:
+        print(f"  range_phrase='{rel['range_phrase']}', min='{rel['min_number']}', "
+              f"max='{rel['max_number']}', unit='{rel['unit']}'")
 
     expected = [
         "range_phrase='between', min='170', max='220', unit='pounds'",

@@ -8,6 +8,8 @@ skipped; in the main function, the sample data this means 3 of 7 entries
 produce a result.
 """
 import inspect
+import re
+import argparse
 
 from text_to_relations.relation_extraction.RegexString import RegexString
 from text_to_relations.relation_extraction.ExtractionPhaseABC import (
@@ -18,8 +20,6 @@ if __name__ == '__main__':
     # Sample call:
     #   python -m examples.extract_stamp_description
 
-    import re
-    import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('-v', '--verbose', action='store_true')
     args = parser.parse_args()
@@ -80,25 +80,25 @@ if __name__ == '__main__':
         verbose=verbose,
     )
 
-    input_text = \
-    """
-    # 11A - 1853-55 3¢ George Washington, dull red, type II, imperf
+    input_text = inspect.cleandoc("""
+        # 11A - 1853-55 3¢ George Washington, dull red, type II, imperf
 
-    # 17 - 1851 12c Washington imperforate, black
+        # 17 - 1851 12c Washington imperforate, black
 
-    # 12 - 1856 5c Jefferson, red brown, type I, imperforate
+        # 12 - 1856 5c Jefferson, red brown, type I, imperforate
 
-    # 18 - 1861 1c Franklin, type I, perf 15
+        # 18 - 1861 1c Franklin, type I, perf 15
 
-    # 40 - 1875 1c Franklin, bright blue
+        # 40 - 1875 1c Franklin, bright blue
 
-    # 42 - 1875 5c Jefferson, orange brown
+        # 42 - 1875 5c Jefferson, orange brown
 
-    # 62B - 1861 10c Washington, dark green
-    """
-    input_text = inspect.cleandoc(input_text)
+        # 62B - 1861 10c Washington, dark green
+    """)
 
     # Step 4: Run the extraction phase on each paragraph.
+    # find_match() returns List[Dict].  Each dict has keys 'type', 'text',
+    # 'start', 'end', plus one key per extracted property.
     paragraphs = [e.strip() for e in re.split(r'\n\s*\n', input_text) if e.strip()]
     results = []
     for par in paragraphs:
@@ -106,10 +106,9 @@ if __name__ == '__main__':
         results.extend(relations)
 
     print(f'\n{len(results)} of 7 stamp descriptions extracted:\n')
-    for ann in results:
-        p = ann.properties
-        print(f"  stamp_id='{p['StampID']}', denomination='{p['Denomination']}', "
-              f"type='{p['TypePhrase']}', perforation_info='{p['Perforation']}'")
+    for rel in results:
+        print(f"  stamp_id='{rel['StampID']}', denomination='{rel['Denomination']}', "
+              f"type='{rel['TypePhrase']}', perforation_info='{rel['Perforation']}'")
 
     expected = [
         "stamp_id='# 11A', denomination='3¢', type='type II', perforation_info='imperf'",

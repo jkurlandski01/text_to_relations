@@ -2,7 +2,6 @@ import unittest
 import inspect
 
 from text_to_relations.relation_extraction.RegexString import RegexString
-from text_to_relations.relation_extraction.Annotation import Annotation
 from text_to_relations.relation_extraction.ExtractionPhaseABC import ExtractionPhaseABC, ChainLink, SimpleExtractionPhase
 from text_to_relations.relation_extraction.TokenAnn import TokenAnn
 from text_to_relations.relation_extraction.extraction_loop import ExtractionLoop, run_loop, get_sorted_annotations_for_matching
@@ -102,15 +101,14 @@ class TestExtractionLoop(unittest.TestCase):
         # First test: simple match.
         text = "1 a 2 b 3"
         result = phase.find_match(text)
-        props = {"one": "1", "two": "2", "three": "3"}
-        self.assertEqual([Annotation("MinMax", "1 a 2 b 3", 0, 9, props)], result)
+        self.assertEqual([{'type': 'MinMax', 'text': '1 a 2 b 3', 'start': 0, 'end': 9,
+                           'one': '1', 'two': '2', 'three': '3'}], result)
 
         # Second test: multiple matches.
         text = "z 1 a 1 b 2 c 2 d 3 y 1 2 3 x"
         result = phase.find_match(text)
-        props = {"one": "1", "two": "2", "three": "3"}
-        ann2 = Annotation("MinMax", "1 2 3", 22, 27, props)
-        self.assertEqual([ann2], result)
+        self.assertEqual([{'type': 'MinMax', 'text': '1 2 3', 'start': 22, 'end': 27,
+                           'one': '1', 'two': '2', 'three': '3'}], result)
 
     def test_failures(self):
         phase = OneTwoThreePhase()
@@ -152,17 +150,12 @@ class TestExtractionLoop(unittest.TestCase):
             "AtMost": at_most_regex_str,
         }
 
-        card1 = Annotation("CARDINAL", "87", 15, 17)
-        uom1  = Annotation("UNIT_OF_MEASUREMENT", "ft-lb", 18, 23)
-        uom2  = Annotation("UNIT_OF_MEASUREMENT", "Foot", 24, 28)
-        card2 = Annotation("CARDINAL", "92", 54, 56)
-        uom3  = Annotation("UNIT_OF_MEASUREMENT", "ft-lb", 57, 62)
         entity_annotations = [
-            card1,
-            uom1,
-            uom2,
-            card2,
-            uom3
+            {'type': 'CARDINAL',            'text': '87',    'start': 15, 'end': 17},
+            {'type': 'UNIT_OF_MEASUREMENT', 'text': 'ft-lb', 'start': 18, 'end': 23},
+            {'type': 'UNIT_OF_MEASUREMENT', 'text': 'Foot',  'start': 24, 'end': 28},
+            {'type': 'CARDINAL',            'text': '92',    'start': 54, 'end': 56},
+            {'type': 'UNIT_OF_MEASUREMENT', 'text': 'ft-lb', 'start': 57, 'end': 62},
         ]
 
         # Define the allowable distance between entities for
@@ -222,17 +215,14 @@ class TestExtractionLoop(unittest.TestCase):
 
         relations = phase.find_match(text, entity_annotations=entity_annotations)
 
-        minmax = Annotation(
-            "MinMax",
-            "lower limit of 87 ft-lb Foot-pounds to upper limit of 92 ft-lb",
-            0, 62,
-            {
-                "AtLeast": "lower limit",
-                "min": "87",
-                "unit_of_measure": "ft-lb",
-                "AtMost": "upper limit",
-                "max": "92",
-                "UNIT_OF_MEASUREMENT_2": "ft-lb",
-            }
-        )
-        self.assertEqual([minmax], relations)
+        self.assertEqual([{
+            'type': 'MinMax',
+            'text': 'lower limit of 87 ft-lb Foot-pounds to upper limit of 92 ft-lb',
+            'start': 0, 'end': 62,
+            'AtLeast': 'lower limit',
+            'min': '87',
+            'unit_of_measure': 'ft-lb',
+            'AtMost': 'upper limit',
+            'max': '92',
+            'UNIT_OF_MEASUREMENT_2': 'ft-lb',
+        }], relations)

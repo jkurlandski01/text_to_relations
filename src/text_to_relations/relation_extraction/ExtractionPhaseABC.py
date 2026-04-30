@@ -11,6 +11,12 @@ from text_to_relations.relation_extraction.Annotation import Annotation
 from text_to_relations.relation_extraction.RegexString import RegexString
 
 
+def _annotation_to_dict(ann: Annotation) -> Dict:
+    result = ann.to_dict()
+    result.update(ann.properties)
+    return result
+
+
 class ChainLink:
     """
     One step in a proximity chain, constraining how close two annotation
@@ -124,7 +130,7 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
             seen.add(prop)
 
     def find_match(self, text: str,
-                   entity_annotations: Optional[List[Annotation]] = None) -> List[Annotation]:
+                   entity_annotations: Optional[List[Dict]] = None) -> List[Dict]:
         """
         Process text input and return any extracted relation annotations.
 
@@ -136,15 +142,24 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
             entity_annotations: annotations produced by external tools before
                 relation extraction begins (e.g. Number, Unit_of_Measure),
                 to be incorporated alongside those produced by regex_patterns
-                during the relation extraction process.
+                during the relation extraction process.  Each dict must have
+                keys 'type', 'text', 'start', and 'end'.
 
         Returns:
-            List[Annotation]: newly created relation annotations.
+            List[Dict]: each dict has keys 'type', 'text', 'start', 'end'
+                plus one key per extracted property defined in the chain.
         """
         assert self.regex_patterns is not None
         assert self.chain is not None
-        return self.run_chained_loops(text, self.regex_patterns, self.chain,
-                                      entity_annotations=entity_annotations)
+
+        ann_list: Optional[List[Annotation]] = None
+        if entity_annotations is not None:
+            ann_list = [Annotation(d['type'], d['text'], d['start'], d['end'])
+                        for d in entity_annotations]
+
+        results = self.run_chained_loops(text, self.regex_patterns, self.chain,
+                                         entity_annotations=ann_list)
+        return [_annotation_to_dict(ann) for ann in results]
 
     def run_chained_loops(self, text: str,
                           regex_patterns: Dict[str, RegexString],
