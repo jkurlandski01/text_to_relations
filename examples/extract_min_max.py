@@ -33,7 +33,7 @@ class MinMaxPhase(ExtractionPhaseABC):
             'Range': RegexString(['within the range of', 'between']),
         }
         self.chain = [
-            ChainLink(start_type='Range', start_property='range_marker',
+            ChainLink(start_type='Range', start_property='range_phrase',
                       min_distance=0, max_distance=3,
                       end_type='Number', end_property='min_number'),
             ChainLink(start_type='Number', start_property='min_number',
@@ -79,12 +79,12 @@ if __name__ == '__main__':
     print(f'\n{len(results)} MinMax relation(s) found:\n')
     for ann in results:
         p = ann.properties
-        print(f"  range_marker='{p['range_marker']}', min='{p['min_number']}', "
+        print(f"  range_phrase='{p['range_phrase']}', min='{p['min_number']}', "
               f"max='{p['max_number']}', unit='{p['unit']}'")
 
     expected = [
-        "range_marker='between', min='170', max='220', unit='pounds'",
-        "range_marker='within the range of', min='3', max='5', unit='times'",
+        "range_phrase='between', min='170', max='220', unit='pounds'",
+        "range_phrase='within the range of', min='3', max='5', unit='times'",
     ]
     print('\nExpected output:\n')
     for line in expected:

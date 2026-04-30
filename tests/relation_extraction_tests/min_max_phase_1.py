@@ -13,11 +13,11 @@ class MinMaxPhase_1(ExtractionPhaseABC):
         self.relation_name = 'MinMax'
 
         range_markers = ['within the range of', 'within', 'between']
-        range_marker_rs = RegexString(range_markers)
+        range_phrase_rs = RegexString(range_markers)
 
-        self.regex_patterns = {'Range': range_marker_rs}
+        self.regex_patterns = {'Range': range_phrase_rs}
         self.chain = [
-            ChainLink(start_type='Range', start_property='range_marker',
+            ChainLink(start_type='Range', start_property='range_phrase',
                       min_distance=0, max_distance=3,
                       end_type='Number', end_property='min_number'),
             ChainLink(start_type='Number', start_property='min_number',

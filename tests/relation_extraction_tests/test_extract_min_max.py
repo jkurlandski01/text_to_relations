@@ -5,6 +5,7 @@ import unittest
 
 from text_to_relations.relation_extraction.RegexString import RegexString
 from text_to_relations.relation_extraction.Annotation import Annotation
+from text_to_relations.relation_extraction.ExtractionPhaseABC import SimpleExtractionPhase, ChainLink
 from tests.relation_extraction_tests.extract_min_max_relation import entities_to_relations
 from tests.relation_extraction_tests.min_max_phase_1 import MinMaxPhase_1
 from tests.relation_extraction_tests.min_max_phase_3 import MinMaxPhase_3
@@ -196,3 +197,48 @@ class TestMinMaxProperties(unittest.TestCase):
         props = results[0].properties
         self.assertEqual(props['min_number'], '170')
         self.assertEqual(props['max_number'], '220')
+
+    def test_unsorted_entity_annotations_two_uom(self):
+        # Chain: Range -> Number -> Unit_of_Measure -> Number -> Unit_of_Measure
+        # Two Unit_of_Measure annotations of the same type appear in the chain.
+        # Entity annotations are passed in reverse text order to verify the library
+        # sorts internally and produces the same result regardless of input order.
+        text = "between 170 pounds and 200 pounds"
+
+        range_rs = RegexString(['between'])
+        chain = [
+            ChainLink(start_type='Range', start_property='range_phrase',
+                      min_distance=0, max_distance=3,
+                      end_type='Number', end_property='min_number'),
+            ChainLink(start_type='Number', start_property='min_number',
+                      min_distance=0, max_distance=2,
+                      end_type='Unit_of_Measure', end_property='min_unit'),
+            ChainLink(start_type='Unit_of_Measure', start_property='min_unit',
+                      min_distance=0, max_distance=3,
+                      end_type='Number', end_property='max_number'),
+            ChainLink(start_type='Number', start_property='max_number',
+                      min_distance=0, max_distance=2,
+                      end_type='Unit_of_Measure', end_property='max_unit'),
+        ]
+        phase = SimpleExtractionPhase(
+            relation_name='MinMax',
+            regex_patterns={'Range': range_rs},
+            chain=chain,
+        )
+
+        # Deliberately pass in reverse text order: second pair first.
+        entity_annotations = [
+            Annotation('Number', '200', 23, 26),
+            Annotation('Unit_of_Measure', 'pounds', 27, 33),
+            Annotation('Number', '170', 8, 11),
+            Annotation('Unit_of_Measure', 'pounds', 12, 18),
+        ]
+
+        results = phase.find_match(text, entity_annotations)
+
+        self.assertEqual(len(results), 1)
+        props = results[0].properties
+        self.assertEqual(props['min_number'], '170')
+        self.assertEqual(props['min_unit'], 'pounds')
+        self.assertEqual(props['max_number'], '200')
+        self.assertEqual(props['max_unit'], 'pounds')
