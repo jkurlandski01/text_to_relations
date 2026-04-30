@@ -184,7 +184,7 @@ class TestMinMaxProperties(unittest.TestCase):
         self.assertEqual(props['max_number'], '20')
 
     def test_phase1_both_numbers_in_properties(self):
-        # MinMaxPhase_1 chain: RangeMarker -> Number -> Number -> Unit_of_Measure
+        # MinMaxPhase_1 chain: Range -> Number -> Number -> Unit_of_Measure
         # 'Number' appears twice; both values must be accessible under distinct keys.
         text = "between 170 and 220 pounds"
         anns = self._make_entity_annotations(text, uom_words=['pounds'])

@@ -37,6 +37,21 @@ This installs the runtime dependencies declared in `pyproject.toml` (e.g. `spacy
 python -m unittest
 ```
 
+### Examples
+
+Two runnable scripts in `examples/` illustrate the two main usage patterns:
+
+```bash
+python -m examples.extract_stamp_description
+python -m examples.extract_min_max
+```
+
+`extract_stamp_description.py` shows the self-contained case: all entity types (StampID, Denomination, TypePhrase, Perforation) are detected by regex patterns defined inside the phase itself, and `find_match()` is called with only the document text.
+
+`extract_min_max.py` shows the externally-supplied case: the phase only detects Range entities; Number and Unit_of_Measure entities are produced by an external tool (here, simple regex matching standing in for a NER model or gazetteer) and passed to `find_match()` via its `entity_annotations` parameter. This is the pattern to follow whenever part of the entity detection is handled outside the library.
+
+Both scripts accept `-v` / `--verbose` to print the internal chain-matching trace.
+
 ### Linting and Type Checking
 
 ```bash
