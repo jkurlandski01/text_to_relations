@@ -58,7 +58,7 @@ class Annotation:
         else:
             features = ''
             for feature_name in self.properties:
-                features += feature_name + "='" + self.properties[feature_name] + "', "
+                features += f"{feature_name}='{self.properties[feature_name]}', "
             # Remove last comma-space.
             features = features[0:-2]
 

@@ -59,6 +59,12 @@ class TestAnnotation(unittest.TestCase):
         self.assertEqual(expected, str(ann))
 
 
+    def testAnnotationReprWithListProperty(self):
+        features = {'items': ['a', 'b', 'c']}
+        ann = Annotation('FreakyThing', 'freak out!', 0, 16, features)
+        expected = "<'FreakyThing'(text='freak out!', start='0', end='16', items='['a', 'b', 'c']')>"
+        self.assertEqual(expected, str(ann))
+
     def testEncloses(self):
         # Test Annotation.encloses() by creating sentence and token annotations on a doc.
         # Also tests Annotation.get_enclosed()
