@@ -226,3 +226,100 @@ class TestExtractionLoop(unittest.TestCase):
             'max': '92',
             'UNIT_OF_MEASUREMENT_2': 'ft-lb',
         }], relations)
+
+
+class TestOverlappingBug(unittest.TestCase):
+    # Tests for the bug where non-overlapping re.finditer causes valid chains
+    # to be missed.
+
+    def test_loop0_overlapping_bug(self):
+        # Pattern: 1 -> 1 -> 2, each immediately adjacent (distance 0).
+        # Text "1 1 1 2": Loop 0 (One->One) non-overlapping re.finditer finds
+        # the first 1+1 pair and skips the second. Loop 1 (One->Two) then
+        # fails because a third 1 sits between that pair and 2. The fix:
+        # overlapping candidate enumeration at Loop 0.
+        # Expected chain: second_1 + third_1 + 2, text='1 1 2', start=2, end=7.
+        phase = SimpleExtractionPhase(
+            relation_name='TestRelation',
+            regex_patterns={
+                'One': RegexString(['1']),
+                'Two': RegexString(['2']),
+            },
+            chain=[
+                ChainLink('One', 'one_a', 0, 0, 'One', 'one_b'),
+                ChainLink('One', 'one_b', 0, 0, 'Two', 'two'),
+            ],
+        )
+        result = phase.find_match("1 1 1 2")
+        self.assertEqual([{
+            'type': 'TestRelation', 'text': '1 1 2', 'start': 2, 'end': 7,
+            'one_a': '1', 'one_b': '1', 'two': '2',
+        }], result)
+
+    def test_intermediate_loop_overlapping_bug(self):
+        # Pattern: 1 -> 2 -> 2 -> 3. Loop 0 (One->Two, distance 0) finds the
+        # only valid 1+2 pair. Loop 1 (Two->Two, max distance 1) non-greedy
+        # finds the first adjacent 2+2; Loop 2 then fails because a third 2
+        # sits between that pair and 3. The fix must enumerate all candidates
+        # at every loop level, not just Loop 0.
+        # Expected chain: 1 + first_2 + third_2 + 3.
+        phase = SimpleExtractionPhase(
+            relation_name='TestRelation',
+            regex_patterns={
+                'One': RegexString(['1']),
+                'Two': RegexString(['2']),
+                'Three': RegexString(['3']),
+            },
+            chain=[
+                ChainLink('One',   'one',   0, 0, 'Two',   'two_a'),
+                ChainLink('Two',   'two_a', 0, 1, 'Two',   'two_b'),
+                ChainLink('Two',   'two_b', 0, 0, 'Three', 'three'),
+            ],
+        )
+        result = phase.find_match("1 2 2 2 3")
+        self.assertEqual([{
+            'type': 'TestRelation', 'text': '1 2 2 2 3', 'start': 0, 'end': 9,
+            'one': '1', 'two_a': '2', 'two_b': '2', 'three': '3',
+        }], result)
+
+    def test_allow_overlapping_parameter(self):
+        # Pattern: 1 -> 2 -> 3, where 1->2 allows up to 1 intervening token.
+        # Text "1 1 2 3": both 1s can reach 2 within max_distance=1, producing
+        # two overlapping chains (they share the 2 and 3 annotations).
+        #
+        # allow_overlapping=False (default): only the first chain is returned.
+        # allow_overlapping=True: both chains are returned.
+        regex_patterns = {
+            'One':   RegexString(['1']),
+            'Two':   RegexString(['2']),
+            'Three': RegexString(['3']),
+        }
+        chain = [
+            ChainLink('One',   'one',   0, 1, 'Two',   'two'),
+            ChainLink('Two',   'two',   0, 0, 'Three', 'three'),
+        ]
+
+        phase_default = SimpleExtractionPhase(
+            relation_name='TestRelation',
+            regex_patterns=regex_patterns,
+            chain=chain,
+        )
+        result = phase_default.find_match("1 1 2 3")
+        self.assertEqual([{
+            'type': 'TestRelation', 'text': '1 1 2 3', 'start': 0, 'end': 7,
+            'one': '1', 'two': '2', 'three': '3',
+        }], result)
+
+        phase_overlap = SimpleExtractionPhase(
+            relation_name='TestRelation',
+            regex_patterns=regex_patterns,
+            chain=chain,
+            allow_overlapping=True,
+        )
+        result = phase_overlap.find_match("1 1 2 3")
+        self.assertEqual([
+            {'type': 'TestRelation', 'text': '1 1 2 3', 'start': 0, 'end': 7,
+             'one': '1', 'two': '2', 'three': '3'},
+            {'type': 'TestRelation', 'text': '1 2 3', 'start': 2, 'end': 7,
+             'one': '1', 'two': '2', 'three': '3'},
+        ], result)

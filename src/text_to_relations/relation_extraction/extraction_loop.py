@@ -70,6 +70,61 @@ class ExtractionLoop():
         self.verbose = verbose  # Currently unused.
 
 
+def _get_overlapping_match_triples(
+        curr_loop: 'ExtractionLoop',
+        annotation_view_str: str,
+        loop_idx: int) -> List[Tuple]:
+    """
+    Return candidate match triples with overlapping support.
+
+    At loop 0: tries re.match at every annotation-tag boundary, yielding the
+    shortest match from each start position.
+
+    At loop_idx > 0: only position 0 is valid. If the loop's annotation types
+    and distance bounds are known, enumerates each exact gap count
+    (min_distance..max_distance) to surface all match lengths at position 0.
+    Falls back to a single re.match at position 0 when start_ann_str,
+    min_distance, or max_distance is None on the loop.
+    """
+    seen: set = set()
+    triples: List[Tuple] = []
+
+    def _record(group: str, start: int, end: int) -> None:
+        key = (start, end)
+        if key not in seen:
+            seen.add(key)
+            triples.append((group, start, end))
+
+    if loop_idx == 0:
+        for ann_m in re.finditer(r"<'", annotation_view_str):
+            pos = ann_m.start()
+            candidate = re.match(curr_loop.regex_str, annotation_view_str[pos:])
+            if candidate:
+                _record(candidate.group(), pos, pos + candidate.end())
+        return triples
+
+    # Intermediate loop: only position 0 matters.
+    if (curr_loop.start_ann_str is not None
+            and curr_loop.min_distance is not None
+            and curr_loop.max_distance is not None):
+        for gap in range(curr_loop.min_distance, curr_loop.max_distance + 1):
+            gap_regex = (
+                f"<'{re.escape(curr_loop.start_ann_str)}[^>]*>"
+                f"(?:<'[^>]*>){{{gap}}}"
+                f"<'{re.escape(curr_loop.last_ann_str)}[^>]*>"
+            )
+            candidate = re.match(gap_regex, annotation_view_str)
+            if candidate:
+                _record(candidate.group(), 0, candidate.end())
+        return triples
+
+    # Fallback: single attempt at position 0.
+    candidate = re.match(curr_loop.regex_str, annotation_view_str)
+    if candidate:
+        _record(candidate.group(), 0, candidate.end())
+    return triples
+
+
 def run_loop(annotation_view_str: str,
              doc: str,
              relation_name: str,
@@ -78,7 +133,8 @@ def run_loop(annotation_view_str: str,
              loop_list: List[ExtractionLoop],
              match_triples_list: List[Tuple],
              new_annotations: List[Annotation],
-             verbose: bool=False) -> Union[List[Annotation], Annotation, None]:
+             verbose: bool=False,
+             allow_overlapping: bool=False) -> Union[List[Annotation], Annotation, None]:
     """
     Recursively execute a chain of ExtractionLoop objects against the
     annotation-view string, accumulating result Annotations.
@@ -104,8 +160,11 @@ def run_loop(annotation_view_str: str,
         new_annotations (List[Tuple]): matches successfully found thus far
         verbose (bool, optional): If True, prints an indented trace of each
             loop's search, the annotation types found, matches attempted,
-            backtracking steps, and final outcome. See DEVELOPING.md for a
-            guide to reading the trace. Defaults to False.
+            backtracking steps, and final outcome. Defaults to False.
+        allow_overlapping (bool, optional): If True, result annotations that
+            overlap (share text span) are all returned. If False (default),
+            once a result is found its span is consumed and overlapping
+            candidates at loop 0 are skipped.
 
     Raises:
         ValueError: For invalid input or unexpected results.
@@ -145,20 +204,21 @@ def run_loop(annotation_view_str: str,
 
     # Recursive functionality begins here.
 
-    # Create a list of (substring, start_offset, end_offset) triples for the
-    # current loop's regex string.
-    # For recursive calls (loop_idx > 0), annotation_view_str starts at the exact
-    # annotation where the previous loop ended. Requiring m.start() == 0 ensures
-    # the next loop's match begins at that same annotation, not a later one of the
-    # same type that happens to be closer to the chain's final target.
-    all_matches = re.finditer(curr_loop.regex_str, annotation_view_str)
-    if loop_idx == 0:
-        match_triples = [(m.group(), m.start(), m.end()) for m in all_matches]
-    else:
-        match_triples = [(m.group(), m.start(), m.end()) for m in all_matches
-                         if m.start() == 0]
+    match_triples = _get_overlapping_match_triples(curr_loop, annotation_view_str, loop_idx)
+
+    # Tracks the doc-end offset of the last result found; used to suppress
+    # overlapping results when allow_overlapping is False.
+    last_result_end = -1
 
     for triple in match_triples:
+        if not allow_overlapping and loop_idx == 0:
+            # Skip any loop-0 candidate whose first annotation starts inside
+            # the span of the last result already found, which would produce
+            # an overlapping result. Parse the doc start offset directly from
+            # the annotation-view string rather than constructing an Annotation.
+            m_start = re.search(r"start='(\d+)'", triple[0])
+            if m_start and int(m_start.group(1)) < last_result_end:
+                continue
         match_triples_list.append(triple)
         if verbose:
             match_types = re.findall(r"<'([^']+)", triple[0])
@@ -194,7 +254,8 @@ def run_loop(annotation_view_str: str,
                             loop_list=loop_list,
                             match_triples_list=match_triples_list,
                             new_annotations=new_annotations,
-                            verbose=verbose)
+                            verbose=verbose,
+                            allow_overlapping=allow_overlapping)
         if recursive_result is None or recursive_result == []:
             if verbose:
                 print(f"{indent}  ^ backtracking")
@@ -203,9 +264,8 @@ def run_loop(annotation_view_str: str,
         if isinstance(recursive_result, Annotation):
             if loop_idx == 0:
                 new_annotations.append(recursive_result)
-                # This next step results in non-overlapping annotations, and allows
-                # the program to continue through the input, attempting additonal
-                # matches.
+                if not allow_overlapping:
+                    last_result_end = recursive_result.end_offset
                 match_triples_list = []
                 continue
             return recursive_result

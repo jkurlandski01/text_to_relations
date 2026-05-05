@@ -27,7 +27,13 @@ class ChainLink:
         start_property: key under which the start annotation's value will be
             stored in the resulting relation's properties (e.g. 'min_number').
         min_distance: minimum number of intervening tokens allowed (inclusive).
+            A value of 0 means the two annotations may be immediately adjacent
+            with nothing between them. A value of 1 means at least one token
+            (word or punctuation) must separate them. Whitespace between words
+            is not counted — only actual tokens.
         max_distance: maximum number of intervening tokens allowed (inclusive).
+            A value of 0 means the two annotations must be immediately adjacent.
+            A value of 1 allows up to one token between them.
         end_type: annotation type that ends this step (e.g. 'Magnitude').
         end_property: key under which the end annotation's value will be
             stored in the resulting relation's properties (e.g. 'max_number').
@@ -78,12 +84,15 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
             self._validate()
         cls.__init__ = __init__
 
-    def __init__(self, verbose: bool = False):
+    def __init__(self, verbose: bool = False, allow_overlapping: bool = False):
         """
         Args:
             verbose (bool): if True, print internal state at each step.
+            allow_overlapping (bool): if True, result annotations that share
+                a text span are all returned. Defaults to False.
         """
         self.verbose = verbose
+        self.allow_overlapping = allow_overlapping
 
         # Subclasses must assign all three of the following in their __init__.
         self.relation_name: Optional[str] = None
@@ -158,13 +167,15 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
                         for d in entity_annotations]
 
         results = self.run_chained_loops(text, self.regex_patterns, self.chain,
-                                         entity_annotations=ann_list)
+                                         entity_annotations=ann_list,
+                                         allow_overlapping=self.allow_overlapping)
         return [_annotation_to_dict(ann) for ann in results]
 
     def run_chained_loops(self, text: str,
                           regex_patterns: Dict[str, RegexString],
                           chain: List[ChainLink],
-                          entity_annotations: Optional[List[Annotation]] = None
+                          entity_annotations: Optional[List[Annotation]] = None,
+                          allow_overlapping: bool = False
                           ) -> List[Annotation]:
         """
         Build annotations from regex_patterns, then run a chain of proximity
@@ -236,7 +247,8 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
             loop_list=loops,
             match_triples_list=[],
             new_annotations=[],
-            verbose=self.verbose
+            verbose=self.verbose,
+            allow_overlapping=allow_overlapping
         )
         # run_loop() is recursive and its return type is Union[List[Annotation], Annotation, None]
         # to accommodate intermediate recursion levels. At the top-level call (loop_idx=0) it
@@ -371,7 +383,7 @@ class SimpleExtractionPhase(ExtractionPhaseABC):
     """
 
     def __init__(self, relation_name: str, regex_patterns: Dict, chain: List[ChainLink],
-                 verbose: bool = False):
+                 verbose: bool = False, allow_overlapping: bool = False):
         """
         Args:
             relation_name (str): type name assigned to each extracted relation
@@ -381,8 +393,10 @@ class SimpleExtractionPhase(ExtractionPhaseABC):
             chain (List[ChainLink]): proximity constraints between consecutive
                 annotation types.
             verbose (bool): if True, print internal state at each step.
+            allow_overlapping (bool): if True, result annotations that share
+                a text span are all returned. Defaults to False.
         """
-        super().__init__(verbose=verbose)
+        super().__init__(verbose=verbose, allow_overlapping=allow_overlapping)
         self.relation_name = relation_name
         self.regex_patterns = regex_patterns
         self.chain = chain
