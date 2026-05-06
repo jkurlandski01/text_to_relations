@@ -379,3 +379,38 @@ class TestForbiddenGapType(unittest.TestCase):
             'type': 'TestRelation', 'text': '1 2 3', 'start': 0, 'end': 5,
             'one': '1', 'two': '2', 'three': '3',
         }], result)
+
+
+class TestCaseSensitivePhase(unittest.TestCase):
+
+    def test_phase_case_insensitive(self):
+        phase = SimpleExtractionPhase(
+            relation_name='TestRelation',
+            regex_patterns={
+                'Start': RegexString(['foo']),
+                'End':   RegexString(['bar']),
+            },
+            chain=[
+                ChainLink('Start', 'start_val', 0, 1, 'End', 'end_val'),
+            ],
+            case_sensitive=False,
+        )
+        result = phase.find_match('FOO BAR')
+        self.assertEqual([{
+            'type': 'TestRelation', 'text': 'FOO BAR', 'start': 0, 'end': 7,
+            'start_val': 'FOO', 'end_val': 'BAR',
+        }], result)
+
+    def test_phase_case_sensitive_by_default(self):
+        phase = SimpleExtractionPhase(
+            relation_name='TestRelation',
+            regex_patterns={
+                'Start': RegexString(['foo']),
+                'End':   RegexString(['bar']),
+            },
+            chain=[
+                ChainLink('Start', 'start_val', 0, 1, 'End', 'end_val'),
+            ],
+        )
+        result = phase.find_match('FOO BAR')
+        self.assertEqual([], result)

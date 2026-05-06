@@ -66,19 +66,19 @@ The simplest interface is RegexString's constructor, which with default paramete
 
 #### Case-Insensitive Matching
 
-RegexString does not use `re.IGNORECASE`. The recommended approach for case-insensitive matching is to lowercase both sides:
+Pass `case_sensitive=False` to `get_match_triples()` to match regardless of case. The matched text in each triple preserves the original casing of the input string:
 
 ```python
-match_strs = ['type', 'kind', 'sort']   # already lowercase
+match_strs = ['type', 'kind', 'sort']   # match_strs can be any case
 rs = RegexString(match_strs, whole_word=True)
 
 input_text = "We need a Type I or a SORT II widget."
-matches = rs.get_match_triples(input_text.lower())
+matches = rs.get_match_triples(input_text, case_sensitive=False)
 print(matches)
-# [('type', 9, 13), ('sort', 22, 26)]
+# [('Type', 9, 13), ('SORT', 22, 26)]
 ```
 
-Note that the offsets returned refer to positions in the lowercased string, which are identical to positions in the original string.
+Note that while matching is case-insensitive, the text in each result triple is taken verbatim from the input — so the results show `'Type'` and `'SORT'` rather than `'type'` and `'sort'`.
 
 ### Example 1
 

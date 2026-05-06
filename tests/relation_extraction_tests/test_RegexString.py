@@ -216,23 +216,19 @@ class TestRegexString(unittest.TestCase):
         with self.assertRaises(ValueError):
             RegexString(['IV'], whole_word=True, append=backslash_b)
 
-    def test_case_insensitive(self):
-        """Test case_insensitive=True matches regardless of case and preserves original casing in triples."""
+    def test_case_sensitive_parameter(self):
+        """Test case_sensitive=False matches regardless of case and preserves original casing in triples."""
         inputStr = 'I Saw A Monkey. The MONKEY was SAD.'
 
         rs = RegexString(['monkey', 'sad'])
 
-        # Without the flag: lowercase match_strs don't match mixed-case input.
+        # Default (case_sensitive=True): lowercase match_strs don't match mixed-case input.
         triples = rs.get_match_triples(inputStr)
         self.assertEqual([], triples)
 
-        # With the flag: matches all case variants; original casing preserved in matched text.
-        triples = rs.get_match_triples(inputStr, case_insensitive=True)
+        # case_sensitive=False: matches all case variants; original casing preserved in matched text.
+        triples = rs.get_match_triples(inputStr, case_sensitive=False)
         self.assertEqual([('Monkey', 8, 14), ('MONKEY', 20, 26), ('SAD', 31, 34)], triples)
-
-        # Old approach (lowercase both sides): works but matched text is lowercased.
-        triples_lower = rs.get_match_triples(inputStr.lower())
-        self.assertEqual([('monkey', 8, 14), ('monkey', 20, 26), ('sad', 31, 34)], triples_lower)
 
     def test_special_chars_in_match_strs(self):
         """ Test that regex metacharacters in match_strs are treated as literals
@@ -329,4 +325,24 @@ class TestEscapeFalse(unittest.TestCase):
         # Sort is applied even when escape=False; longer pattern sorts first.
         rs = RegexString([r'\d', r'\d{2}'], escape=False)
         self.assertEqual(r'(?:\d{2}|\d)', rs.get_regex_str())
+
+
+class TestCaseSensitive(unittest.TestCase):
+    """Tests for the renamed case_sensitive parameter on get_match_triples()."""
+
+    def setUp(self):
+        self.rs = RegexString(['monkey', 'sad'])
+        self.inputStr = 'I Saw A Monkey. The MONKEY was SAD.'
+
+    def test_case_sensitive_false_matches_mixed_case(self):
+        triples = self.rs.get_match_triples(self.inputStr, case_sensitive=False)
+        self.assertEqual([('Monkey', 8, 14), ('MONKEY', 20, 26), ('SAD', 31, 34)], triples)
+
+    def test_case_sensitive_true_explicit(self):
+        triples = self.rs.get_match_triples(self.inputStr, case_sensitive=True)
+        self.assertEqual([], triples)
+
+    def test_case_sensitive_true_is_default(self):
+        triples = self.rs.get_match_triples(self.inputStr)
+        self.assertEqual([], triples)
 

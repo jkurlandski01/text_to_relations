@@ -299,7 +299,8 @@ def run_loop(annotation_view_str: str,
 
 def get_sorted_annotations_for_matching(text: str,
                                         regex_strs: Dict[str, RegexString],
-                                        given_anns: List[Annotation]) -> List[Annotation]:
+                                        given_anns: List[Annotation],
+                                        case_sensitive: bool = True) -> List[Annotation]:
     """
     Return a sorted list of annotations for the next matching phase.
 
@@ -311,6 +312,7 @@ def get_sorted_annotations_for_matching(text: str,
             needed for this phase only.
         given_anns (List[Annotation]): List of annotations created before this
             phase began but needed by the phase.
+        case_sensitive (bool): if False, entity matching ignores case. Defaults to True.
 
     Returns:
         List[Annotation]: List of all the annotations needed for this phase, sorted
@@ -320,7 +322,7 @@ def get_sorted_annotations_for_matching(text: str,
 
     for key in regex_strs.keys():
         regex_str = regex_strs[key]
-        triples = regex_str.get_match_triples(text)
+        triples = regex_str.get_match_triples(text, case_sensitive=case_sensitive)
         for triple in triples:
             ann = Annotation(key, triple[0], triple[1], triple[2])
             anns.append(ann)

@@ -90,15 +90,19 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
             self._validate()
         cls.__init__ = __init__
 
-    def __init__(self, verbose: bool = False, allow_overlapping: bool = False):
+    def __init__(self, verbose: bool = False, allow_overlapping: bool = False,
+                 case_sensitive: bool = True):
         """
         Args:
             verbose (bool): if True, print internal state at each step.
             allow_overlapping (bool): if True, result annotations that share
                 a text span are all returned. Defaults to False.
+            case_sensitive (bool): if False, entity matching via regex_patterns
+                ignores case. Defaults to True.
         """
         self.verbose = verbose
         self.allow_overlapping = allow_overlapping
+        self.case_sensitive = case_sensitive
 
         # Subclasses must assign all three of the following in their __init__.
         self.relation_name: Optional[str] = None
@@ -206,7 +210,8 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
 
         given_anns = list(entity_annotations) if entity_annotations else []
         anns = get_sorted_annotations_for_matching(
-            text=text, regex_strs=regex_patterns, given_anns=given_anns)
+            text=text, regex_strs=regex_patterns, given_anns=given_anns,
+            case_sensitive=self.case_sensitive)
         annotation_view_str = ExtractionPhaseABC.build_merged_representation(text, anns)
 
         def _determine_properties(match_triples):
@@ -391,7 +396,8 @@ class SimpleExtractionPhase(ExtractionPhaseABC):
     """
 
     def __init__(self, relation_name: str, regex_patterns: Dict, chain: List[ChainLink],
-                 verbose: bool = False, allow_overlapping: bool = False):
+                 verbose: bool = False, allow_overlapping: bool = False,
+                 case_sensitive: bool = True):
         """
         Args:
             relation_name (str): type name assigned to each extracted relation
@@ -403,8 +409,11 @@ class SimpleExtractionPhase(ExtractionPhaseABC):
             verbose (bool): if True, print internal state at each step.
             allow_overlapping (bool): if True, result annotations that share
                 a text span are all returned. Defaults to False.
+            case_sensitive (bool): if False, entity matching via regex_patterns
+                ignores case. Defaults to True.
         """
-        super().__init__(verbose=verbose, allow_overlapping=allow_overlapping)
+        super().__init__(verbose=verbose, allow_overlapping=allow_overlapping,
+                         case_sensitive=case_sensitive)
         self.relation_name = relation_name
         self.regex_patterns = regex_patterns
         self.chain = chain

@@ -156,7 +156,7 @@ class RegexString:
         """
         return self.regex_str
 
-    def get_match_triples(self, text: str, case_insensitive: bool = False) -> List[Tuple]:
+    def get_match_triples(self, text: str, case_sensitive: bool = True) -> List[Tuple]:
         """
         Run re.finditer() on this regex.
         Note that this function is likely to fail if you have created any
@@ -164,14 +164,14 @@ class RegexString:
 
         Args:
             text (str): text to run re.finditer() against.
-            case_insensitive (bool): if True, matching ignores case and the
+            case_sensitive (bool): if False, matching ignores case and the
                 matched text in each triple preserves the original casing of
-                the input string. Defaults to False.
+                the input string. Defaults to True.
         Returns:
             List[Tuple]: a list of (text-matched, start-offset, end-offset)
             triples.
         """
-        flags = re.IGNORECASE if case_insensitive else 0
+        flags = 0 if case_sensitive else re.IGNORECASE
         match_triples = [(m.group(), m.start(), m.end())
                          for m in re.finditer(self.get_regex_str(), text, flags)]
         return match_triples

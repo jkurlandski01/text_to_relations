@@ -58,7 +58,12 @@ print(color_phrase.get_match_triples(text))
 
 `get_match_triples()` returns a list of `(matched_text, start_offset, end_offset)` tuples.
 
-The key classes — `RegexString`, `Annotation`, `TokenAnn`, `SentenceAnn`, and `ExtractionPhaseABC` — are all importable directly from `text_to_relations`.
+The function has an optional `case_sensitive` parameter that can be set to False.
+```
+def get_match_triples(self, text: str, case_sensitive: bool = True) -> List[Tuple]
+```
+
+The key classes in this project — `RegexString`, `SimpleExtractionPhase`, and `ExtractionPhaseABC` — are importable directly from `text_to_relations`.
 
 ### For Experienced Regex Users
 
@@ -81,7 +86,7 @@ perf_combined_rs = RegexString.from_regex(
 
 ## Relation Extraction
 
-Consider the need to perform natural language processing on a document such as the following, where "11A" and #17" are stamp IDs.
+Consider the need to perform natural language processing on a document such as the following, where "11A" and "#17" are stamp IDs.
 
 ```
 # 11A - 1853-55 3¢ George Washington, dull red, type II, imperf
@@ -122,10 +127,10 @@ phase = SimpleExtractionPhase(relation_name='StampDescription',
                                regex_patterns=regex_patterns,
                                chain=chain)
 results = phase.find_match(text)
-# 'results' is a list of Annotation objects with labeled properties
+# 'results' is a list of dicts, each with labeled properties
 ```
 
-To be sure, using raw regular expressions is more concise. But consider how much time it took to craft and verify the regular expression--not to mention edit it when (inevitably) it needs to be revised.
+To be sure, using raw regular expressions is more concise. But consider how much time it took to craft and verify the regular expression — not to mention edit it when (inevitably) it needs to be revised.
 
 Moreover, extending the raw regex approach to four entities — each pair with its own distance constraint — means chaining the pattern into one long, nearly unreadable expression, and then writing additional code to label, filter, and structure the output. With the Text-to-Relations framework, each new entity is one more dict entry and one more `ChainLink`, each self-contained and labeled. In other words, complexity grows linearly and readably, and it is highly maintainable. For a full four-entity example, see `examples/extract_stamp_description.py`.
 
@@ -187,11 +192,9 @@ regex_patterns = {
 }
 ```
 
-At this point you want to create a ChainLink that looks for a StampId followed by a MONEY or a Denomination. The problem is that `ChainLink.end_type` is a single string, so there is no direct OR support. The workaround is to normalize both sources to a shared type name before the chain runs.
+At this point you want to create a ChainLink that looks for a StampID followed by a MONEY or a Denomination. The problem is that `ChainLink.end_type` is a single string, so there is no direct OR support. The workaround is to normalize both sources to a shared type name before the chain runs.
 
-# FIXME: We discuss case-insensitivity for RegexString and get_match_triples(), but not for relation extraction.
-
-Let's call the combination of a MONEY or a Denomination a StampValue object. The steps to perform this task are:
+The steps to perform this task are:
 1. Rename incoming MONEY entities to `Denomination` so they share a type name with the locally-detected denominations.
 2. Use `Denomination` as the key in `regex_patterns`.
 3. Set `end_type='Denomination'` in the `ChainLink`.
@@ -206,14 +209,15 @@ incoming_entity_annotations = [
     for ann in all_incoming_annotations
 ]
 
-# Step 2: Add Denomination to regex_patterns; (?i) makes 'cents' case-insensitive
-cents_rs = RegexString([r'(?i)cents'], escape=False, prepend=r'\d\d?')
+# Step 2: Add Denomination to regex_patterns.
+cents_rs = RegexString(['cents'], prepend=r'\d\d?')
 regex_patterns = {
     'StampID':    id_rs,
     'Denomination': cents_rs,
 }
 
-# Step 3: use Denomination as end_type so the chain accepts either source
+# Step 3: use Denomination as end_type so the chain accepts either source.
+# case_sensitive=False so 'Cents', 'CENTS', etc. are also matched.
 chain = [
     ChainLink(start_type='StampID', start_property='StampID',
               min_distance=0, max_distance=4,
@@ -221,7 +225,8 @@ chain = [
 ]
 phase = SimpleExtractionPhase(relation_name='StampDescription',
                                regex_patterns=regex_patterns,
-                               chain=chain)
+                               chain=chain,
+                               case_sensitive=False)
 results = phase.find_match(text, entity_annotations=incoming_entity_annotations)
 ```
 
@@ -239,7 +244,7 @@ phase = SimpleExtractionPhase(relation_name='StampDescription',
                                verbose=True)
 ```
 
-Power users overriding ExtractionPhaseABC themselves can create a `verbose` parameter for their __init__() methods, and pass it to ExtractionPhaseABC's init function.
+Power users overriding `ExtractionPhaseABC` themselves can create a `verbose` parameter for their `__init__()` methods, and pass it to `ExtractionPhaseABC`'s `__init__()`.
 
 See the "Debugging Chain Extraction" section in Developing.md for how to read the chain-matching trace output.
 
@@ -263,4 +268,3 @@ python -m examples.extract_min_max
 
 Both scripts accept `-v` / `--verbose` to print the internal chain-matching trace.
 
-FIXME: proofread as copy editor for typos and other minor mistakes and as content editor for organization and coherence issues.
