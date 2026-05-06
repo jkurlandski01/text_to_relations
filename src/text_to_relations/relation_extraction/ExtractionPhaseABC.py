@@ -39,12 +39,17 @@ class ChainLink:
             stored in the resulting relation's properties (e.g. 'max_number').
             For all links except the last, this should equal the start_property
             of the following link.
+        forbidden_gap_type: if set, any match whose gap contains an annotation
+            of this type is rejected. Use this to prevent a chain from crossing
+            a boundary marker such as a conjunction or punctuation annotation.
+            Defaults to None (no restriction).
 
     Raises ValueError if min_distance > max_distance.
     """
 
     def __init__(self, start_type: str, start_property: str, min_distance: int,
-                 max_distance: int, end_type: str, end_property: str):
+                 max_distance: int, end_type: str, end_property: str,
+                 forbidden_gap_type: Optional[str] = None):
         if min_distance > max_distance:
             raise ValueError(
                 f"ChainLink min_distance ({min_distance}) must be <= max_distance ({max_distance})"
@@ -55,6 +60,7 @@ class ChainLink:
         self.max_distance = max_distance
         self.end_type = end_type
         self.end_property = end_property
+        self.forbidden_gap_type = forbidden_gap_type
 
 
 class ExtractionPhaseABC(metaclass=ABCMeta):
@@ -225,7 +231,8 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
         for i, link in enumerate(chain):
             is_last = i == len(chain) - 1
             regex = TokenAnn.build_annotation_distance_regex(
-                link.start_type, (link.min_distance, link.max_distance), None, link.end_type)
+                link.start_type, (link.min_distance, link.max_distance), None, link.end_type,
+                forbidden_gap_type=link.forbidden_gap_type)
             loop = ExtractionLoop(
                 regex_str=regex,
                 last_ann_str=link.end_type,
@@ -233,6 +240,7 @@ class ExtractionPhaseABC(metaclass=ABCMeta):
                 start_ann_str=link.start_type,
                 min_distance=link.min_distance,
                 max_distance=link.max_distance,
+                forbidden_gap_type=link.forbidden_gap_type,
                 verbose=self.verbose
             )
             loops.append(loop)

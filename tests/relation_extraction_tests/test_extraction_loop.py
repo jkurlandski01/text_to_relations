@@ -323,3 +323,59 @@ class TestOverlappingBug(unittest.TestCase):
             {'type': 'TestRelation', 'text': '1 2 3', 'start': 2, 'end': 7,
              'one': '1', 'two': '2', 'three': '3'},
         ], result)
+
+
+class TestForbiddenGapType(unittest.TestCase):
+
+    def test_forbidden_gap_type(self):
+        phase = SimpleExtractionPhase(
+            relation_name='TestRelation',
+            regex_patterns={
+                'One': RegexString(['1']),
+                'Two': RegexString(['2']),
+                'Conjunction': RegexString(['and']),
+            },
+            chain=[
+                ChainLink('One', 'one', 0, 3, 'Two', 'two',
+                          forbidden_gap_type='Conjunction'),
+            ],
+        )
+        # Conjunction in the gap — should not match.
+        result = phase.find_match("1 and 2")
+        self.assertEqual([], result)
+
+        # No Conjunction in the gap — should match.
+        result = phase.find_match("1 x 2")
+        self.assertEqual([{
+            'type': 'TestRelation', 'text': '1 x 2', 'start': 0, 'end': 5,
+            'one': '1', 'two': '2',
+        }], result)
+
+    def test_forbidden_gap_type_between_links(self):
+        # forbidden_gap_type on the second link prevents matching when the
+        # forbidden annotation appears between the two links (in the second
+        # link's gap), even though the first link's gap is clean.
+        phase = SimpleExtractionPhase(
+            relation_name='TestRelation',
+            regex_patterns={
+                'One':         RegexString(['1']),
+                'Two':         RegexString(['2']),
+                'Three':       RegexString(['3']),
+                'Conjunction': RegexString(['and']),
+            },
+            chain=[
+                ChainLink('One', 'one', 0, 0, 'Two',   'two'),
+                ChainLink('Two', 'two', 0, 2, 'Three', 'three',
+                          forbidden_gap_type='Conjunction'),
+            ],
+        )
+        # Conjunction between the two links — should not match.
+        result = phase.find_match("1 2 and 3")
+        self.assertEqual([], result)
+
+        # No Conjunction between the links — should match.
+        result = phase.find_match("1 2 3")
+        self.assertEqual([{
+            'type': 'TestRelation', 'text': '1 2 3', 'start': 0, 'end': 5,
+            'one': '1', 'two': '2', 'three': '3',
+        }], result)

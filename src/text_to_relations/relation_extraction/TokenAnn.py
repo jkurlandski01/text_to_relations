@@ -31,7 +31,8 @@ class TokenAnn(Annotation):
     def build_annotation_distance_regex(first_ann: Union[str, Annotation],
                                         word_distance_range: Tuple[int, int],
                                         token_type: Optional[str],
-                                        second_ann: Union[str, Annotation]) -> str:
+                                        second_ann: Union[str, Annotation],
+                                        forbidden_gap_type: Optional[str] = None) -> str:
         """
         Build a string regular expression that specifies the token distance between two annotations
         necessary for a match.
@@ -55,7 +56,10 @@ class TokenAnn(Annotation):
         result += str(first_ann)
 
         if token_type is None:
-            result += r"[^>]*>(?:<'[^>]*>){"          # fix: any annotation type in gap
+            if forbidden_gap_type:
+                result += r"[^>]*>(?:<'(?!" + forbidden_gap_type + r")[^>]*>){"
+            else:
+                result += r"[^>]*>(?:<'[^>]*>){"
         else:
             result += r"[^>]*>(?:<'Token'[^>]*kind='"
             result += token_type

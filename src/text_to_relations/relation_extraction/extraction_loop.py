@@ -36,6 +36,7 @@ class ExtractionLoop():
                  start_ann_str: Optional[str]=None,
                  min_distance: Optional[int]=None,
                  max_distance: Optional[int]=None,
+                 forbidden_gap_type: Optional[str]=None,
                  verbose: bool = False
                  ):
         """
@@ -51,6 +52,8 @@ class ExtractionLoop():
                 Used only for verbose output.
             min_distance (int, optional): minimum token gap. Used only for verbose output.
             max_distance (int, optional): maximum token gap. Used only for verbose output.
+            forbidden_gap_type (str, optional): annotation type that must not appear in
+                the gap. Used when enumerating fixed-gap regexes for intermediate loops.
             verbose (bool, optional): Defaults to False.
 
         Raises:
@@ -67,6 +70,7 @@ class ExtractionLoop():
         self.start_ann_str = start_ann_str
         self.min_distance = min_distance
         self.max_distance = max_distance
+        self.forbidden_gap_type = forbidden_gap_type
         self.verbose = verbose  # Currently unused.
 
 
@@ -107,10 +111,15 @@ def _get_overlapping_match_triples(
     if (curr_loop.start_ann_str is not None
             and curr_loop.min_distance is not None
             and curr_loop.max_distance is not None):
+        gap_item = (
+            f"(?:<'(?!{re.escape(curr_loop.forbidden_gap_type)})[^>]*>)"
+            if curr_loop.forbidden_gap_type
+            else "(?:<'[^>]*>)"
+        )
         for gap in range(curr_loop.min_distance, curr_loop.max_distance + 1):
             gap_regex = (
                 f"<'{re.escape(curr_loop.start_ann_str)}[^>]*>"
-                f"(?:<'[^>]*>){{{gap}}}"
+                f"{gap_item}{{{gap}}}"
                 f"<'{re.escape(curr_loop.last_ann_str)}[^>]*>"
             )
             candidate = re.match(gap_regex, annotation_view_str)
@@ -236,6 +245,15 @@ def run_loop(annotation_view_str: str,
             result = Annotation(relation_name, substr, start, end, properties)
             if verbose:
                 print(f"{indent}  SUCCESS → {result}")
+            # A single-link chain makes this loop simultaneously loop_idx==0
+            # and the last loop. Returning result directly would hand an
+            # Annotation to the top-level caller, which expects a list.
+            if loop_idx == 0:
+                new_annotations.append(result)
+                if not allow_overlapping:
+                    last_result_end = result.end_offset
+                match_triples_list = []
+                continue
             return result
 
         match_end_offset = triple[2]
