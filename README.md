@@ -116,41 +116,40 @@ regex_patterns = {
 chain = [
     ChainLink(start_type='StampID', start_property='StampID',
               min_distance=0, max_distance=4,
-              end_type='Denomination', end_property='Denomination'),
+              end_type='Denomination', end_property='denomination'),
 ]
 phase = SimpleExtractionPhase(relation_name='StampDescription',
-                               regex_patterns=regex_patterns, chain=chain)
+                               regex_patterns=regex_patterns,
+                               chain=chain)
 results = phase.find_match(text)
 # 'results' is a list of Annotation objects with labeled properties
 ```
 
-To be sure, using raw regular expressions is more concise. But consider how much time it will take to craft and verify the regular expression--not to mention edit it when (inevitably) it needs to be revised.
+To be sure, using raw regular expressions is more concise. But consider how much time it took to craft and verify the regular expression--not to mention edit it when (inevitably) it needs to be revised.
 
-Moreover, extending the raw regex approach to four entities — each pair with its own distance constraint — means chaining the pattern into one long, nearly unreadable expression, and then writing additional code to label, filter, and structure the output. With the Text-to-Relations framework, each new entity is one more dict entry and one more `ChainLink`, each self-contained and labeled. In other words, complexity grows linearly and readably. For a full four-entity example, see `examples/extract_stamp_description.py`.
+Moreover, extending the raw regex approach to four entities — each pair with its own distance constraint — means chaining the pattern into one long, nearly unreadable expression, and then writing additional code to label, filter, and structure the output. With the Text-to-Relations framework, each new entity is one more dict entry and one more `ChainLink`, each self-contained and labeled. In other words, complexity grows linearly and readably, and it is highly maintainable. For a full four-entity example, see `examples/extract_stamp_description.py`.
 
 
 ## Tips
 
 ### Imposing Boundaries on Relations
 
-The FIXME
-
-To prevent a chain link from matching across a boundary annotation — for example, a conjunction that separates two independent phrases — pass `forbidden_gap_type` to `ChainLink`. Any candidate match whose gap contains an annotation of that type is rejected:
+To prevent a chain link from matching across a boundary annotation — for example, a conjunction that separates two independent phrases — pass a `forbidden_gap_type` parameter to the `ChainLink` constructor. Any candidate match whose gap contains an annotation of that type is rejected:
 
 ```python
 chain = [
     ChainLink(start_type='StampID', start_property='StampID',
               min_distance=0, max_distance=4,
-              end_type='Denomination', end_property='Denomination',
+              end_type='Denomination', end_property='denomination',
               forbidden_gap_type='Conjunction'),
 ]
 ```
 
-With this setting, a StampID and Denomination separated by a `Conjunction` annotation will not produce a match even if they are within four tokens of each other.
+With this setting, a StampID and Denomination separated by a `Conjunction` annotation will not produce a match even if they are within four tokens of each other. See the unit tests for an additional example.
 
 ### Combining Text-to-Relations with Upstream Named Entity Recognition
 
-Text-to-Relations allows the user to combine named entities which were identified previously (upstream) with RegexString objects. For example:
+Text-to-Relations allows the user to combine named entities which were identified previously (upstream) with RegexString objects. The example below shows how to combine a RegexString object named StampID with incoming MONEY named entities which were extracted previously (for example, by Spacy).
 
 ```python
 # Stamp ID detected by this phase via RegexString
@@ -162,7 +161,7 @@ regex_patterns = {
 
 # Denominations supplied as MONEY entities from an upstream NER model;
 # each entry is a dict with 'type', 'text', 'start', and 'end' keys.
-entity_annotations = ner_model.extract(text)
+money_annotations = ner_model.extract(text)
 # e.g. [{'type': 'MONEY', 'text': '3¢', 'start': 16, 'end': 18}, ...]
 
 chain = [
@@ -171,8 +170,9 @@ chain = [
               end_type='MONEY', end_property='money'),
 ]
 phase = SimpleExtractionPhase(relation_name='StampDescription',
-                               regex_patterns=regex_patterns, chain=chain)
-results = phase.find_match(text, entity_annotations=entity_annotations)
+                               regex_patterns=regex_patterns,
+                               chain=chain)
+results = phase.find_match(text, entity_annotations=money_annotations)
 ```
 
 #### Matching Either a RegexString or an Incoming Entity in One ChainLink
@@ -189,39 +189,60 @@ regex_patterns = {
 
 At this point you want to create a ChainLink that looks for a StampId followed by a MONEY or a Denomination. The problem is that `ChainLink.end_type` is a single string, so there is no direct OR support. The workaround is to normalize both sources to a shared type name before the chain runs.
 
-# FIXME: rename StampValue to Denomination
+# FIXME: We discuss case-insensitivity for RegexString and get_match_triples(), but not for relation extraction.
 
 Let's call the combination of a MONEY or a Denomination a StampValue object. The steps to perform this task are:
-1. Rename incoming MONEY entities to `StampValue` so they share a type with the locally-detected denominations.
-2. Add `StampValue` as the key in `regex_patterns`.
-3. Set `end_type='StampValue'` in the `ChainLink`.
+1. Rename incoming MONEY entities to `Denomination` so they share a type name with the locally-detected denominations.
+2. Use `Denomination` as the key in `regex_patterns`.
+3. Set `end_type='Denomination'` in the `ChainLink`.
 
 ```python
-# Step 1: rename incoming MONEY entities to StampValue
-entity_annotations_normalized = [
-    {**ann, 'type': 'StampValue'} if ann['type'] == 'MONEY' else ann
-    for ann in entity_annotations
+# External NER extracts MONEY as well as other common named entities.
+all_incoming_annotations = ner_model.extract(text)
+
+# Step 1: Rename incoming MONEY entities to Denomination.
+incoming_entity_annotations = [
+    {**ann, 'type': 'Denomination'} if ann['type'] == 'MONEY' else ann
+    for ann in all_incoming_annotations
 ]
 
-# Step 2: add StampValue to regex_patterns; (?i) makes 'cents' case-insensitive
+# Step 2: Add Denomination to regex_patterns; (?i) makes 'cents' case-insensitive
 cents_rs = RegexString([r'(?i)cents'], escape=False, prepend=r'\d\d?')
 regex_patterns = {
     'StampID':    id_rs,
-    'StampValue': cents_rs,
+    'Denomination': cents_rs,
 }
 
-# Step 3: use StampValue as end_type so the chain accepts either source
+# Step 3: use Denomination as end_type so the chain accepts either source
 chain = [
     ChainLink(start_type='StampID', start_property='StampID',
               min_distance=0, max_distance=4,
-              end_type='StampValue', end_property='Denomination'),
+              end_type='Denomination', end_property='denomination'),
 ]
 phase = SimpleExtractionPhase(relation_name='StampDescription',
-                               regex_patterns=regex_patterns, chain=chain)
-results = phase.find_match(text, entity_annotations=entity_annotations_normalized)
+                               regex_patterns=regex_patterns,
+                               chain=chain)
+results = phase.find_match(text, entity_annotations=incoming_entity_annotations)
 ```
 
-The chain sees a single `StampValue` type regardless of which source produced each annotation.
+The chain sees a single `Denomination` type regardless of which source produced each annotation.
+
+### Debugging Relation Extraction with Verbose Mode
+
+Relation extraction is implemented via a recursive function. You can run relation extraction in verbose mode to see this recursive behavior so that you can understand why matching does or does not take place.
+
+To run in verbose mode, set verbose to True when creating an object with SimpleExtractionPhase.
+```
+phase = SimpleExtractionPhase(relation_name='StampDescription',
+                               regex_patterns=regex_patterns,
+                               chain=chain,
+                               verbose=True)
+```
+
+Power users overriding ExtractionPhaseABC themselves can create a `verbose` parameter for their __init__() methods, and pass it to ExtractionPhaseABC's init function.
+
+See the "Debugging Chain Extraction" section in Developing.md for how to read the chain-matching trace output.
+
 
 ## Further Examples
 
@@ -240,6 +261,6 @@ python -m examples.extract_stamp_description
 python -m examples.extract_min_max
 ```
 
-Both scripts accept `-v` / `--verbose` to print the internal chain-matching trace. See the FIXME section in Developing.md for how to read.
+Both scripts accept `-v` / `--verbose` to print the internal chain-matching trace.
 
-FIXME: proofread
+FIXME: proofread as copy editor for typos and other minor mistakes and as content editor for organization and coherence issues.
