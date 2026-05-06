@@ -41,9 +41,9 @@ input = \
 # 42 - 1875 5c Jefferson, orange brown
 
 # 62B - 1861 10c Washington, dark green
+"""
 
 input = inspect.cleandoc(input)
-"""
 ```
 
 We'll break the first description up into its constituent parts:

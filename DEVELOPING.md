@@ -37,21 +37,6 @@ This installs the runtime dependencies declared in `pyproject.toml` (e.g. `spacy
 python -m unittest
 ```
 
-## Examples
-
-Two runnable scripts in `examples/` illustrate the two main usage patterns:
-
-```bash
-python -m examples.extract_stamp_description
-python -m examples.extract_min_max
-```
-
-`extract_stamp_description.py` shows the self-contained case: all entity types (StampID, Denomination, TypePhrase, Perforation) are detected by regex patterns defined inside the phase itself, and `find_match()` is called with only the document text.
-
-`extract_min_max.py` shows the externally-supplied case: the phase only detects Range entities; Number and Unit_of_Measure entities are produced by an external tool (here, simple regex matching standing in for a NER model or gazetteer) and passed to `find_match()` via its `entity_annotations` parameter. This is the pattern to follow whenever part of the entity detection is handled outside the library.
-
-Both scripts accept `-v` / `--verbose` to print the internal chain-matching trace.
-
 ## Linting and Type Checking
 
 ```bash
@@ -99,35 +84,6 @@ Loop 0 [AtLeast→CARDINAL, tokens=0..3] — [AtLeast, Token, CARDINAL, UNIT_OF_
 
 - Loop 0 finds a `match` but the next loop immediately shows `NO MATCH` — the gap between the two annotation types is larger than `max_distance` allows.
 - The annotation list at a deeper loop level doesn't contain the expected endpoint type at all — an upstream match consumed the wrong annotation, leaving the remainder without a valid target.
-
-## Work-Arounds
-
-### Matching Either a Regex Annotation or an Incoming Entity in One ChainLink
-
-`ChainLink.end_type` is a single string, so there is no direct OR support. The workaround is to normalize both sources to a shared type name before the chain runs.
-
-Suppose a ChainLink endpoint should accept either a `RangePhrase` (detected by a regex pattern) or a `Unit_of_Measure` (supplied via `entity_annotations`). Rename the incoming entities to the shared name and add the regex under the same name:
-
-```python
-entity_annotations_normalized = [
-    {**ann, 'type': 'Measurement'} if ann['type'] == 'Unit_of_Measure' else ann
-    for ann in entity_annotations
-]
-
-phase = SimpleExtractionPhase(
-    relation_name='MyRelation',
-    regex_patterns={
-        'Measurement': range_phrase_regex,   # regex-detected case
-        ...
-    },
-    chain=[
-        ChainLink(..., end_type='Measurement', end_property='measurement'),
-    ],
-)
-result = phase.find_match(text, entity_annotations=entity_annotations_normalized)
-```
-
-The chain sees a single `Measurement` type regardless of which source produced each annotation.
 
 ## Pypi Build and Upload
 

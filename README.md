@@ -60,18 +60,17 @@ print(color_phrase.get_match_triples(text))
 
 The key classes — `RegexString`, `Annotation`, `TokenAnn`, `SentenceAnn`, and `ExtractionPhaseABC` — are all importable directly from `text_to_relations`.
 
-## For Experienced Regex Users
+### For Experienced Regex Users
 
-If you are comfortable writing raw regular expressions, `RegexString` may not add much value for entity recognition on its own. But see comments on **relation extraction**, below.
+If you are comfortable writing raw regular expressions, `RegexString` may not add much value for entity recognition on its own. But Text-to-Relations still offers what we think are very useful tools for **relation extraction**. See below.
 
-By default the constructor escapes all match strings via `re.escape()`, so metacharacters like `\d+` are treated as literals. Pass `escape=False` to use regex syntax directly in `match_strs` while still getting all the constructor features — `whole_word`, `optional`, `prepend`, `append`, and the OR-ing machinery:
+The relation extraction tools require RegexString objects, however. If you prefer to write your own regular expressions, these can be converted into RegexString objects which can be used for downstream relation extraction. By default the constructor escapes all match strings via `re.escape()`, so metacharacters like `\d+` are treated as literals. Pass `escape=False` to use regex syntax directly in `match_strs` while still getting all the constructor features — `whole_word`, `optional`, `prepend`, `append`, and the OR-ing machinery:
 
 ```python
 number_rs = RegexString([r'\d+'], escape=False)
 digits_or_lower = RegexString([r'\d+', r'[a-z]+'], escape=False)
 number_word = RegexString([r'\d+'], escape=False, whole_word=True)
 ```
-
 
 Use `from_regex()` only when you need to pass a *complete* hand-written regex that cannot be expressed as a list of alternates — for example, when combining two already-built `RegexString` objects:
 
@@ -80,7 +79,17 @@ perf_combined_rs = RegexString.from_regex(
     f'(?:{imperf_rs.get_regex_str()}|{perf_sized_rs.get_regex_str()})')
 ```
 
-Where the framework pays off for everyone, including experienced regex users, is **relation extraction**. Consider linking a stamp ID to its denomination when they appear within four tokens of each other. In raw regex:
+## Relation Extraction
+
+Consider the need to perform natural language processing on a document such as the following, where "11A" and #17" are stamp IDs.
+
+```
+# 11A - 1853-55 3¢ George Washington, dull red, type II, imperf
+
+# 17 - 1851 12c Washington imperforate, black
+```
+
+Suppose you want to link a stamp ID to its denomination when they appear within four tokens of each other. A first pass at doing this with a raw regular expression might look like this:
 
 ```python
 import re
@@ -90,9 +99,20 @@ matches = re.findall(pattern, text)
 # unfiltered, and with no structure beyond what re.findall() provides
 ```
 
-With the framework:
+Compare the use of regular expressions above to how you might extract this information using the Text-to-Relations framework:
 
 ```python
+# Stamp ID: e.g. '# 11A', '# 17', '# 62B'
+id_rs = RegexString(['#'], append=r'\s\d+(?:\w+)?')
+
+# Denomination: e.g. '3¢', '12c', '5c', '1c', '10c'
+cent_rs = RegexString(['c', '¢'], prepend=r'\d\d?')
+
+regex_patterns = {
+    'StampID':      id_rs,
+    'Denomination': cent_rs,
+}
+
 chain = [
     ChainLink(start_type='StampID', start_property='StampID',
               min_distance=0, max_distance=4,
@@ -101,17 +121,125 @@ chain = [
 phase = SimpleExtractionPhase(relation_name='StampDescription',
                                regex_patterns=regex_patterns, chain=chain)
 results = phase.find_match(text)
-# results is a list of Annotation objects with labeled properties
+# 'results' is a list of Annotation objects with labeled properties
 ```
 
-Extending the raw regex approach to four entities — each pair with its own distance constraint — means chaining the pattern into one long, nearly unreadable expression, and then writing additional code to label, filter, and structure the output. With the framework, each new entity is one more dict entry and one more `ChainLink`, each self-contained and labeled — complexity grows linearly and readably. For a full four-entity example, see `examples/extract_stamp_description.py`.
+To be sure, using raw regular expressions is more concise. But consider how much time it will take to craft and verify the regular expression--not to mention edit it when (inevitably) it needs to be revised.
 
-## Further Reading
+Moreover, extending the raw regex approach to four entities — each pair with its own distance constraint — means chaining the pattern into one long, nearly unreadable expression, and then writing additional code to label, filter, and structure the output. With the Text-to-Relations framework, each new entity is one more dict entry and one more `ChainLink`, each self-contained and labeled. In other words, complexity grows linearly and readably. For a full four-entity example, see `examples/extract_stamp_description.py`.
+
+
+## Tips
+
+### Imposing Boundaries on Relations
+
+The FIXME
+
+To prevent a chain link from matching across a boundary annotation — for example, a conjunction that separates two independent phrases — pass `forbidden_gap_type` to `ChainLink`. Any candidate match whose gap contains an annotation of that type is rejected:
+
+```python
+chain = [
+    ChainLink(start_type='StampID', start_property='StampID',
+              min_distance=0, max_distance=4,
+              end_type='Denomination', end_property='Denomination',
+              forbidden_gap_type='Conjunction'),
+]
+```
+
+With this setting, a StampID and Denomination separated by a `Conjunction` annotation will not produce a match even if they are within four tokens of each other.
+
+### Combining Text-to-Relations with Upstream Named Entity Recognition
+
+Text-to-Relations allows the user to combine named entities which were identified previously (upstream) with RegexString objects. For example:
+
+```python
+# Stamp ID detected by this phase via RegexString
+id_rs = RegexString(['#'], append=r'\s\d+(?:\w+)?')
+
+regex_patterns = {
+    'StampID': id_rs,
+}
+
+# Denominations supplied as MONEY entities from an upstream NER model;
+# each entry is a dict with 'type', 'text', 'start', and 'end' keys.
+entity_annotations = ner_model.extract(text)
+# e.g. [{'type': 'MONEY', 'text': '3¢', 'start': 16, 'end': 18}, ...]
+
+chain = [
+    ChainLink(start_type='StampID', start_property='StampID',
+              min_distance=0, max_distance=4,
+              end_type='MONEY', end_property='money'),
+]
+phase = SimpleExtractionPhase(relation_name='StampDescription',
+                               regex_patterns=regex_patterns, chain=chain)
+results = phase.find_match(text, entity_annotations=entity_annotations)
+```
+
+#### Matching Either a RegexString or an Incoming Entity in One ChainLink
+
+Let's continue the example immediately above. Suppose that the incoming MONEY entities correctly identify "3 cents" and "3 ¢", but fail to detect strings like "3 c". You may need to identify these with the following:
+
+```
+cents_rs = RegexString(['c'], prepend=r'\d\d?')
+
+regex_patterns = {
+    'Denomination': cents_rs,
+}
+```
+
+At this point you want to create a ChainLink that looks for a StampId followed by a MONEY or a Denomination. The problem is that `ChainLink.end_type` is a single string, so there is no direct OR support. The workaround is to normalize both sources to a shared type name before the chain runs.
+
+# FIXME: rename StampValue to Denomination
+
+Let's call the combination of a MONEY or a Denomination a StampValue object. The steps to perform this task are:
+1. Rename incoming MONEY entities to `StampValue` so they share a type with the locally-detected denominations.
+2. Add `StampValue` as the key in `regex_patterns`.
+3. Set `end_type='StampValue'` in the `ChainLink`.
+
+```python
+# Step 1: rename incoming MONEY entities to StampValue
+entity_annotations_normalized = [
+    {**ann, 'type': 'StampValue'} if ann['type'] == 'MONEY' else ann
+    for ann in entity_annotations
+]
+
+# Step 2: add StampValue to regex_patterns; (?i) makes 'cents' case-insensitive
+cents_rs = RegexString([r'(?i)cents'], escape=False, prepend=r'\d\d?')
+regex_patterns = {
+    'StampID':    id_rs,
+    'StampValue': cents_rs,
+}
+
+# Step 3: use StampValue as end_type so the chain accepts either source
+chain = [
+    ChainLink(start_type='StampID', start_property='StampID',
+              min_distance=0, max_distance=4,
+              end_type='StampValue', end_property='Denomination'),
+]
+phase = SimpleExtractionPhase(relation_name='StampDescription',
+                               regex_patterns=regex_patterns, chain=chain)
+results = phase.find_match(text, entity_annotations=entity_annotations_normalized)
+```
+
+The chain sees a single `StampValue` type regardless of which source produced each annotation.
+
+## Further Examples
 
 For a full walkthrough, including entity recognition and relation extraction examples, see [TUTORIAL.md](TUTORIAL.md).
 
-A working end-to-end relation extraction example can be found in `examples/extract_stamp_description.py`. Run it with:
+Additionally, two runnable scripts in `examples/` illustrate the two main usage patterns:
+
+`extract_stamp_description.py` shows the self-contained case: all entity types (StampID, Denomination, TypePhrase, Perforation) are detected by regex patterns defined inside the phase itself, and `find_match()` is called with only the document text.
+
+`extract_min_max.py` shows the externally-supplied case: the phase only detects Range entities; Number and Unit_of_Measure entities are produced by an external tool (here, simple regex matching standing in for a NER model or gazetteer) and passed to `find_match()` via its `entity_annotations` parameter. This is the pattern to follow whenever part of the entity detection is handled outside the library.
+
+Run them with:
 
 ```
 python -m examples.extract_stamp_description
+python -m examples.extract_min_max
 ```
+
+Both scripts accept `-v` / `--verbose` to print the internal chain-matching trace. See the FIXME section in Developing.md for how to read.
+
+FIXME: proofread
