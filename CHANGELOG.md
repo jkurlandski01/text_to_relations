@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.1.4
+
+### Breaking changes
+
+- **`RegexString.get_match_triples()`**: parameter `case_insensitive` renamed to `case_sensitive` with inverted semantics (default `True`). Callers passing `case_insensitive=True` must update to `case_sensitive=False`.
+
+### New features
+
+- **`ChainLink`**: new `forbidden_gap_type` parameter. If set, any candidate match whose gap contains an annotation of that type is rejected, allowing chain links to be prevented from crossing boundary markers such as conjunctions.
+- **`ExtractionPhaseABC` / `SimpleExtractionPhase`**: new `allow_overlapping` parameter (default `False`). When `True`, result annotations that share a text span are all returned rather than deduplicated.
+- **`ExtractionPhaseABC` / `SimpleExtractionPhase`**: new `case_sensitive` parameter (default `True`). When `False`, entity matching via `regex_patterns` ignores case.
+
+---
+
 ## 0.1.3
 
 ### Breaking changes

@@ -6,6 +6,7 @@
   - [Entity Recognition](#entity-recognition)
     - [RegexString](#regexstring)
       - [Case-Insensitive Matching](#case-insensitive-matching)
+      - [Mixing Case-Sensitive and Case-Insensitive Patterns](#mixing-case-sensitive-and-case-insensitive-patterns)
     - [Example 1](#example-1)
     - [Example 2](#example-2)
     - [Example 3](#example-3)
@@ -79,6 +80,31 @@ print(matches)
 ```
 
 Note that while matching is case-insensitive, the text in each result triple is taken verbatim from the input — so the results show `'Type'` and `'SORT'` rather than `'type'` and `'sort'`.
+
+#### Mixing Case-Sensitive and Case-Insensitive Patterns
+
+The Phase-level `case_sensitive=False` parameter applies to all `regex_patterns` uniformly. When you need some patterns to be case-sensitive and others not, use the `(?i)` inline flag directly in the affected `RegexString` objects and leave the Phase at its default `case_sensitive=True`.
+
+The `(?i)` flag requires `escape=False` so it is passed through verbatim rather than escaped:
+
+```python
+# Stamp IDs are always uppercase — match case-sensitively (the default).
+id_rs = RegexString(['#'], append=r'\s\d+(?:\w+)?')
+
+# Denomination labels vary in case — use (?i) for case-insensitive matching
+# on this pattern only.
+cents_rs = RegexString([r'(?i)cents'], escape=False, prepend=r'\d\d?')
+
+regex_patterns = {
+    'StampID':      id_rs,
+    'Denomination': cents_rs,
+}
+
+# No case_sensitive=False on the phase — per-pattern (?i) handles it.
+phase = SimpleExtractionPhase(relation_name='StampDescription',
+                               regex_patterns=regex_patterns,
+                               chain=chain)
+```
 
 ### Example 1
 
