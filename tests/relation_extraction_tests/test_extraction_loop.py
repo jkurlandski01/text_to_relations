@@ -283,45 +283,49 @@ class TestOverlappingBug(unittest.TestCase):
         }], result)
 
     def test_allow_overlapping_parameter(self):
-        # Pattern: 1 -> 2 -> 3, where 1->2 allows up to 1 intervening token.
-        # Text "1 1 2 3": both 1s can reach 2 within max_distance=1, producing
-        # two overlapping chains (they share the 2 and 3 annotations).
+        # Both 'speed' and 'torque' are within 5 tokens of '100 rpm', so both
+        # chains match the same threshold annotation.
         #
-        # allow_overlapping=False (default): only the first chain is returned.
+        # allow_overlapping=False (default): only the first chain (speed) is returned.
         # allow_overlapping=True: both chains are returned.
+        text = "speed and torque must both exceed 100 rpm."
         regex_patterns = {
-            'One':   RegexString(['1']),
-            'Two':   RegexString(['2']),
-            'Three': RegexString(['3']),
+            'Metric':    RegexString(['speed', 'torque'], whole_word=True),
+            'Threshold': RegexString([r'\d+'], escape=False, append=r'\s+rpm'),
         }
         chain = [
-            ChainLink('One',   'one',   0, 1, 'Two',   'two'),
-            ChainLink('Two',   'two',   0, 0, 'Three', 'three'),
+            ChainLink('Metric', 'metric', 0, 5, 'Threshold', 'threshold'),
         ]
 
         phase_default = SimpleExtractionPhase(
-            relation_name='TestRelation',
+            relation_name='MetricLimit',
             regex_patterns=regex_patterns,
             chain=chain,
         )
-        result = phase_default.find_match("1 1 2 3")
+        result = phase_default.find_match(text)
         self.assertEqual([{
-            'type': 'TestRelation', 'text': '1 1 2 3', 'start': 0, 'end': 7,
-            'one': '1', 'two': '2', 'three': '3',
+            'type': 'MetricLimit',
+            'text': 'speed and torque must both exceed 100 rpm',
+            'start': 0, 'end': 41,
+            'metric': 'speed', 'threshold': '100 rpm',
         }], result)
 
         phase_overlap = SimpleExtractionPhase(
-            relation_name='TestRelation',
+            relation_name='MetricLimit',
             regex_patterns=regex_patterns,
             chain=chain,
             allow_overlapping=True,
         )
-        result = phase_overlap.find_match("1 1 2 3")
+        result = phase_overlap.find_match(text)
         self.assertEqual([
-            {'type': 'TestRelation', 'text': '1 1 2 3', 'start': 0, 'end': 7,
-             'one': '1', 'two': '2', 'three': '3'},
-            {'type': 'TestRelation', 'text': '1 2 3', 'start': 2, 'end': 7,
-             'one': '1', 'two': '2', 'three': '3'},
+            {'type': 'MetricLimit',
+             'text': 'speed and torque must both exceed 100 rpm',
+             'start': 0, 'end': 41,
+             'metric': 'speed', 'threshold': '100 rpm'},
+            {'type': 'MetricLimit',
+             'text': 'torque must both exceed 100 rpm',
+             'start': 10, 'end': 41,
+             'metric': 'torque', 'threshold': '100 rpm'},
         ], result)
 
 

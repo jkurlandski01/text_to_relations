@@ -329,27 +329,14 @@ Stamp IDs with letters found in the input:
 
 By *relation extraction* we mean the identification of relationships between multiple entities. With the stamp data we have been working with, a natural relation is a `StampDescription` that groups together the stamp's ID, denomination, type numeral, and perforation information. Not every stamp entry contains all four fields — only three of the seven have type information — so only those three will produce a result.
 
-To extract a relation, subclass `ExtractionPhaseABC` and implement `check_annotation_proximity()`. The default `run_phase()` splits the document on blank lines and calls `check_annotation_proximity()` for each entry — no further boilerplate required.
-
 ### The extraction phase
 
-Inside `check_annotation_proximity()` you define two things:
+The extraction phase has three ingredients: the regex patterns, a proximity chain, and a phase object.
 
-**1. Regex patterns** — a dict mapping annotation type names to `RegexString` objects, using the same patterns introduced earlier in this tutorial:
+The **regex patterns** are exactly the `RegexString` objects built in the entity recognition examples above, collected into a dict:
 
 ```python
-id_rs    = RegexString(['#'], append=r'\s\d+(?:\w+)?')
-cent_rs  = RegexString(['c', '¢'], prepend=r'\d\d?')
-
-type_markers_rs  = RegexString(['type', 'Type'], whole_word=True)
-roman_nums_rs    = RegexString(['I', 'II', 'III', 'IV', 'V'], whole_word=True)
-type_phrase_rs   = RegexString.concat_with_word_distances(
-    type_markers_rs, roman_nums_rs, min_nbr_words=0, max_nbr_words=0)
-
-imperf_rs        = RegexString(['imperforate', 'imperf'])
-perf_sized_rs    = RegexString(['perf'], append=r'\s\d+')
-perf_combined_rs = RegexString.from_regex(
-    f'(?:{imperf_rs.get_regex_str()}|{perf_sized_rs.get_regex_str()})')
+from text_to_relations import RegexString, SimpleExtractionPhase, ChainLink
 
 regex_patterns = {
     'StampID':      id_rs,
@@ -359,47 +346,50 @@ regex_patterns = {
 }
 ```
 
-**2. A proximity chain** — a list of `(start_type, (min_tokens, max_tokens), end_type)` tuples specifying how close together consecutive entity types must appear:
+The **chain** is a list of `ChainLink` objects. Each `ChainLink` specifies two consecutive entity types and the minimum and maximum number of tokens permitted between them. The chain defines the full sequence of entities that must appear, in order, for a relation to be extracted:
 
 ```python
 chain = [
-    ('StampID',      (0, 4), 'Denomination'),   # e.g. '- 1853-55'
-    ('Denomination', (0, 8), 'TypePhrase'),      # e.g. 'George Washington, dull red,'
-    ('TypePhrase',   (0, 2), 'Perforation'),     # e.g. ','
+    ChainLink(start_type='StampID',      start_property='StampID',
+              min_distance=0, max_distance=4,
+              end_type='Denomination',   end_property='Denomination'),
+    ChainLink(start_type='Denomination', start_property='Denomination',
+              min_distance=0, max_distance=8,
+              end_type='TypePhrase',     end_property='TypePhrase'),
+    ChainLink(start_type='TypePhrase',   start_property='TypePhrase',
+              min_distance=0, max_distance=2,
+              end_type='Perforation',    end_property='Perforation'),
 ]
 ```
 
-Then call `run_chained_loops()`, which handles everything else — building annotations, constructing the merged representation, running the loop engine, and assembling the result:
+`start_property` and `end_property` are the keys under which the matched text will appear in each result dict. Here they match the type names, but they can be any string you like.
+
+The **phase** ties the two together:
 
 ```python
-return self.run_chained_loops(text, 'StampDescription', regex_patterns, chain)
-```
-
-The full class looks like this:
-
-```python
-class StampDescriptionPhase(ExtractionPhaseABC):
-    def __init__(self, doc_contents: str, verbose: bool = False):
-        super().__init__(doc_contents, verbose=verbose)
-
-    def check_annotation_proximity(self, text: str) -> List[Annotation]:
-        # ... (regex pattern definitions as above) ...
-        regex_patterns = { ... }
-        chain = [ ... ]
-        return self.run_chained_loops(text, 'StampDescription', regex_patterns, chain)
+phase = SimpleExtractionPhase(
+    relation_name='StampDescription',
+    regex_patterns=regex_patterns,
+    chain=chain,
+)
 ```
 
 ### Running the extraction
 
+`find_match()` takes a single string and returns a list of result dicts, one per relation found. The stamp data has one entry per paragraph, so we split on blank lines and call `find_match()` once per entry:
+
 ```python
-phase = StampDescriptionPhase(input_text)
-results = phase.run_phase()
+import re
+
+paragraphs = [e.strip() for e in re.split(r'\n\s*\n', input) if e.strip()]
+results = []
+for par in paragraphs:
+    results.extend(phase.find_match(par))
 
 print(f'{len(results)} of 7 stamp descriptions extracted:\n')
-for ann in results:
-    p = ann.properties
-    print(f"  stamp_id='{p['StampID']}', denomination='{p['Denomination']}', "
-          f"type='{p['TypePhrase']}', perforation_info='{p['Perforation']}'")
+for rel in results:
+    print(f"  stamp_id='{rel['StampID']}', denomination='{rel['Denomination']}', "
+          f"type='{rel['TypePhrase']}', perforation_info='{rel['Perforation']}'")
 ```
 
 Output:
@@ -412,6 +402,4 @@ Output:
   stamp_id='# 18', denomination='1c', type='type I', perforation_info='perf 15'
 ```
 
-Only 3 of 7 stamp descriptions were extracted because the loop chain requires all four fields to be present. The other four stamps either lack type information entirely (stamps #40, #42, #62B) or have perforation information but no type (stamp #17). Handling those cases would require additional phases — one for each alternative pattern — following the same approach shown here.
-
-Note that `ann.properties` keys match the annotation type names defined in `regex_patterns` (`StampID`, `Denomination`, `TypePhrase`, `Perforation`).
+Only 3 of 7 entries match because the chain requires all four fields to be present in the same entry. The remaining four either lack type information entirely (stamps #40, #42, #62B) or have perforation but no type (stamp #17). Handling those cases would require additional phases — one per alternative pattern — following the same approach shown here.

@@ -251,6 +251,9 @@ See the "Debugging Chain Extraction" section in Developing.md for how to read th
 
 ## Further Examples
 
+This section points to places where users can find more documentation on this package, from a full tutorial to examples on specific functionality not already mentioned in this ReadMe.
+
+### The Tutorial
 For a full walkthrough, including entity recognition and relation extraction examples, see [TUTORIAL.md](TUTORIAL.md).
 
 Additionally, two runnable scripts in `examples/` illustrate the two main usage patterns:
@@ -268,3 +271,146 @@ python -m examples.extract_min_max
 
 Both scripts accept `-v` / `--verbose` to print the internal chain-matching trace.
 
+### Additional Functionality
+
+#### Relation Extraction: Allowing Overlapping Results
+
+By default, `find_match()` returns at most one result per starting annotation. Once a chain rooted at a given span produces a match, any other candidate whose start falls inside that result's span is suppressed.
+
+Set `allow_overlapping=True` on the phase when multiple entities of the same type all link to a single shared entity and you want a result for each one:
+
+```python
+text = "speed and torque must both exceed 100 rpm."
+
+regex_patterns = {
+    'Metric':    RegexString(['speed', 'torque'], whole_word=True),
+    'Threshold': RegexString([r'\d+'], escape=False, append=r'\s+rpm'),
+}
+chain = [
+    ChainLink('Metric', 'metric', 0, 5, 'Threshold', 'threshold'),
+]
+
+# Default: only the first Metric (speed) produces a result.
+phase = SimpleExtractionPhase(
+    relation_name='MetricLimit',
+    regex_patterns=regex_patterns,
+    chain=chain,
+)
+phase.find_match(text)
+# [{'type': 'MetricLimit',
+#   'text': 'speed and torque must both exceed 100 rpm',
+#   'start': 0, 'end': 41,
+#   'metric': 'speed', 'threshold': '100 rpm'}]
+
+# allow_overlapping=True: both metrics produce a result.
+phase = SimpleExtractionPhase(
+    relation_name='MetricLimit',
+    regex_patterns=regex_patterns,
+    chain=chain,
+    allow_overlapping=True,
+)
+phase.find_match(text)
+# [{'type': 'MetricLimit',
+#   'text': 'speed and torque must both exceed 100 rpm',
+#   'start': 0, 'end': 41,
+#   'metric': 'speed', 'threshold': '100 rpm'},
+#  {'type': 'MetricLimit',
+#   'text': 'torque must both exceed 100 rpm',
+#   'start': 10, 'end': 41,
+#   'metric': 'torque', 'threshold': '100 rpm'}]
+```
+
+Both `speed` and `torque` are within five tokens of `100 rpm`, so both chains match the same threshold annotation. With the default `allow_overlapping=False` only the first is returned because `torque` falls inside its span. With `allow_overlapping=True` both are returned.
+
+See `tests/relation_extraction_tests/test_extraction_loop.py` for additional examples.
+
+#### Relation Extraction: Same Annotation Type Appearing Twice in a Chain
+
+A chain can include the same annotation type more than once. The key is to give each occurrence a distinct `end_property` so both values appear as separate keys in the result dict. Each link's `start_property` must also match the preceding link's `end_property` — the phase validates this at construction time.
+
+The min-max pattern is a natural example — "between 170 and 220 pounds" contains two `Number` annotations:
+
+```python
+regex_patterns = {
+    'Range': RegexString(['between', 'within the range of']),
+}
+chain = [
+    ChainLink(start_type='Range',         start_property='range_phrase',
+              min_distance=0, max_distance=3,
+              end_type='Number',           end_property='min_number'),
+    ChainLink(start_type='Number',        start_property='min_number',
+              min_distance=0, max_distance=2,
+              end_type='Number',           end_property='max_number'),
+    ChainLink(start_type='Number',        start_property='max_number',
+              min_distance=0, max_distance=2,
+              end_type='Unit_of_Measure', end_property='unit'),
+]
+# Result for "between 170 and 220 pounds" (Number and Unit_of_Measure
+# supplied via entity_annotations):
+# {'type': 'MinMax', ..., 'range_phrase': 'between',
+#  'min_number': '170', 'max_number': '220', 'unit': 'pounds'}
+```
+
+For a complete runnable example see `examples/extract_min_max.py`.
+
+#### RegexString: Non-Capturing Groups
+
+`RegexString` wraps its alternation in a non-capturing group `(?:...)` by default. This is intentional: the library's own matching functions assume non-capturing groups, and `get_match_triples()` will return incorrect results if capturing groups are present.
+
+The only reason to set `non_capturing=False` is if you are calling `get_regex_str()` to extract the raw pattern for use with your own code outside the library, and that code requires capturing groups:
+
+```python
+# Default: non-capturing group.
+rs = RegexString(['cat', 'dog'])
+rs.get_regex_str()
+# '(?:dog|cat)'
+
+# non_capturing=False: capturing group.
+rs = RegexString(['cat', 'dog'], non_capturing=False)
+rs.get_regex_str()
+# '(dog|cat)'
+```
+
+Do not use `non_capturing=False` on any `RegexString` that will be passed to `get_match_triples()`, `concat()`, `concat_with_word_distances()`, or a `regex_patterns` dict.
+
+#### RegexString: Optional Whitespace in concat()
+
+`RegexString.concat()` joins two patterns with no separator by default, requiring the second pattern to immediately follow the first character-for-character. Pass `insert_opt_ws=True` to allow a single optional whitespace character at the boundary.
+
+The typical use case is a number-unit pair that appears both with and without a space:
+
+```python
+number_rs = RegexString([r'\d+'], escape=False)
+unit_rs   = RegexString(['rpm', 'mph'])
+
+# Default: matches '100rpm' but not '100 rpm'.
+speed_rs = RegexString.concat(number_rs, unit_rs)
+
+# insert_opt_ws=True: matches both '100rpm' and '100 rpm'.
+speed_rs = RegexString.concat(number_rs, unit_rs, insert_opt_ws=True)
+speed_rs.get_match_triples("engine runs at 100 rpm or 200rpm")
+# [('100 rpm', 15, 22), ('200rpm', 26, 32)]
+```
+
+For patterns that need one or more full words between them, use `concat_with_word_distances()` instead. (See the Quick Start for an example.)
+
+#### RegexString: build_regex_string()
+
+`build_regex_string()` is a shorthand for chaining three or more word groups with distance constraints between each consecutive pair. The input alternates between a list of strings and an integer max word distance:
+
+```python
+inputList = [['good', 'great', 'excellent'], 1, ['results', 'performance', 'work']]
+praise_rs = RegexString.build_regex_string(inputList)
+praise_rs.get_match_triples("The audit found excellent results and great overall performance.")
+# [('excellent results', 16, 33), ('great overall performance', 38, 63)]
+```
+
+Each integer is the maximum number of words permitted between the two adjacent groups; the minimum is always 0. For three groups:
+
+```python
+inputList = [['incredibly'], 0, ['good', 'great'], 1, ['work', 'job']]
+# matches 'incredibly good work', 'incredibly great solid job', etc.
+RegexString.build_regex_string(inputList)
+```
+
+The list must have an odd number of elements and at least three. For two groups, use `concat_with_word_distances()` directly. For any link that needs a non-zero minimum distance, also use `concat_with_word_distances()` directly — `build_regex_string()` always uses `min_nbr_words=0`.
